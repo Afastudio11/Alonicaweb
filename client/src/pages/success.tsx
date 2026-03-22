@@ -31,10 +31,9 @@ export default function SuccessPage() {
   }, []);
 
   const handleBackToMenu = () => {
-    // Clear customer and receipt data when going back to menu
     localStorage.removeItem('alonica-customer');
     localStorage.removeItem('alonica-receipt');
-    setLocation("/menu");
+    setLocation("/");
   };
 
   const handlePrintReceipt = () => {

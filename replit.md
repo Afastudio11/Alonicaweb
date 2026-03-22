@@ -91,7 +91,24 @@ Preferred communication style: Simple, everyday language.
 - **Node.js**: Runtime environment for the backend
 - **npm**: Package management and script execution
 
+## Admin Access
+
+- **Admin login**: Click the subtle ⚙ gear icon (top-right of navbar) → /login
+- **Default credentials**: `admin` / `admin123` · `kasir` / `admin123`
+- **Production note**: Change passwords immediately after first login
+
 ## Recent Changes
+
+### March 2026 – Full Fore Coffee-Inspired Redesign
+
+- ✅ **Landing page (welcome.tsx)**: Hero carousel banner, sticky navbar with cart icon, category filter pills, menu card grid with inline add/quantity controls, floating cart bar — fully redesigned
+- ✅ **Checkout page (cart.tsx)**: Dine In / Take Away toggle, customer name + phone + table fields, schedule now or later, cart items list, order summary — all with warm cream modern design
+- ✅ **Payment page (payment.tsx)**: Updated header and layout to match new warm aesthetic; passes `customerPhone`, `orderType`, `scheduledTime` from localStorage to order API
+- ✅ **Global styles (index.css)**: DM Sans body font, Playfair Display headings, warm cream background #F5F0E8, maroon primary #800001
+- ✅ **Schema (shared/schema.ts)**: Added `customerPhone`, `orderType` (dine_in/take_away), `scheduledTime` fields to orders table; db:push applied
+- ✅ **Database seeded**: Admin + kasir users created; 3 categories (Minuman, Makanan, Dessert) + 10 menu items with real images inserted
+- ✅ **App.tsx**: /menu and /welcome routes both redirect to / (landing page)
+- ✅ **success.tsx**: Back-to-home redirects to / instead of /menu
 
 ### September 26, 2025 - GitHub Import Successfully Configured for Replit
 - ✅ **GitHub Import Complete**: Successfully imported and configured the Alonica project in Replit environment

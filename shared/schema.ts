@@ -92,6 +92,9 @@ export const orders = pgTable("orders", {
   paymentExpiredAt: timestamp("payment_expired_at"), // Payment expiry time
   paidAt: timestamp("paid_at"), // When payment was completed
   orderStatus: text("order_status").notNull().default("queued"), // 'queued', 'preparing', 'ready', 'served', 'cancelled'
+  customerPhone: text("customer_phone"), // Customer phone number
+  orderType: text("order_type").notNull().default("dine_in"), // 'dine_in' | 'take_away'
+  scheduledTime: text("scheduled_time"), // null = order now, ISO string = scheduled time
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 }, (table) => [

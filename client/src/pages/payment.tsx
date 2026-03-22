@@ -144,7 +144,7 @@ export default function PaymentPage() {
       return;
     }
 
-    const { name, table } = JSON.parse(customerData);
+    const { name, table, phone, orderType, scheduledTime } = JSON.parse(customerData);
 
     // Convert cart items to order items
     const orderItems: OrderItem[] = cartItems.map(item => ({
@@ -159,6 +159,9 @@ export default function PaymentPage() {
       customerName: name,
       tableNumber: table,
       items: orderItems,
+      customerPhone: phone || null,
+      orderType: orderType || 'dine_in',
+      scheduledTime: scheduledTime || null,
     };
 
     createOrderMutation.mutate(orderData);
@@ -320,26 +323,28 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-20" style={{ background: "#F5F0E8", fontFamily: "var(--font-sans)" }}>
       {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4 sticky top-0 z-10">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setLocation("/cart")}
-            className="mr-4 text-muted-foreground"
-            data-testid="button-back"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          <h1 className="text-2xl font-playfair font-bold text-primary" data-testid="text-page-title">
-            QRIS Payment
-          </h1>
-        </div>
-      </header>
+      <div
+        className="sticky top-0 z-40 bg-white flex items-center gap-3 px-4 h-14"
+        style={{ borderBottom: "1px solid #EAE0D8" }}
+      >
+        <button
+          onClick={() => setLocation("/cart")}
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+          data-testid="button-back"
+        >
+          <ArrowLeft className="h-5 w-5" style={{ color: "#5A4A47" }} />
+        </button>
+        <h1 className="text-base font-semibold flex-1" style={{ color: "#1A0A0A" }} data-testid="text-page-title">
+          Pembayaran QRIS
+        </h1>
+        <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ background: "#FFF5F5", color: "#800001" }}>
+          Midtrans
+        </span>
+      </div>
 
-      <div className="px-6 py-8">
+      <div className="max-w-lg mx-auto px-4 py-6">
         {renderPaymentContent()}
       </div>
     </div>

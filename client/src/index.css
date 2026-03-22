@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
+  --background: hsl(30 20% 96%);
+  --foreground: hsl(15 40% 10%);
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(222.2 84% 4.9%);
   --popover: hsl(0 0% 100%);
@@ -37,8 +37,8 @@
   --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
   --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
   --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
-  --font-playfair: 'Playfair Display', serif;
-  --font-inter: 'Inter', sans-serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
   --radius: 16px;
   --shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   
@@ -80,15 +80,16 @@
   }
 
   body {
-    @apply font-inter antialiased bg-background text-foreground;
+    font-family: var(--font-sans);
+    @apply antialiased bg-background text-foreground;
   }
 
   .font-playfair {
     font-family: var(--font-playfair);
   }
 
-  .font-inter {
-    font-family: var(--font-inter);
+  .font-sans {
+    font-family: var(--font-sans);
   }
 }
 

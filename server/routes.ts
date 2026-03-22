@@ -1868,7 +1868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public customer order creation endpoint (QRIS only)
   app.post("/api/orders", async (req, res) => {
     try {
-      const { customerName, tableNumber, items } = req.body;
+      const { customerName, tableNumber, items, customerPhone, orderType, scheduledTime } = req.body;
       
       if (!customerName || !tableNumber || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Customer name, table number, and items are required" });
@@ -1924,7 +1924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             grossAmount: total,
             customerDetails: {
               name: customerName,
-              phone: undefined // We don't collect phone in the current flow
+              phone: customerPhone || undefined
             },
             itemDetails: itemDetails
           });
@@ -1948,7 +1948,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             qrisUrl: midtransPayment.qrisUrl,
             qrisString: midtransPayment.qrisString,
             paymentExpiredAt: midtransPayment.expiryTime ? new Date(midtransPayment.expiryTime) : new Date(Date.now() + 15 * 60 * 1000),
-            orderStatus: 'queued' as const
+            orderStatus: 'queued' as const,
+            customerPhone: customerPhone || null,
+            orderType: orderType || 'dine_in',
+            scheduledTime: scheduledTime || null,
           };
 
           const order = await storage.createOrder(orderData);
@@ -1981,7 +1984,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             qrisUrl: null,
             qrisString: null,
             paymentExpiredAt: new Date(Date.now() + 15 * 60 * 1000),
-            orderStatus: 'queued' as const
+            orderStatus: 'queued' as const,
+            customerPhone: customerPhone || null,
+            orderType: orderType || 'dine_in',
+            scheduledTime: scheduledTime || null,
           };
 
           const order = await storage.createOrder(orderData);
@@ -2013,7 +2019,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           qrisUrl: null,
           qrisString: null,
           paymentExpiredAt: new Date(Date.now() + 15 * 60 * 1000),
-          orderStatus: 'queued' as const
+          orderStatus: 'queued' as const,
+          customerPhone: customerPhone || null,
+          orderType: orderType || 'dine_in',
+          scheduledTime: scheduledTime || null,
         };
 
         const order = await storage.createOrder(orderData);
