@@ -15,6 +15,7 @@ import DiscountsSection from "./discounts";
 import PrintSettingsSection from "./print-settings";
 import AuditReportsSection from "./audit-reports";
 import ApprovalsSection from "./approvals";
+import BannersSection from "./banners";
 import PrinterPage from "../printer";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -102,6 +103,8 @@ export default function AdminDashboard() {
         return <PrinterPage />;
       case 'inventory':
         return <InventorySection />;
+      case 'banners':
+        return <BannersSection />;
       case 'settings':
         return <SettingsSection />;
       default:

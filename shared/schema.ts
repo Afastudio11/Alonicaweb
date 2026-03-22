@@ -49,6 +49,26 @@ export const sessions = pgTable("sessions", {
   index("sessions_expires_at_idx").on(table.expiresAt),
 ]);
 
+// Banners for the landing page hero carousel
+export const banners = pgTable("banners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  tag: text("tag"),
+  ctaText: text("cta_text").notNull().default("Pesan Sekarang"),
+  gradient: text("gradient").notNull().default("linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)"),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("banners_is_active_idx").on(table.isActive),
+  index("banners_sort_order_idx").on(table.sortOrder),
+]);
+
+export const insertBannerSchema = createInsertSchema(banners).omit({ id: true, createdAt: true });
+export type InsertBanner = z.infer<typeof insertBannerSchema>;
+export type Banner = typeof banners.$inferSelect;
+
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),

@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins } from "@shared/schema";
+import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -177,6 +177,14 @@ export interface IStorage {
   createDeletionPin(pin: import("@shared/schema").InsertDeletionPin): Promise<import("@shared/schema").DeletionPin>;
   deactivateDeletionPin(id: string): Promise<import("@shared/schema").DeletionPin | undefined>;
   incrementPinUsage(id: string): Promise<import("@shared/schema").DeletionPin | undefined>;
+
+  // Banners
+  getBanners(): Promise<import("@shared/schema").Banner[]>;
+  getActiveBanners(): Promise<import("@shared/schema").Banner[]>;
+  getBanner(id: string): Promise<import("@shared/schema").Banner | undefined>;
+  createBanner(banner: import("@shared/schema").InsertBanner): Promise<import("@shared/schema").Banner>;
+  updateBanner(id: string, banner: Partial<import("@shared/schema").InsertBanner>): Promise<import("@shared/schema").Banner | undefined>;
+  deleteBanner(id: string): Promise<boolean>;
 }
 
 // Legacy MemStorage class (no longer used, kept for reference)
@@ -1711,6 +1719,35 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updated || undefined;
   }
+
+  // Banner methods
+  async getBanners(): Promise<Banner[]> {
+    return await db.select().from(banners).orderBy(banners.sortOrder, banners.createdAt);
+  }
+
+  async getActiveBanners(): Promise<Banner[]> {
+    return await db.select().from(banners).where(eq(banners.isActive, true)).orderBy(banners.sortOrder);
+  }
+
+  async getBanner(id: string): Promise<Banner | undefined> {
+    const [banner] = await db.select().from(banners).where(eq(banners.id, id));
+    return banner || undefined;
+  }
+
+  async createBanner(banner: InsertBanner): Promise<Banner> {
+    const [created] = await db.insert(banners).values(banner).returning();
+    return created;
+  }
+
+  async updateBanner(id: string, banner: Partial<InsertBanner>): Promise<Banner | undefined> {
+    const [updated] = await db.update(banners).set(banner).where(eq(banners.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteBanner(id: string): Promise<boolean> {
+    const result = await db.delete(banners).where(eq(banners.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
 }
 
 // Complete MemStorage implementation as fallback
@@ -2118,6 +2155,12 @@ class MemStorage implements IStorage {
   async createDeletionPin(pin: any): Promise<any> { throw new Error('Deletion PINs not supported in MemStorage fallback'); }
   async deactivateDeletionPin(id: string): Promise<any> { throw new Error('Deletion PINs not supported in MemStorage fallback'); }
   async incrementPinUsage(id: string): Promise<any> { throw new Error('Deletion PINs not supported in MemStorage fallback'); }
+  async getBanners(): Promise<any[]> { return []; }
+  async getActiveBanners(): Promise<any[]> { return []; }
+  async getBanner(id: string): Promise<any> { return undefined; }
+  async createBanner(banner: any): Promise<any> { throw new Error('Banners not supported in MemStorage'); }
+  async updateBanner(id: string, banner: any): Promise<any> { return undefined; }
+  async deleteBanner(id: string): Promise<boolean> { return false; }
 }
 
 // Wrapper that handles database fallback at runtime
@@ -2754,6 +2797,13 @@ class FallbackStorage implements IStorage {
       this.usingMemStorage ? this.memStorage.incrementPinUsage(id) : this.dbStorage.incrementPinUsage(id)
     );
   }
+
+  async getBanners(): Promise<any[]> { return this.dbStorage.getBanners(); }
+  async getActiveBanners(): Promise<any[]> { return this.dbStorage.getActiveBanners(); }
+  async getBanner(id: string): Promise<any> { return this.dbStorage.getBanner(id); }
+  async createBanner(banner: any): Promise<any> { return this.dbStorage.createBanner(banner); }
+  async updateBanner(id: string, banner: any): Promise<any> { return this.dbStorage.updateBanner(id, banner); }
+  async deleteBanner(id: string): Promise<boolean> { return this.dbStorage.deleteBanner(id); }
 }
 
 console.log('✅ Using DatabaseStorage (PostgreSQL) for all features');

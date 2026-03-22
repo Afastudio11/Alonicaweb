@@ -30,7 +30,8 @@ import {
   Building2,
   Cog,
   Trash2,
-  CheckSquare
+  CheckSquare,
+  ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -65,6 +66,7 @@ const SIDEBAR_CATEGORIES: SidebarCategory[] = [
     label: "PROMO",
     items: [
       { key: 'discounts', label: 'Penawaran', icon: PercentIcon, path: '/admin/discounts' },
+      { key: 'banners', label: 'Banner Halaman Depan', icon: ImageIcon, path: '/admin/banners' },
     ]
   },
   {

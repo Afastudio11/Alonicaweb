@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 import { storage } from "./storage";
-import { insertOrderSchema, insertMenuItemSchema, insertInventoryItemSchema, insertMenuItemIngredientSchema, insertCategorySchema, insertStoreProfileSchema, insertReservationSchema, insertUserSchema, insertDiscountSchema, insertExpenseSchema, insertDailyReportSchema, insertPrintSettingSchema, insertShiftSchema, insertCashMovementSchema, insertRefundSchema, insertAuditLogSchema, type InsertOrder, type AuditLog } from "@shared/schema";
+import { insertOrderSchema, insertMenuItemSchema, insertInventoryItemSchema, insertMenuItemIngredientSchema, insertCategorySchema, insertStoreProfileSchema, insertReservationSchema, insertUserSchema, insertDiscountSchema, insertExpenseSchema, insertDailyReportSchema, insertPrintSettingSchema, insertShiftSchema, insertCashMovementSchema, insertRefundSchema, insertAuditLogSchema, insertBannerSchema, type InsertOrder, type AuditLog } from "@shared/schema";
 import { z } from 'zod';
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission, canAccessObject } from "./objectAcl";
@@ -1776,6 +1776,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.error('Category deletion error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Banners (public read, admin write)
+  app.get("/api/banners", async (req, res) => {
+    try {
+      const allBanners = await storage.getActiveBanners();
+      res.json(allBanners);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/banners/all", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const allBanners = await storage.getBanners();
+      res.json(allBanners);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/banners", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const data = insertBannerSchema.parse(req.body);
+      const banner = await storage.createBanner(data);
+      res.status(201).json(banner);
+    } catch (error) {
+      return handleApiError(res, error, "Failed to create banner");
+    }
+  });
+
+  app.put("/api/banners/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const data = insertBannerSchema.partial().parse(req.body);
+      const banner = await storage.updateBanner(req.params.id, data);
+      if (!banner) return res.status(404).json({ message: "Banner not found" });
+      res.json(banner);
+    } catch (error) {
+      return handleApiError(res, error, "Failed to update banner");
+    }
+  });
+
+  app.delete("/api/banners/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteBanner(req.params.id);
+      if (!deleted) return res.status(404).json({ message: "Banner not found" });
+      res.json({ success: true });
+    } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
   });

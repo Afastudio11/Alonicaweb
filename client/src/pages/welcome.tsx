@@ -6,12 +6,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import type { MenuItem, Category } from "@shared/schema";
+import type { MenuItem, Category, Banner } from "@shared/schema";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 
-const SLIDES = [
+const FALLBACK_SLIDES = [
   {
     bg: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)",
     tag: "Original Local Product",
@@ -105,11 +105,22 @@ export default function WelcomePage() {
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({ queryKey: ["/api/menu"] });
   const { data: categories = [] } = useQuery<Category[]>({ queryKey: ["/api/categories"] });
+  const { data: apiBanners = [] } = useQuery<Banner[]>({ queryKey: ["/api/banners"] });
+
+  const SLIDES = apiBanners.length > 0
+    ? apiBanners.map(b => ({
+        bg: b.gradient,
+        tag: b.tag ?? "",
+        headline: b.title,
+        sub: b.subtitle ?? "",
+        cta: b.ctaText,
+      }))
+    : FALLBACK_SLIDES;
 
   useEffect(() => {
     slideTimer.current = setInterval(() => setCurrentSlide(s => (s + 1) % SLIDES.length), 4500);
     return () => { if (slideTimer.current) clearInterval(slideTimer.current); };
-  }, []);
+  }, [SLIDES.length]);
 
   const filteredItems = menuItems.filter(item => {
     const matchCat = !activeCategory || item.categoryId === activeCategory;
