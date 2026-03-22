@@ -1,535 +1,624 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import {
-  ShoppingBag, Search, Settings, MapPin, Clock, Star,
-  Plus, Minus, ChevronLeft, ChevronRight, X
-} from "lucide-react";
+import { ShoppingCart, Search, Settings, X, Plus, Minus, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import type { MenuItem, Category } from "@shared/schema";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const SLIDES = [
   {
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=900&auto=format&fit=crop&q=80",
-    tag: "NEW ARRIVAL",
-    headline: "Kopi & Kuliner\nTerbaik Hari Ini",
-    sub: "Nikmati cita rasa premium di setiap tegukan",
+    bg: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)",
+    tag: "Original Local Product",
+    headline: "Yang Nyaman\nJadi Sayang",
+    sub: "Minuman & makanan khas Bantaeng yang bikin betah",
+    cta: "Pesan Sekarang",
   },
   {
-    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=900&auto=format&fit=crop&q=80",
-    tag: "PROMO SPESIAL",
-    headline: "Hemat 20%\nPesanan Pertama",
-    sub: "Gunakan kode ALONICA20 saat checkout",
+    bg: "linear-gradient(135deg, #FF9500 0%, #FF6B35 50%, #FF2D55 100%)",
+    tag: "Promo Spesial",
+    headline: "Bottle Edition\nSiap Dibawa",
+    sub: "Pesan sekarang, nikmat kapan saja dan di mana saja",
+    cta: "Lihat Menu",
   },
   {
-    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=900&auto=format&fit=crop&q=80",
-    tag: "TAKE AWAY",
-    headline: "Pesan Online,\nSiap Dalam 15 Menit",
-    sub: "Pre-order sebelum datang, langsung ambil",
+    bg: "linear-gradient(135deg, #FF2D55 0%, #FF6B35 55%, #FFAB00 100%)",
+    tag: "Take Away Ready",
+    headline: "Pesan Online,\nAmbil Langsung",
+    sub: "Pre-order sebelum datang, langsung siap di tempat",
+    cta: "Pre-Order",
   },
 ];
 
+function NgehnoomLogo({ size = 32 }: { size?: number }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #FFAB00, #FF9500, #FF2D55)",
+          padding: 2,
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 22 18" fill="none">
+            <path
+              d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16"
+              stroke="#FF9500" strokeWidth="3" strokeLinecap="round"
+            />
+            <path
+              d="M11 16V6C11 6 11 2 15.5 2C20 2 20 6 20 6V16"
+              stroke="#FF9500" strokeWidth="3" strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      </div>
+      <span
+        style={{
+          fontFamily: "var(--font-sans)",
+          fontWeight: 800,
+          fontSize: size * 0.625,
+          letterSpacing: "-0.02em",
+          color: "#1D1D1F",
+          lineHeight: 1,
+        }}
+      >
+        ngehnoom
+      </span>
+    </div>
+  );
+}
+
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const { cartItems, addToCart, updateQuantity, totalItems, total } = useCart();
   const { toast } = useToast();
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUsername, setAdminUsername] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-
-  const categoryNavRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const slideTimer = useRef<NodeJS.Timeout | null>(null);
 
   const { data: menuItems = [] } = useQuery<MenuItem[]>({ queryKey: ["/api/menu"] });
   const { data: categories = [] } = useQuery<Category[]>({ queryKey: ["/api/categories"] });
 
   useEffect(() => {
-    if (user) {
-      if (user.role === "kasir") setLocation("/kasir/orders");
-      else if (user.role === "admin") setLocation("/admin");
-    }
-  }, [user, setLocation]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((s) => (s + 1) % SLIDES.length);
-    }, 4500);
-    return () => clearInterval(timer);
+    slideTimer.current = setInterval(() => setCurrentSlide(s => (s + 1) % SLIDES.length), 4500);
+    return () => { if (slideTimer.current) clearInterval(slideTimer.current); };
   }, []);
 
-  const filteredItems = menuItems.filter(
-    (item) =>
-      item.isAvailable &&
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = menuItems.filter(item => {
+    const matchCat = !activeCategory || item.categoryId === activeCategory;
+    const matchSearch = !searchQuery || item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch && item.isAvailable;
+  });
 
-  const itemsByCategory = categories
-    .map((cat) => ({
-      category: cat,
-      items: filteredItems.filter((item) => item.categoryId === cat.id),
-    }))
-    .filter((g) => g.items.length > 0);
-
-  const handleAddToCart = (item: MenuItem) => {
-    addToCart({ id: item.id, name: item.name, price: item.price, image: item.image || undefined });
-  };
-
-  const getCartQuantity = (itemId: string) => {
-    const found = cartItems.find((c) => c.id === itemId);
-    return found ? found.quantity : 0;
-  };
-
-  const scrollToCategory = (catId: string | null) => {
-    setActiveCategory(catId);
-    if (!catId) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+  const groupedItems = (() => {
+    if (activeCategory) {
+      const cat = categories.find(c => c.id === activeCategory);
+      return cat ? [{ category: cat, items: filteredItems }] : [];
     }
-    const el = sectionRefs.current[catId];
-    if (el) {
-      const offset = 120;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
+    return categories
+      .map(cat => ({
+        category: cat,
+        items: filteredItems.filter(item => item.categoryId === cat.id),
+      }))
+      .filter(g => g.items.length > 0);
+  })();
+
+  const getCartQty = (id: string) =>
+    cartItems.find(i => i.id === id)?.quantity ?? 0;
+
+  const handleAdd = (item: MenuItem) => {
+    addToCart({ id: item.id, name: item.name, price: item.price, image: item.image ?? "" });
+    toast({ title: `${item.name} ditambahkan`, duration: 1500 });
   };
 
   const handleAdminLogin = async () => {
-    setIsLoggingIn(true);
     try {
       await login(adminUsername, adminPassword);
       setShowAdminLogin(false);
+      setLocation("/admin");
     } catch {
-      toast({ title: "Login gagal", description: "Username atau password salah", variant: "destructive" });
-    } finally {
-      setIsLoggingIn(false);
+      toast({ title: "Login gagal", variant: "destructive" });
     }
   };
 
+  const slide = SLIDES[currentSlide];
+
   return (
-    <div className="min-h-screen" style={{ background: "#F5F0E8", fontFamily: "var(--font-sans)" }}>
-      {/* ─── STICKY NAVBAR ─── */}
-      <nav
-        className="sticky top-0 z-50 bg-white border-b"
-        style={{ borderColor: "#EAE0D8" }}
+    <div
+      className="min-h-screen"
+      style={{ background: "#F5F5F7", fontFamily: "var(--font-sans)" }}
+    >
+      {/* ─── FROSTED NAVBAR ─── */}
+      <header
+        className="ng-navbar sticky top-0 z-50"
+        style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
       >
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div>
-              <h1
-                className="text-xl font-bold leading-none"
-                style={{ fontFamily: "var(--font-playfair)", color: "#800001" }}
-                data-testid="text-brand-name"
-              >
-                Alonica
-              </h1>
-              <p className="text-[10px] tracking-widest uppercase" style={{ color: "#9B8B87" }}>
-                Cafe & Restaurant
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="max-w-2xl mx-auto flex items-center justify-between px-4 h-14">
+          <NgehnoomLogo size={30} />
+          <div className="flex items-center gap-1">
             <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              onClick={() => setShowSearch(s => !s)}
+              className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
+              style={{ background: showSearch ? "#FF9500" : "transparent" }}
               data-testid="button-search"
             >
-              <Search size={20} style={{ color: "#5A4A47" }} />
+              <Search size={18} style={{ color: showSearch ? "#fff" : "#1D1D1F" }} />
             </button>
             <button
               onClick={() => setLocation("/cart")}
-              className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
-              data-testid="button-cart-nav"
+              className="ng-tap relative w-9 h-9 flex items-center justify-center rounded-full"
+              data-testid="button-cart"
             >
-              <ShoppingBag size={20} style={{ color: "#5A4A47" }} />
+              <ShoppingCart size={18} style={{ color: "#1D1D1F" }} />
               {totalItems > 0 && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full text-white text-[10px] font-bold flex items-center justify-center"
-                  style={{ background: "#800001" }}
-                  data-testid="cart-badge"
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                  style={{ background: "#FF2D55", padding: "0 4px" }}
                 >
-                  {totalItems > 99 ? "99+" : totalItems}
+                  {totalItems}
                 </span>
               )}
             </button>
             <button
               onClick={() => setShowAdminLogin(true)}
-              className="p-1 opacity-20 hover:opacity-60 transition-opacity"
-              data-testid="button-admin-access"
+              className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
+              style={{ opacity: 0.15 }}
+              data-testid="button-admin"
             >
-              <Settings size={14} style={{ color: "#5A4A47" }} />
+              <Settings size={16} style={{ color: "#1D1D1F" }} />
             </button>
           </div>
         </div>
 
-        {/* Search bar dropdown */}
+        {/* Search bar slide-down */}
         {showSearch && (
-          <div className="px-4 pb-3 bg-white">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: "#9B8B87" }}
-              />
+          <div className="px-4 pb-3">
+            <div
+              className="flex items-center gap-2 rounded-2xl px-4 h-10"
+              style={{ background: "#EBEBF0" }}
+            >
+              <Search size={15} style={{ color: "#6E6E73", flexShrink: 0 }} />
               <input
-                autoFocus
                 type="text"
-                placeholder="Cari makanan favorit kamu..."
+                placeholder="Cari menu…"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-9 py-2.5 rounded-full text-sm outline-none border"
-                style={{ borderColor: "#E0D6D0", background: "#FAFAF8" }}
+                onChange={e => setSearchQuery(e.target.value)}
+                autoFocus
+                className="flex-1 bg-transparent text-sm outline-none"
+                style={{ color: "#1D1D1F" }}
                 data-testid="input-search"
               />
               {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                >
-                  <X size={14} style={{ color: "#9B8B87" }} />
+                <button onClick={() => setSearchQuery("")}>
+                  <X size={14} style={{ color: "#6E6E73" }} />
                 </button>
               )}
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
-      {/* ─── HERO BANNER CAROUSEL ─── */}
-      <div className="relative overflow-hidden" style={{ height: "240px" }}>
-        {SLIDES.map((slide, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === currentSlide ? 1 : 0 }}
-          >
-            <img
-              src={slide.image}
-              alt={slide.headline}
-              className="w-full h-full object-cover"
-            />
+      <div className="max-w-2xl mx-auto">
+        {/* ─── HERO CAROUSEL ─── */}
+        {!searchQuery && (
+          <div className="px-4 pt-4 pb-2">
             <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(to right, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%)",
-              }}
-            />
-            <div className="absolute inset-0 flex flex-col justify-end p-5 pb-8">
-              <span
-                className="inline-block text-[10px] font-semibold tracking-widest px-2.5 py-1 rounded-full mb-2 w-fit"
-                style={{ background: "#800001", color: "white" }}
-              >
-                {slide.tag}
-              </span>
-              <h2
-                className="text-2xl font-bold text-white leading-tight whitespace-pre-line"
-                style={{ fontFamily: "var(--font-playfair)", textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
-              >
-                {slide.headline}
-              </h2>
-              <p className="text-white/75 text-xs mt-1">{slide.sub}</p>
-            </div>
-          </div>
-        ))}
-
-        {/* Prev/Next arrows */}
-        <button
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
-          onClick={() => setCurrentSlide((s) => (s - 1 + SLIDES.length) % SLIDES.length)}
-        >
-          <ChevronLeft size={14} />
-        </button>
-        <button
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 bg-black/30 rounded-full flex items-center justify-center text-white backdrop-blur-sm"
-          onClick={() => setCurrentSlide((s) => (s + 1) % SLIDES.length)}
-        >
-          <ChevronRight size={14} />
-        </button>
-
-        {/* Slide dots */}
-        <div className="absolute bottom-3 right-4 flex gap-1">
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentSlide(i)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: i === currentSlide ? "18px" : "6px",
-                height: "6px",
-                background: i === currentSlide ? "white" : "rgba(255,255,255,0.45)",
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* ─── STORE INFO STRIP ─── */}
-      <div className="bg-white" style={{ borderBottom: "1px solid #EAE0D8" }}>
-        <div className="max-w-lg mx-auto px-4 py-3 flex gap-5 overflow-x-auto scrollbar-hide text-xs">
-          {[
-            { icon: <Clock size={13} />, text: "Buka 10:00 – 22:00" },
-            { icon: <MapPin size={13} />, text: "Surabaya, Jawa Timur" },
-            { icon: <Star size={13} />, text: "4.9 Rating · 2.4K Ulasan" },
-          ].map((info, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0"
-              style={{ color: "#6B5B58" }}
+              className="relative rounded-3xl overflow-hidden ng-tap"
+              style={{ background: slide.bg, minHeight: 200, cursor: "pointer" }}
+              onClick={() => setLocation("/cart")}
             >
-              <span style={{ color: "#800001" }}>{info.icon}</span>
-              <span>{info.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+              {/* Decorative circles */}
+              <div
+                style={{
+                  position: "absolute", top: -40, right: -40,
+                  width: 160, height: 160,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.12)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute", bottom: -30, right: 40,
+                  width: 100, height: 100,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.10)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute", top: 30, right: 70,
+                  width: 50, height: 50,
+                  borderRadius: "50%",
+                  background: "rgba(255,255,255,0.14)",
+                }}
+              />
 
-      {/* ─── CATEGORY NAV (sticky) ─── */}
-      <div
-        className="sticky z-40 bg-white"
-        style={{ top: "56px", borderBottom: "1px solid #EAE0D8" }}
-        ref={categoryNavRef}
-      >
-        <div className="max-w-lg mx-auto px-4 py-2.5">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
-            <button
-              onClick={() => scrollToCategory(null)}
-              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
-              style={
-                activeCategory === null
-                  ? { background: "#800001", color: "white" }
-                  : { background: "#F5EDE8", color: "#5A4A47" }
-              }
-              data-testid="cat-all"
-            >
-              Semua
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap"
-                style={
-                  activeCategory === cat.id
-                    ? { background: "#800001", color: "white" }
-                    : { background: "#F5EDE8", color: "#5A4A47" }
-                }
-                data-testid={`cat-${cat.id}`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ─── MENU CONTENT ─── */}
-      <div className="max-w-lg mx-auto px-4 pt-5 pb-32">
-        {itemsByCategory.length === 0 ? (
-          <div className="text-center py-16">
-            <p style={{ color: "#9B8B87" }}>
-              {searchQuery ? "Tidak ada menu yang ditemukan" : "Menu belum tersedia saat ini"}
-            </p>
-          </div>
-        ) : (
-          itemsByCategory.map((group) => (
-            <section
-              key={group.category.id}
-              className="mb-8"
-              ref={(el) => { sectionRefs.current[group.category.id] = el; }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-base font-semibold" style={{ color: "#1A0A0A" }}>
-                  {group.category.name}
-                </h2>
-                <div className="flex-1 h-px" style={{ background: "#E8DDD8" }} />
+              <div className="relative px-6 py-8">
+                <span
+                  className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3"
+                  style={{ background: "rgba(255,255,255,0.25)", color: "#fff", backdropFilter: "blur(4px)" }}
+                >
+                  {slide.tag}
+                </span>
+                <h1
+                  className="font-extrabold text-white mb-2 leading-tight whitespace-pre-line"
+                  style={{ fontSize: 28, letterSpacing: "-0.03em" }}
+                >
+                  {slide.headline}
+                </h1>
+                <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 20, maxWidth: 220 }}>
+                  {slide.sub}
+                </p>
+                <div
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold"
+                  style={{ background: "rgba(255,255,255,0.22)", color: "#fff", backdropFilter: "blur(4px)" }}
+                >
+                  {slide.cta}
+                  <ChevronRight size={14} />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {group.items.map((item) => (
-                  <MenuCard
-                    key={item.id}
-                    item={item}
-                    quantity={getCartQuantity(item.id)}
-                    onAdd={() => handleAddToCart(item)}
-                    onDecrease={() => updateQuantity(item.id, getCartQuantity(item.id) - 1)}
+
+              {/* Slide dots */}
+              <div className="absolute bottom-4 right-5 flex gap-1.5">
+                {SLIDES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={e => { e.stopPropagation(); setCurrentSlide(i); }}
+                    style={{
+                      width: i === currentSlide ? 18 : 6,
+                      height: 6,
+                      borderRadius: 3,
+                      background: i === currentSlide ? "#fff" : "rgba(255,255,255,0.45)",
+                      transition: "all 0.3s",
+                      border: "none",
+                      padding: 0,
+                    }}
                   />
                 ))}
               </div>
-            </section>
-          ))
+            </div>
+          </div>
         )}
+
+        {/* ─── INFO STRIP ─── */}
+        {!searchQuery && (
+          <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scroll-bar">
+            {[
+              { icon: "🕐", text: "08.30 – 23.00" },
+              { icon: "📍", text: "Bantaeng" },
+              { icon: "⭐", text: "4.9 · 1.4rb ulasan" },
+            ].map(info => (
+              <div
+                key={info.text}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
+                style={{ background: "#fff", fontSize: 12, color: "#6E6E73", fontWeight: 500, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+              >
+                <span>{info.icon}</span>
+                <span>{info.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ─── CATEGORY PILLS ─── */}
+        <div className="px-4 pb-2 flex gap-2 overflow-x-auto no-scroll-bar">
+          <button
+            onClick={() => setActiveCategory(null)}
+            className="ng-tap flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+            style={
+              !activeCategory
+                ? { background: "#FF9500", color: "#fff" }
+                : { background: "#fff", color: "#1D1D1F", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
+            }
+            data-testid="category-all"
+          >
+            Semua
+          </button>
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+              className="ng-tap flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+              style={
+                activeCategory === cat.id
+                  ? { background: "#FF9500", color: "#fff" }
+                  : { background: "#fff", color: "#1D1D1F", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
+              }
+              data-testid={`category-${cat.id}`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        {/* ─── MENU GRID ─── */}
+        <div className="px-4 pb-36">
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="text-5xl mb-3">🍵</div>
+              <p className="font-semibold" style={{ color: "#1D1D1F" }}>Menu belum tersedia</p>
+              <p className="text-sm mt-1" style={{ color: "#6E6E73" }}>Coba cari kata lain atau pilih kategori berbeda</p>
+            </div>
+          ) : (
+            groupedItems.map(({ category, items }) => (
+              <div key={category.id} className="mb-6">
+                {/* Section header */}
+                <div className="flex items-center gap-3 mb-3 pt-2">
+                  <h2 className="font-bold text-base" style={{ color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+                    {category.name}
+                  </h2>
+                  <div style={{ flex: 1, height: 1, background: "#E5E5EA" }} />
+                  <span className="text-xs font-medium" style={{ color: "#AEAEB2" }}>
+                    {items.length} item
+                  </span>
+                </div>
+
+                {/* Items grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {items.map(item => {
+                    const qty = getCartQty(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className="ng-card overflow-hidden"
+                        data-testid={`card-menu-${item.id}`}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setSelectedItem(item)}
+                      >
+                        {/* Image */}
+                        <div className="relative" style={{ height: 120 }}>
+                          <img
+                            src={item.image || "https://images.unsplash.com/photo-1561456461-890f7f9b8c10?w=400&auto=format&fit=crop"}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {qty > 0 && (
+                            <div
+                              className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                              style={{ background: "#FF2D55" }}
+                            >
+                              {qty}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="p-3">
+                          <p
+                            className="font-semibold leading-snug mb-1 line-clamp-2"
+                            style={{ fontSize: 13, color: "#1D1D1F", letterSpacing: "-0.01em" }}
+                            data-testid={`text-menu-name-${item.id}`}
+                          >
+                            {item.name}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs line-clamp-1 mb-2" style={{ color: "#6E6E73" }}>
+                              {item.description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="font-bold"
+                              style={{ fontSize: 13, color: "#FF9500" }}
+                              data-testid={`text-menu-price-${item.id}`}
+                            >
+                              {formatCurrency(item.price)}
+                            </span>
+
+                            {qty === 0 ? (
+                              <button
+                                onClick={e => { e.stopPropagation(); handleAdd(item); }}
+                                className="ng-tap w-7 h-7 rounded-full flex items-center justify-center"
+                                style={{ background: "#FF9500" }}
+                                data-testid={`button-add-${item.id}`}
+                              >
+                                <Plus size={14} color="#fff" strokeWidth={2.5} />
+                              </button>
+                            ) : (
+                              <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                                <button
+                                  onClick={() => updateQuantity(item.id, qty - 1)}
+                                  className="ng-tap w-6 h-6 rounded-full flex items-center justify-center"
+                                  style={{ background: "#F5F5F7", border: "1px solid #E5E5EA" }}
+                                  data-testid={`button-decrease-${item.id}`}
+                                >
+                                  <Minus size={11} style={{ color: "#1D1D1F" }} />
+                                </button>
+                                <span className="text-xs font-bold w-4 text-center" style={{ color: "#1D1D1F" }}>
+                                  {qty}
+                                </span>
+                                <button
+                                  onClick={() => { handleAdd(item); }}
+                                  className="ng-tap w-6 h-6 rounded-full flex items-center justify-center"
+                                  style={{ background: "#FF9500" }}
+                                  data-testid={`button-increase-${item.id}`}
+                                >
+                                  <Plus size={11} color="#fff" strokeWidth={2.5} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* ─── FIXED BOTTOM CART BAR ─── */}
+      {/* ─── FLOATING CART BAR ─── */}
       {totalItems > 0 && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2"
-          style={{ background: "linear-gradient(to top, #F5F0E8 70%, transparent)" }}
+          className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2"
+          style={{ background: "linear-gradient(to top, #F5F5F7 50%, transparent)" }}
         >
-          <div className="max-w-lg mx-auto">
+          <div className="max-w-2xl mx-auto">
             <button
               onClick={() => setLocation("/cart")}
-              className="w-full h-14 rounded-2xl flex items-center justify-between px-5 shadow-lg transition-transform active:scale-95"
-              style={{ background: "#800001", color: "white" }}
+              className="ng-tap w-full h-14 rounded-2xl flex items-center justify-between px-5 shadow-lg"
+              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
               data-testid="button-view-cart"
             >
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-xs font-bold"
-                  style={{ color: "#800001" }}
-                >
-                  {totalItems}
-                </span>
-                <span className="text-sm font-medium">Lihat Pesanan</span>
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold"
+                style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}
+              >
+                {totalItems}
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-sm">{formatCurrency(total)}</span>
-                <ChevronRight size={16} />
-              </div>
+              <span className="font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+                Lihat Keranjang
+              </span>
+              <span className="font-bold text-white" style={{ fontSize: 13 }}>
+                {formatCurrency(total)}
+              </span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── ITEM DETAIL SHEET ─── */}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-t-3xl overflow-hidden"
+            style={{ background: "#fff" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={selectedItem.image || "https://images.unsplash.com/photo-1561456461-890f7f9b8c10?w=600&auto=format&fit=crop"}
+              alt={selectedItem.name}
+              className="w-full object-cover"
+              style={{ height: 220 }}
+            />
+            <div className="px-5 py-5">
+              <div className="flex items-start justify-between mb-1">
+                <h2 className="font-extrabold text-xl leading-tight" style={{ color: "#1D1D1F", letterSpacing: "-0.03em", flex: 1 }}>
+                  {selectedItem.name}
+                </h2>
+                <button onClick={() => setSelectedItem(null)} className="ml-2 mt-0.5">
+                  <X size={20} style={{ color: "#6E6E73" }} />
+                </button>
+              </div>
+              {selectedItem.description && (
+                <p className="text-sm mb-4" style={{ color: "#6E6E73" }}>{selectedItem.description}</p>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-xl" style={{ color: "#FF9500", letterSpacing: "-0.02em" }}>
+                  {formatCurrency(selectedItem.price)}
+                </span>
+                {getCartQty(selectedItem.id) === 0 ? (
+                  <button
+                    onClick={() => { handleAdd(selectedItem); setSelectedItem(null); }}
+                    className="ng-tap px-6 h-11 rounded-2xl font-bold text-white text-sm"
+                    style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+                    data-testid="button-add-detail"
+                  >
+                    Tambah ke Keranjang
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => updateQuantity(selectedItem.id, getCartQty(selectedItem.id) - 1)}
+                      className="ng-tap w-10 h-10 rounded-full flex items-center justify-center border"
+                      style={{ borderColor: "#E5E5EA" }}
+                    >
+                      <Minus size={16} style={{ color: "#1D1D1F" }} />
+                    </button>
+                    <span className="font-bold text-lg" style={{ color: "#1D1D1F", minWidth: 20, textAlign: "center" }}>
+                      {getCartQty(selectedItem.id)}
+                    </span>
+                    <button
+                      onClick={() => handleAdd(selectedItem)}
+                      className="ng-tap w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{ background: "#FF9500" }}
+                    >
+                      <Plus size={16} color="#fff" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div style={{ height: "env(safe-area-inset-bottom, 16px)", minHeight: 16 }} />
           </div>
         </div>
       )}
 
       {/* ─── ADMIN LOGIN DIALOG ─── */}
       <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
-        <DialogContent className="w-full max-w-sm mx-4">
+        <DialogContent className="rounded-3xl max-w-sm mx-auto" style={{ fontFamily: "var(--font-sans)" }}>
           <DialogHeader>
-            <DialogTitle className="text-center">Admin Login</DialogTitle>
-            <DialogDescription className="text-center text-sm">
-              Masukkan kredensial untuk mengakses dashboard.
-            </DialogDescription>
+            <div className="flex justify-center mb-2">
+              <NgehnoomLogo size={28} />
+            </div>
+            <DialogTitle className="text-center font-bold" style={{ color: "#1D1D1F" }}>
+              Admin Login
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 mt-2">
-            <Input
+          <div className="space-y-3 pt-2">
+            <input
+              type="text"
               placeholder="Username"
               value={adminUsername}
-              onChange={(e) => setAdminUsername(e.target.value)}
-              disabled={isLoggingIn}
+              onChange={e => setAdminUsername(e.target.value)}
+              className="w-full px-4 h-11 rounded-2xl text-sm outline-none"
+              style={{ background: "#F5F5F7", color: "#1D1D1F" }}
               data-testid="input-admin-username"
             />
-            <Input
+            <input
               type="password"
               placeholder="Password"
               value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
-              disabled={isLoggingIn}
+              onChange={e => setAdminPassword(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
+              className="w-full px-4 h-11 rounded-2xl text-sm outline-none"
+              style={{ background: "#F5F5F7", color: "#1D1D1F" }}
               data-testid="input-admin-password"
             />
-            <div className="flex gap-2 pt-1">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowAdminLogin(false)}
-                data-testid="button-cancel-admin"
-              >
-                Batal
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleAdminLogin}
-                disabled={isLoggingIn}
-                style={{ background: "#800001" }}
-                data-testid="button-login-admin"
-              >
-                {isLoggingIn ? "Memproses..." : "Login"}
-              </Button>
-            </div>
+            <button
+              onClick={handleAdminLogin}
+              className="ng-tap w-full h-11 rounded-2xl font-bold text-white text-sm"
+              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+              data-testid="button-admin-login"
+            >
+              Masuk
+            </button>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function MenuCard({
-  item,
-  quantity,
-  onAdd,
-  onDecrease,
-}: {
-  item: MenuItem;
-  quantity: number;
-  onAdd: () => void;
-  onDecrease: () => void;
-}) {
-  return (
-    <div
-      className="bg-white rounded-2xl overflow-hidden shadow-sm"
-      style={{ border: "1px solid #F0E8E4" }}
-      data-testid={`card-menu-${item.id}`}
-    >
-      {/* Image */}
-      <div className="relative">
-        <img
-          src={
-            item.image ||
-            "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop"
-          }
-          alt={item.name}
-          className="w-full object-cover"
-          style={{ height: "130px" }}
-          data-testid={`img-menu-${item.id}`}
-        />
-        {/* Add/qty button overlay */}
-        <div className="absolute bottom-2 right-2">
-          {quantity === 0 ? (
-            <button
-              onClick={onAdd}
-              className="w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform active:scale-90"
-              style={{ background: "#800001", color: "white" }}
-              data-testid={`button-add-${item.id}`}
-            >
-              <Plus size={16} />
-            </button>
-          ) : (
-            <div
-              className="flex items-center gap-1 rounded-full px-2 py-1 shadow-md"
-              style={{ background: "#800001", color: "white" }}
-            >
-              <button onClick={onDecrease} className="w-5 h-5 flex items-center justify-center" data-testid={`button-decrease-${item.id}`}>
-                <Minus size={12} />
-              </button>
-              <span className="text-xs font-bold min-w-[16px] text-center">{quantity}</span>
-              <button onClick={onAdd} className="w-5 h-5 flex items-center justify-center" data-testid={`button-increase-${item.id}`}>
-                <Plus size={12} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Info */}
-      <div className="p-3">
-        <h3
-          className="text-sm font-medium line-clamp-2 leading-snug mb-1.5"
-          style={{ color: "#1A0A0A", minHeight: "2.5rem" }}
-          data-testid={`text-name-${item.id}`}
-        >
-          {item.name}
-        </h3>
-        <p
-          className="text-sm font-semibold"
-          style={{ color: "#800001" }}
-          data-testid={`text-price-${item.id}`}
-        >
-          {formatCurrency(item.price)}
-        </p>
-      </div>
     </div>
   );
 }

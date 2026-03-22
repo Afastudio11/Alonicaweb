@@ -179,103 +179,126 @@ export default function PaymentPage() {
   const renderPaymentContent = () => {
     if (paymentStatus === 'creating') {
       return (
-        <div className="space-y-8">
-          {/* QRIS Payment Method - Always selected */}
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Metode Pembayaran</h2>
-            <div className="w-full">
-              <div className="h-32 border-2 border-primary bg-primary/5 rounded-2xl flex flex-col items-center justify-center transition-all relative">
-                <Check className="absolute top-2 right-2 h-5 w-5 text-primary" />
-                <CreditCard className="h-8 w-8 text-primary mb-2" />
-                <span className="font-medium text-primary">QRIS Payment</span>
+        <div className="space-y-4">
+          {/* QRIS Info Card */}
+          <div
+            className="rounded-3xl p-5 flex items-center gap-4"
+            style={{ background: "rgba(255,149,0,0.07)", border: "1.5px solid rgba(255,149,0,0.18)" }}
+          >
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+            >
+              <CreditCard className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="font-bold text-sm" style={{ color: "#1D1D1F" }}>QRIS Payment</p>
+              <p className="text-xs mt-0.5" style={{ color: "#6E6E73" }}>
+                GoPay · OVO · Dana · ShopeePay · Mobile Banking
+              </p>
+            </div>
+            <Check className="h-5 w-5 ml-auto flex-shrink-0" style={{ color: "#FF9500" }} />
+          </div>
+
+          {/* Total Summary */}
+          <div className="ng-card p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: "#AEAEB2" }}>Total Pembayaran</p>
+                <p className="font-extrabold text-3xl" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-payment-total">
+                  {formatCurrency(total)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs" style={{ color: "#6E6E73" }}>
+                  {cartItems.length} jenis item
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Total */}
-          <div className="bg-muted rounded-2xl p-6">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-semibold text-foreground">TOTAL:</span>
-              <span className="text-2xl font-bold text-primary" data-testid="text-payment-total">
-                {formatCurrency(total)}
-              </span>
-            </div>
-          </div>
-
-          <Button
+          <button
             onClick={handleCreateOrder}
             disabled={createOrderMutation.isPending}
-            className="w-full h-14 font-semibold rounded-xl"
+            className="ng-tap w-full h-14 rounded-2xl font-bold text-white disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)", fontSize: 15, letterSpacing: "-0.02em" }}
             data-testid="button-create-payment"
           >
             {createOrderMutation.isPending ? (
-              <>
-                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                Membuat Pembayaran...
-              </>
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Membuat Pembayaran…
+              </span>
             ) : (
-              "Buat Pembayaran QRIS"
+              "Buat QR Code QRIS →"
             )}
-          </Button>
+          </button>
         </div>
       );
     }
 
     if (paymentStatus === 'pending' && paymentData) {
       return (
-        <div className="space-y-6">
-          {/* QR Code Display */}
-          <div className="alonica-card p-6 text-center" data-testid="qris-payment">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-foreground mb-2">Scan QR Code untuk Bayar</h2>
-              <p className="text-sm text-muted-foreground">
-                Gunakan aplikasi e-wallet atau mobile banking Anda
-              </p>
-            </div>
+        <div className="space-y-4" data-testid="qris-payment">
+          {/* QR Code Card */}
+          <div className="ng-card p-6 text-center">
+            <p className="font-bold text-base mb-1" style={{ color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+              Scan & Bayar Sekarang
+            </p>
+            <p className="text-xs mb-5" style={{ color: "#6E6E73" }}>
+              Buka e-wallet atau mobile banking, scan QR di bawah ini
+            </p>
 
-            {/* Real Midtrans QRIS code or fallback */}
-            {paymentData.payment.qrisUrl ? (
-              <img 
-                src={paymentData.payment.qrisUrl} 
-                alt="QRIS Payment Code" 
-                className="w-48 h-48 mx-auto mb-4 rounded-xl border"
-                data-testid="img-qris-code"
-              />
-            ) : paymentData.payment.qrisString ? (
-              <div className="w-48 h-48 mx-auto mb-4 rounded-xl border bg-white flex items-center justify-center">
-                <p className="text-xs text-center p-2 font-mono break-all">
+            <div
+              className="w-52 h-52 mx-auto mb-4 rounded-3xl overflow-hidden flex items-center justify-center"
+              style={{ background: "#F5F5F7", border: "1px solid #E5E5EA" }}
+            >
+              {paymentData.payment.qrisUrl ? (
+                <img
+                  src={paymentData.payment.qrisUrl}
+                  alt="QRIS"
+                  className="w-full h-full object-contain"
+                  data-testid="img-qris-code"
+                />
+              ) : paymentData.payment.qrisString ? (
+                <p className="text-xs text-center p-3 font-mono break-all" style={{ color: "#6E6E73" }}>
                   {paymentData.payment.qrisString}
                 </p>
-              </div>
-            ) : (
-              <div className="w-48 h-48 mx-auto mb-4 rounded-xl border bg-muted flex items-center justify-center">
-                <p className="text-sm text-muted-foreground text-center">
-                  QR Code akan muncul setelah pembayaran dibuat
-                </p>
-              </div>
-            )}
+              ) : (
+                <div className="text-center">
+                  <div className="text-4xl mb-2">📱</div>
+                  <p className="text-xs" style={{ color: "#6E6E73" }}>QR Code QRIS</p>
+                </div>
+              )}
+            </div>
 
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Order ID: {paymentData.payment.midtransOrderId}</p>
-              <p className="font-semibold text-lg text-primary">
-                Total: {formatCurrency(total)}
-              </p>
-              <div className="text-orange-500 font-medium">
-                <Clock className="h-4 w-4 inline mr-1" />
-                Kedaluwarsa: {formatTimeRemaining(paymentData.payment.expiryTime)}
-              </div>
+            <p className="font-extrabold text-2xl mb-1" style={{ color: "#FF9500", letterSpacing: "-0.03em" }}>
+              {formatCurrency(total)}
+            </p>
+            <p className="text-xs" style={{ color: "#AEAEB2" }}>
+              ID: {paymentData.payment.midtransOrderId}
+            </p>
+
+            {/* Timer */}
+            <div
+              className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+              style={{ background: "rgba(255,149,0,0.1)", color: "#FF9500" }}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              Kedaluwarsa: {formatTimeRemaining(paymentData.payment.expiryTime)}
             </div>
           </div>
 
-          {/* Payment Status */}
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <RefreshCw className="h-5 w-5 text-blue-500 animate-spin mr-2" />
-              <span className="font-medium text-blue-700">Menunggu Pembayaran</span>
+          {/* Waiting indicator */}
+          <div
+            className="rounded-2xl p-4 flex items-center gap-3"
+            style={{ background: "rgba(0,122,255,0.06)", border: "1px solid rgba(0,122,255,0.12)" }}
+          >
+            <RefreshCw className="h-5 w-5 animate-spin flex-shrink-0" style={{ color: "#007AFF" }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "#007AFF" }}>Menunggu Konfirmasi</p>
+              <p className="text-xs" style={{ color: "#6E6E73" }}>Status diperbarui otomatis setelah pembayaran berhasil</p>
             </div>
-            <p className="text-sm text-blue-600">
-              Silakan lakukan pembayaran, status akan terupdate otomatis
-            </p>
           </div>
         </div>
       );
@@ -283,11 +306,18 @@ export default function PaymentPage() {
 
     if (paymentStatus === 'paid') {
       return (
-        <div className="text-center space-y-6">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
+        <div className="text-center py-8 space-y-4">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
+            style={{ background: "rgba(48,209,88,0.12)" }}
+          >
+            <CheckCircle className="h-10 w-10" style={{ color: "#30D158" }} />
+          </div>
           <div>
-            <h2 className="text-xl font-semibold text-green-700 mb-2">Pembayaran Berhasil!</h2>
-            <p className="text-muted-foreground">Pesanan Anda sedang diproses</p>
+            <h2 className="font-extrabold text-2xl mb-1" style={{ color: "#1D1D1F", letterSpacing: "-0.03em" }}>
+              Pembayaran Berhasil!
+            </h2>
+            <p style={{ color: "#6E6E73", fontSize: 14 }}>Pesanan kamu sedang kami siapkan 🍵</p>
           </div>
         </div>
       );
@@ -295,25 +325,27 @@ export default function PaymentPage() {
 
     if (paymentStatus === 'failed' || paymentStatus === 'expired') {
       return (
-        <div className="text-center space-y-6">
-          <XCircle className="h-16 w-16 text-red-500 mx-auto" />
+        <div className="text-center py-8 space-y-4">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
+            style={{ background: "rgba(255,59,48,0.1)" }}
+          >
+            <XCircle className="h-10 w-10" style={{ color: "#FF3B30" }} />
+          </div>
           <div>
-            <h2 className="text-xl font-semibold text-red-700 mb-2">
-              {paymentStatus === 'expired' ? 'Pembayaran Kedaluwarsa' : 'Pembayaran Gagal'}
+            <h2 className="font-extrabold text-2xl mb-1" style={{ color: "#1D1D1F", letterSpacing: "-0.03em" }}>
+              {paymentStatus === 'expired' ? 'Waktu Habis' : 'Pembayaran Gagal'}
             </h2>
-            <p className="text-muted-foreground mb-4">
-              {paymentStatus === 'expired' 
-                ? 'Waktu pembayaran telah habis' 
-                : 'Terjadi kesalahan dalam pemrosesan pembayaran'
-              }
+            <p className="mb-6" style={{ color: "#6E6E73", fontSize: 14 }}>
+              {paymentStatus === 'expired' ? 'QR Code sudah kedaluwarsa.' : 'Terjadi kesalahan. Silakan coba lagi.'}
             </p>
-            <Button
+            <button
               onClick={() => setLocation('/cart')}
-              variant="outline"
-              className="w-full"
+              className="ng-tap px-8 h-12 rounded-2xl font-bold text-sm"
+              style={{ background: "#F5F5F7", color: "#1D1D1F" }}
             >
-              Kembali ke Keranjang
-            </Button>
+              ← Kembali ke Keranjang
+            </button>
           </div>
         </div>
       );

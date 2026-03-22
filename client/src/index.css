@@ -1,349 +1,148 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: hsl(30 20% 96%);
-  --foreground: hsl(15 40% 10%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222.2 84% 4.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(0 100% 25%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(210 40% 96%);
-  --secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --muted: hsl(210 40% 96%);
-  --muted-foreground: hsl(215.4 16.3% 46.9%);
-  --accent: hsl(210 40% 96%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(214.3 31.8% 91.4%);
-  --input: hsl(214.3 31.8% 91.4%);
-  --ring: hsl(0 100% 25%);
-  --chart-1: hsl(203.8863 88.2845% 53.1373%);
-  --chart-2: hsl(159.7826 100% 36.0784%);
-  --chart-3: hsl(42.0290 92.8251% 56.2745%);
-  --chart-4: hsl(147.1429 78.5047% 41.9608%);
-  --chart-5: hsl(341.4894 75.2000% 50.9804%);
-  --sidebar: hsl(180 6.6667% 97.0588%);
-  --sidebar-foreground: hsl(210 25% 7.8431%);
-  --sidebar-primary: hsl(203.8863 88.2845% 53.1373%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
-  --sidebar-accent-foreground: hsl(203.8863 88.2845% 53.1373%);
-  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
-  --sidebar-ring: hsl(202.8169 89.1213% 53.1373%);
-  --font-playfair: 'Playfair Display', Georgia, serif;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --radius: 16px;
-  --shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-  
-  /* Alonica custom colors */
-  --alonica-maroon: hsl(0 100% 25%);
-  --alonica-white: hsl(0 0% 100%);
-  --alonica-light-gray: hsl(210 20% 96%);
-  --alonica-text-gray: hsl(215.4 16.3% 46.9%);
-  --alonica-success: hsl(142 71% 45%);
-  --alonica-warning: hsl(45 93% 47%);
-  --alonica-error: hsl(0 84% 60%);
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 35 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 35 100% 50%;
+  --chart-1: 35 100% 50%;
+  --chart-2: 340 75% 55%;
+  --chart-3: 195 85% 50%;
+  --chart-4: 145 70% 42%;
+  --chart-5: 60 90% 50%;
+  --sidebar: 240 4.8% 97%;
+  --sidebar-foreground: 240 5.9% 10%;
+  --sidebar-primary: 35 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 35 100% 95%;
+  --sidebar-accent-foreground: 35 100% 30%;
+  --sidebar-border: 240 5.9% 90%;
+  --sidebar-ring: 35 100% 50%;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 14px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+
+  /* Ngehnoom brand */
+  --ng-orange: #FF9500;
+  --ng-orange-dark: #E8880F;
+  --ng-pink: #FF2D55;
+  --ng-amber: #FFAB00;
+  --ng-surface: #F5F5F7;
+  --ng-border: #E5E5EA;
+  --ng-text: #1D1D1F;
+  --ng-text-2: #6E6E73;
+  --ng-text-3: #AEAEB2;
 }
 
 .dark {
-  --background: hsl(0 0% 0%);
-  --foreground: hsl(200 6.6667% 91.1765%);
-  --card: hsl(228 9.8039% 10%);
-  --card-foreground: hsl(0 0% 85.0980%);
-  --popover: hsl(0 0% 0%);
-  --popover-foreground: hsl(200 6.6667% 91.1765%);
-  --primary: hsl(0 100% 25%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(195.0000 15.3846% 94.9020%);
-  --secondary-foreground: hsl(210 25% 7.8431%);
-  --muted: hsl(0 0% 9.4118%);
-  --muted-foreground: hsl(210 3.3898% 46.2745%);
-  --accent: hsl(205.7143 70% 7.8431%);
-  --accent-foreground: hsl(203.7736 87.6033% 52.5490%);
-  --destructive: hsl(356.3033 90.5579% 54.3137%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(210 5.2632% 14.9020%);
-  --input: hsl(207.6923 27.6596% 18.4314%);
-  --ring: hsl(0 100% 25%);
+  --background: 0 0% 5%;
+  --foreground: 0 0% 95%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 35 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 0 0% 14%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: 35 100% 50%;
+  --sidebar: 0 0% 9%;
+  --sidebar-foreground: 0 0% 85%;
+  --sidebar-primary: 35 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 14%;
+  --sidebar-accent-foreground: 35 100% 60%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-ring: 35 100% 50%;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    font-family: var(--font-sans);
-    @apply antialiased bg-background text-foreground;
-  }
-
-  .font-playfair {
-    font-family: var(--font-playfair);
-  }
-
-  .font-sans {
-    font-family: var(--font-sans);
-  }
+* {
+  border-color: hsl(var(--border));
 }
 
-@layer utilities {
-  /* Line clamping utilities for text truncation */
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-  
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  
-  .line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
+body {
+  font-family: var(--font-sans);
+  background: hsl(var(--background));
+  color: var(--ng-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  .food-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  }
+/* Ngehnoom gradient */
+.ng-gradient {
+  background: linear-gradient(135deg, var(--ng-orange) 0%, var(--ng-pink) 100%);
+}
 
-  .transition-all {
-    transition: all 150ms ease-in-out;
-  }
+.ng-gradient-amber {
+  background: linear-gradient(135deg, var(--ng-amber) 0%, var(--ng-orange) 60%, var(--ng-pink) 100%);
+}
 
-  .cart-badge {
-    animation: bounce 0.5s;
-  }
+/* Apple-style card */
+.ng-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
 
-  @keyframes bounce {
-    0%, 20%, 53%, 80%, 100% {
-      transform: translate3d(0, 0, 0);
-    }
-    40%, 43% {
-      transform: translate3d(0, -8px, 0);
-    }
-    70% {
-      transform: translate3d(0, -4px, 0);
-    }
-    90% {
-      transform: translate3d(0, -2px, 0);
-    }
-  }
+/* Apple blur glass effect for navbar */
+.ng-navbar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
 
-  .alonica-card {
-    @apply bg-white rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.06)];
-  }
+/* Smooth spring-like tap feel */
+.ng-tap {
+  transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.12s ease;
+}
+.ng-tap:active {
+  transform: scale(0.96);
+  opacity: 0.88;
+}
 
-  /* Print specific styles - FIXED VERSION */
-  @media print {
-    /* Hide navigation and buttons during print */
-    .print-hide {
-      display: none !important;
-    }
-    
-    /* Kitchen ticket styles - normal flow layout */
-    .kitchen-ticket {
-      position: static !important;
-      width: 100%;
-      margin: 0;
-      padding: 8px;
-      font-size: 12px !important;
-      line-height: 1.2 !important;
-      font-family: 'Courier New', monospace !important;
-      background: white !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      page-break-inside: avoid;
-    }
-    
-    /* Customer receipt styles - normal flow layout */
-    .customer-receipt {
-      position: static !important;
-      width: 100%;
-      margin: 0;
-      padding: 8px;
-      background: white !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      font-size: 11px !important;
-      line-height: 1.3 !important;
-      font-family: 'Courier New', monospace !important;
-      page-break-inside: avoid;
-    }
+/* Hide scrollbar but allow scroll */
+.no-scroll-bar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scroll-bar::-webkit-scrollbar {
+  display: none;
+}
 
-    /* Admin receipt styles - normal flow layout */
-    .admin-receipt {
-      position: static !important;
-      width: 100%;
-      margin: 0;
-      padding: 8px;
-      background: white !important;
-      box-shadow: none !important;
-      border-radius: 0 !important;
-      font-size: 11px !important;
-      line-height: 1.3 !important;
-      font-family: 'Courier New', monospace !important;
-      page-break-inside: avoid;
-    }
-    
-    /* Compact layout for narrower thermal printers */
-    .thermal-compact-mode .kitchen-ticket {
-      font-size: 10px !important;
-      padding: 4px !important;
-    }
-    
-    .thermal-compact-mode .customer-receipt {
-      font-size: 9px !important;
-      padding: 4px !important;
-    }
-    
-    .thermal-compact-mode .admin-receipt {
-      font-size: 9px !important;
-      padding: 4px !important;
-    }
-    
-    /* Thermal printer paper sizes - optimized for restaurant cashier systems */
-    @page {
-      margin: 2mm 3mm; /* Minimal margins for thermal paper */
-      size: 80mm auto; /* 80mm width (standard), auto height for continuous thermal paper */
-    }
-    
-    /* Note: 58mm support requires runtime injection of different @page rules 
-       This will be handled by JavaScript before printing */
-    
-    /* Thermal printer optimized receipt styles */
-    .receipt-header {
-      text-align: center;
-      margin-bottom: 8px; /* Reduced for thermal paper */
-      font-size: 13px;
-      font-weight: bold;
-    }
-    
-    .receipt-item {
-      border-bottom: 1px dashed #333; /* Dashed lines work better on thermal */
-      padding: 3px 0; /* Reduced padding for compact layout */
-      font-size: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      overflow: hidden;
-      page-break-inside: avoid; /* Prevent items from being split across pages */
-    }
-    
-    .receipt-item-name {
-      flex-grow: 1;
-      max-width: 60%; /* Limit name width to prevent overflow */
-      font-size: 10px;
-      line-height: 1.2;
-      word-wrap: break-word;
-    }
-    
-    .receipt-item-price {
-      font-weight: bold;
-      font-size: 10px;
-      text-align: right;
-      min-width: 30%; /* Ensure price alignment */
-    }
-    
-    .receipt-total {
-      font-weight: bold;
-      font-size: 12px; /* Slightly larger for total */
-      border-top: 2px solid #333;
-      padding-top: 4px;
-      margin-top: 4px;
-      text-align: center;
-    }
-    
-    /* Thermal printer specific elements */
-    .thermal-divider {
-      border-top: 1px dashed #333;
-      margin: 4px 0;
-      height: 1px;
-    }
-    
-    .thermal-center {
-      text-align: center;
-    }
-    
-    /* Compact grid for thermal paper */
-    .thermal-grid {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 4px;
-      font-size: 10px;
-    }
-    
-    /* Hide large margins/paddings on thermal */
-    .thermal-compact {
-      margin: 2px 0 !important;
-      padding: 2px 0 !important;
-    }
-  }
-
-  .alonica-button-primary {
-    @apply bg-primary text-white font-medium rounded-xl h-12 px-6 hover:bg-primary/90 transition-all;
-  }
-
-  .alonica-button-secondary {
-    @apply bg-transparent border-2 border-primary text-primary font-medium rounded-xl h-12 px-6 hover:bg-primary hover:text-white transition-all;
-  }
-
-  .alonica-input {
-    @apply w-full h-12 px-4 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/20;
-  }
-
-  /* Standardized Typography System - Consistent across all pages */
-  .page-title {
-    @apply text-2xl font-semibold text-foreground;
-  }
-
-  .section-title {
-    @apply text-xl font-semibold text-foreground;
-  }
-
-  .card-title {
-    @apply text-lg font-medium text-foreground;
-  }
-
-  .body-text {
-    @apply text-base text-foreground;
-  }
-
-  .body-text-sm {
-    @apply text-sm text-muted-foreground;
-  }
-
-  .label-text {
-    @apply text-sm font-medium text-foreground;
-  }
-
-  /* Dashboard specific standardization */
-  .dashboard-title {
-    @apply text-2xl font-semibold text-foreground;
-  }
-
-  .dashboard-subtitle {
-    @apply text-base text-muted-foreground;
-  }
-
-  .stat-value {
-    @apply text-3xl font-bold text-foreground;
-  }
-
-  .stat-label {
-    @apply text-sm text-muted-foreground;
-  }
+/* Alonica legacy compat */
+.font-playfair { font-family: var(--font-sans); }
+.alonica-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
 }

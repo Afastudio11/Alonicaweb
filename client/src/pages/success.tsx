@@ -44,31 +44,36 @@ export default function SuccessPage() {
     // Fallback to simple success message if no receipt data
     return (
       <div className="min-h-screen bg-background flex flex-col justify-center items-center px-6">
-        <div className="text-center space-y-8">
-          <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto" data-testid="icon-success">
-            <Check className="h-10 w-10 text-white" />
+        <div className="text-center space-y-6">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto"
+            style={{ background: "rgba(48,209,88,0.12)" }}
+            data-testid="icon-success"
+          >
+            <Check className="h-10 w-10" style={{ color: "#30D158" }} />
           </div>
 
           <div>
-            <h1 className="page-title mb-2" data-testid="text-success-title">
+            <h1 className="font-extrabold text-3xl mb-1" style={{ color: "#1D1D1F", letterSpacing: "-0.04em" }} data-testid="text-success-title">
               Terima Kasih!
             </h1>
-            <p className="text-muted-foreground" data-testid="text-success-message">
-              Pesanan Kamu Sedang Kami Proses, Ya.
+            <p style={{ color: "#6E6E73", fontSize: 15 }} data-testid="text-success-message">
+              Pesanan kamu sedang kami siapkan 🍵
             </p>
           </div>
 
-          <h2 className="text-4xl font-playfair font-bold text-primary" data-testid="text-brand-footer">
-            Alonica
-          </h2>
+          <p className="font-extrabold text-2xl" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-brand-footer">
+            ngehnoom
+          </p>
 
-          <Button
+          <button
             onClick={handleBackToMenu}
-            className="px-8 py-3 rounded-xl"
+            className="ng-tap px-8 h-12 rounded-2xl font-bold text-white"
+            style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
             data-testid="button-back-to-menu"
           >
             Kembali ke Menu
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -80,32 +85,31 @@ export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4 sticky top-0 z-10 print-hide">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleBackToMenu}
-              className="mr-4 text-muted-foreground"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-            <h1 className="page-title font-playfair text-primary" data-testid="text-page-title">
-              Struk Pembayaran
-            </h1>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
+      <header
+        className="ng-navbar sticky top-0 z-40 print-hide"
+        style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
+      >
+        <div className="max-w-2xl mx-auto flex items-center gap-3 px-4 h-14">
+          <button
+            onClick={handleBackToMenu}
+            className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
+            style={{ background: "#F5F5F7" }}
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-5 w-5" style={{ color: "#1D1D1F" }} />
+          </button>
+          <h1 className="flex-1 font-bold text-base" style={{ color: "#1D1D1F", letterSpacing: "-0.02em" }} data-testid="text-page-title">
+            Struk Pembayaran
+          </h1>
+          <button
             onClick={handlePrintReceipt}
-            className="flex items-center gap-2"
+            className="ng-tap flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold"
+            style={{ background: "#F5F5F7", color: "#1D1D1F" }}
             data-testid="button-print"
           >
-            <Printer className="h-4 w-4" />
+            <Printer className="h-3.5 w-3.5" />
             Cetak
-          </Button>
+          </button>
         </div>
       </header>
 
@@ -127,11 +131,11 @@ export default function SuccessPage() {
 
           {/* Restaurant Info */}
           <div className="receipt-header text-center border-b border-border pb-6 mb-6">
-            <h1 className="page-title font-playfair text-primary mb-2" data-testid="text-restaurant-name">
-              Alonica
+            <h1 className="font-extrabold text-2xl mb-1" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-restaurant-name">
+              ngehnoom
             </h1>
-            <p className="text-sm text-muted-foreground">Jl. Kuliner Rasa No. 123</p>
-            <p className="text-sm text-muted-foreground">Telp: (021) 555-0123</p>
+            <p className="text-sm text-muted-foreground">Raya Lanto & Tanetea · Bantaeng</p>
+            <p className="text-sm text-muted-foreground">#YangNyamanJadiSayang</p>
           </div>
 
           {/* Order Info */}
