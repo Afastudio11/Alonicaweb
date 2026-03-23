@@ -468,8 +468,13 @@ export default function WelcomePage() {
       {/* ─── FLOATING CART BAR ─── */}
       {totalItems > 0 && (
         <div
-          className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2"
-          style={{ background: "linear-gradient(to top, #F5F5F7 50%, transparent)" }}
+          className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-4"
+          style={{
+            background: "rgba(245,245,247,0.92)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            borderTop: "1px solid rgba(0,0,0,0.06)",
+          }}
         >
           <div className="max-w-2xl mx-auto">
             <button
