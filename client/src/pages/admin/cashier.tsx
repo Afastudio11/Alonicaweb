@@ -1143,9 +1143,9 @@ export default function CashierSection() {
   return (
     <>
       {/* 2-Column Layout: Product Lists (Left) and Cart Details (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* LEFT COLUMN - Product Lists */}
-        <div className="space-y-4 lg:col-span-2">
+        <div className="space-y-4 md:col-span-2">
         {/* Open Bills Section - Collapsible */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -1458,7 +1458,7 @@ export default function CashierSection() {
         </div>
 
         {/* RIGHT COLUMN - Cart Details */}
-        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+        <div className="space-y-4 md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
         {/* Cart Details Header with Tabs */}
         <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
@@ -1660,6 +1660,37 @@ export default function CashierSection() {
                     </Button>
                   </div>
 
+                  {/* Payment Method Selection */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Metode Pembayaran</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => setPaymentMethod("cash")}
+                        data-testid="button-method-cash"
+                        className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
+                        style={paymentMethod === "cash"
+                          ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                          : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
+                        }
+                      >
+                        <Banknote className="h-4 w-4" />
+                        Tunai
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod("qris")}
+                        data-testid="button-method-qris"
+                        className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
+                        style={paymentMethod === "qris"
+                          ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                          : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
+                        }
+                      >
+                        <QrCode className="h-4 w-4" />
+                        QRIS
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Payment Button */}
                   <Button
                     onClick={handleSubmitOrder}
@@ -1667,7 +1698,11 @@ export default function CashierSection() {
                     className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base font-semibold"
                     data-testid="button-submit-order"
                   >
-                    {createOrderMutation.isPending ? "Processing..." : "Proceed payment"}
+                    {createOrderMutation.isPending
+                      ? "Processing..."
+                      : paymentMethod === "qris"
+                        ? "Bayar dengan QRIS"
+                        : "Bayar Tunai"}
                   </Button>
 
                   {/* Secondary Actions */}
