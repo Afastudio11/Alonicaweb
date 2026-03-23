@@ -184,6 +184,12 @@ export const storeProfile = pgTable("store_profile", {
   website: text("website"),
   description: text("description"),
   logo: text("logo"), // URL to logo image
+  // Public-facing info displayed on customer welcome page
+  city: text("city").default("Bantaeng"),
+  openingHours: text("opening_hours").default("08.30 – 23.00"),
+  rating: text("rating").default("4.9"),
+  reviewCount: text("review_count").default("1.4rb ulasan"),
+  tagline: text("tagline").default("Minuman & makanan khas Bantaeng yang bikin betah"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),

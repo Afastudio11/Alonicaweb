@@ -12,7 +12,7 @@ const FALLBACK_SLIDES = [
     bg: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)",
     tag: "Original Local Product",
     headline: "Yang Nyaman\nJadi Sayang",
-    sub: "Minuman & makanan khas Bantaeng yang bikin betah",
+    sub: null, // will be replaced with restaurantInfo.tagline at render
     cta: "Pesan Sekarang",
   },
   {
@@ -83,10 +83,23 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
   );
 }
 
+type RestaurantInfo = {
+  restaurantName: string;
+  city: string | null;
+  openingHours: string | null;
+  rating: string | null;
+  reviewCount: string | null;
+  tagline: string | null;
+};
+
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
   const { cartItems, addToCart, updateQuantity, totalItems, total } = useCart();
   const { toast } = useToast();
+
+  const { data: restaurantInfo } = useQuery<RestaurantInfo>({
+    queryKey: ["/api/restaurant-info"],
+  });
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,6 +112,7 @@ export default function WelcomePage() {
   const { data: categories = [] } = useQuery<Category[]>({ queryKey: ["/api/categories"] });
   const { data: apiBanners = [] } = useQuery<Banner[]>({ queryKey: ["/api/banners"] });
 
+  const dynamicTagline = restaurantInfo?.tagline || "Minuman & makanan khas Bantaeng yang bikin betah";
   const SLIDES = apiBanners.length > 0
     ? apiBanners.map(b => ({
         bg: b.gradient,
@@ -108,7 +122,7 @@ export default function WelcomePage() {
         sub: b.subtitle ?? "",
         cta: b.ctaText,
       }))
-    : FALLBACK_SLIDES;
+    : FALLBACK_SLIDES.map((s, i) => ({ ...s, sub: i === 0 ? dynamicTagline : s.sub }));
 
   useEffect(() => {
     slideTimer.current = setInterval(() => setCurrentSlide(s => (s + 1) % SLIDES.length), 4500);
@@ -291,9 +305,9 @@ export default function WelcomePage() {
         {!searchQuery && (
           <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scroll-bar">
             {[
-              { icon: "Clock", text: "08.30 – 23.00" },
-              { icon: "MapPin", text: "Bantaeng" },
-              { icon: "Star", text: "4.9 · 1.4rb ulasan" },
+              { icon: "Clock", text: restaurantInfo?.openingHours || "08.30 – 23.00" },
+              { icon: "MapPin", text: restaurantInfo?.city || "Bantaeng" },
+              { icon: "Star", text: `${restaurantInfo?.rating || "4.9"} · ${restaurantInfo?.reviewCount || "1.4rb ulasan"}` },
             ].map(info => {
               const iconMap: Record<string, JSX.Element> = {
                 Clock: <Clock size={13} style={{ color: "#6E6E73", flexShrink: 0 }} />,

@@ -2743,6 +2743,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public restaurant info (no auth required — used by customer welcome page)
+  app.get("/api/restaurant-info", async (req, res) => {
+    try {
+      const profile = await storage.getStoreProfile();
+      if (!profile) {
+        return res.json({
+          restaurantName: "ngehnoom",
+          city: "Bantaeng",
+          openingHours: "08.30 – 23.00",
+          rating: "4.9",
+          reviewCount: "1.4rb ulasan",
+          tagline: "Minuman & makanan khas Bantaeng yang bikin betah",
+        });
+      }
+      res.json({
+        restaurantName: profile.restaurantName,
+        city: profile.city,
+        openingHours: profile.openingHours,
+        rating: profile.rating,
+        reviewCount: profile.reviewCount,
+        tagline: profile.tagline,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Store Profile (admin access required)
   app.get("/api/store-profile", requireAuth, requireAdmin, async (req, res) => {
     try {

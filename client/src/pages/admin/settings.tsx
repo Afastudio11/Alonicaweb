@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Building, Mail, Phone, MapPin } from "lucide-react";
+import { Save, Building, Mail, Phone, MapPin, Clock, Star, AlignLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +17,12 @@ export default function SettingsSection() {
     address: "",
     phone: "",
     email: "",
-    description: ""
+    description: "",
+    city: "",
+    openingHours: "",
+    rating: "",
+    reviewCount: "",
+    tagline: "",
   });
 
   const { data: storeProfile, isLoading } = useQuery<StoreProfile | null>({
@@ -65,7 +70,12 @@ export default function SettingsSection() {
         address: savedProfile.address || "",
         phone: savedProfile.phone || "",
         email: savedProfile.email || "",
-        description: savedProfile.description || ""
+        description: savedProfile.description || "",
+        city: savedProfile.city || "",
+        openingHours: savedProfile.openingHours || "",
+        rating: savedProfile.rating || "",
+        reviewCount: savedProfile.reviewCount || "",
+        tagline: savedProfile.tagline || "",
       });
       
       toast({
@@ -90,7 +100,12 @@ export default function SettingsSection() {
         address: storeProfile.address || "",
         phone: storeProfile.phone || "",
         email: storeProfile.email || "",
-        description: storeProfile.description || ""
+        description: storeProfile.description || "",
+        city: storeProfile.city || "",
+        openingHours: storeProfile.openingHours || "",
+        rating: storeProfile.rating || "",
+        reviewCount: storeProfile.reviewCount || "",
+        tagline: storeProfile.tagline || "",
       });
     }
   }, [storeProfile]);
@@ -121,7 +136,12 @@ export default function SettingsSection() {
       address: formData.address?.trim() || "",
       phone: formData.phone?.trim() || "",
       email: formData.email?.trim() || "",
-      description: formData.description?.trim() || ""
+      description: formData.description?.trim() || "",
+      city: formData.city?.trim() || "",
+      openingHours: formData.openingHours?.trim() || "",
+      rating: formData.rating?.trim() || "",
+      reviewCount: formData.reviewCount?.trim() || "",
+      tagline: formData.tagline?.trim() || "",
     };
 
     updateProfileMutation.mutate(filteredData);
@@ -240,6 +260,95 @@ export default function SettingsSection() {
               rows={3}
               data-testid="input-description"
             />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t pt-4">
+            <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+              <span style={{ background: "#FF9500", borderRadius: 4, width: 4, height: 16, display: "inline-block" }} />
+              Tampilan Halaman Pelanggan
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Informasi yang ditampilkan di chip bar halaman menu pelanggan (jam buka, kota, rating)
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* City */}
+            <div className="space-y-2">
+              <Label htmlFor="city" className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4" />
+                <span>Kota / Lokasi</span>
+              </Label>
+              <Input
+                id="city"
+                value={formData.city || ""}
+                onChange={(e) => handleInputChange("city", e.target.value)}
+                placeholder="Bantaeng"
+                data-testid="input-city"
+              />
+            </div>
+
+            {/* Opening Hours */}
+            <div className="space-y-2">
+              <Label htmlFor="openingHours" className="flex items-center space-x-2">
+                <Clock className="h-4 w-4" />
+                <span>Jam Operasional</span>
+              </Label>
+              <Input
+                id="openingHours"
+                value={formData.openingHours || ""}
+                onChange={(e) => handleInputChange("openingHours", e.target.value)}
+                placeholder="08.30 – 23.00"
+                data-testid="input-opening-hours"
+              />
+            </div>
+
+            {/* Rating */}
+            <div className="space-y-2">
+              <Label htmlFor="rating" className="flex items-center space-x-2">
+                <Star className="h-4 w-4" />
+                <span>Rating</span>
+              </Label>
+              <Input
+                id="rating"
+                value={formData.rating || ""}
+                onChange={(e) => handleInputChange("rating", e.target.value)}
+                placeholder="4.9"
+                data-testid="input-rating"
+              />
+            </div>
+
+            {/* Review Count */}
+            <div className="space-y-2">
+              <Label htmlFor="reviewCount" className="flex items-center space-x-2">
+                <Star className="h-4 w-4" />
+                <span>Jumlah Ulasan</span>
+              </Label>
+              <Input
+                id="reviewCount"
+                value={formData.reviewCount || ""}
+                onChange={(e) => handleInputChange("reviewCount", e.target.value)}
+                placeholder="1.4rb ulasan"
+                data-testid="input-review-count"
+              />
+            </div>
+          </div>
+
+          {/* Tagline */}
+          <div className="space-y-2">
+            <Label htmlFor="tagline" className="flex items-center space-x-2">
+              <AlignLeft className="h-4 w-4" />
+              <span>Tagline / Kalimat Pembuka</span>
+            </Label>
+            <Input
+              id="tagline"
+              value={formData.tagline || ""}
+              onChange={(e) => handleInputChange("tagline", e.target.value)}
+              placeholder="Minuman & makanan khas Bantaeng yang bikin betah"
+              data-testid="input-tagline"
+            />
+            <p className="text-xs text-muted-foreground">Ditampilkan di slide pertama banner halaman pelanggan</p>
           </div>
 
           {/* Submit Button */}
