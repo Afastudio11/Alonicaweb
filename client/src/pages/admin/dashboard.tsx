@@ -52,7 +52,7 @@ export default function AdminDashboard() {
 
   if (!authReady) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: 40, height: 40, borderRadius: "50%",
@@ -67,7 +67,7 @@ export default function AdminDashboard() {
 
   if (!isAuthenticated || !user) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Ditolak</h1>
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
 
   if (user.role !== "admin") {
     return (
-      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🚫</div>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Admin Diperlukan</h1>
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex" }}>
+    <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex" }}>
       {/* Sidebar */}
       <AdminSidebar
         isOpen={sidebarOpen}
