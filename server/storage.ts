@@ -1,6 +1,6 @@
 import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, gte, lte } from "drizzle-orm";
+import { eq, desc, sql, gte, lte, inArray } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -30,6 +30,7 @@ export interface IStorage {
 
   // Orders
   getOrders(): Promise<Order[]>;
+  getKitchenOrders(): Promise<Order[]>;
   getPaginatedOrders(params: { limit?: number; offset?: number; status?: string; paymentStatus?: string }): Promise<{ orders: Order[]; total: number }>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderByMidtransOrderId(midtransOrderId: string): Promise<Order | undefined>;
@@ -577,6 +578,16 @@ export class DatabaseStorage implements IStorage {
   // Order methods
   async getOrders(): Promise<Order[]> {
     const ordersList = await db.select().from(orders).orderBy(desc(orders.createdAt));
+    return ordersList;
+  }
+
+  async getKitchenOrders(): Promise<Order[]> {
+    const kitchenStatuses = ['queued', 'preparing', 'ready'] as const;
+    const ordersList = await db
+      .select()
+      .from(orders)
+      .where(inArray(orders.orderStatus, [...kitchenStatuses]))
+      .orderBy(desc(orders.createdAt));
     return ordersList;
   }
 
@@ -1933,6 +1944,7 @@ class MemStorage implements IStorage {
 
   // Order methods (stub implementations)
   async getOrders(): Promise<any[]> { return []; }
+  async getKitchenOrders(): Promise<any[]> { return []; }
   async getPaginatedOrders(params: any): Promise<{ orders: any[]; total: number }> { return { orders: [], total: 0 }; }
   async getOrder(id: string): Promise<any | undefined> { return undefined; }
   async getOrderByMidtransOrderId(midtransOrderId: string): Promise<any | undefined> { return undefined; }
@@ -2437,6 +2449,7 @@ class FallbackStorage implements IStorage {
 
   // For brevity, implementing stub methods for other interfaces, but they would follow the same pattern
   async getOrders(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrders() : this.dbStorage.getOrders()); }
+  async getKitchenOrders(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getKitchenOrders() : this.dbStorage.getKitchenOrders()); }
   async getPaginatedOrders(params: any): Promise<{ orders: any[]; total: number }> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getPaginatedOrders(params) : this.dbStorage.getPaginatedOrders(params)); }
   async getOrder(id: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrder(id) : this.dbStorage.getOrder(id)); }
   async getOrderByMidtransOrderId(midtransOrderId: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrderByMidtransOrderId(midtransOrderId) : this.dbStorage.getOrderByMidtransOrderId(midtransOrderId)); }

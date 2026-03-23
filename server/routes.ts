@@ -1935,6 +1935,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Orders (admin required for viewing orders, public access for creating orders)
+  // Kitchen-specific orders endpoint - only returns active orders (queued, preparing, ready)
+  app.get("/api/orders/kitchen", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const kitchenOrders = await storage.getKitchenOrders();
+      res.json(kitchenOrders);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/orders", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {
       const { limit, offset, status, paymentStatus } = req.query;
@@ -2232,11 +2242,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: [{ field: "status", message: "Status is required and must be a string" }]
         });
       }
+
+      // Validate status value against enum
+      const validStatuses = ['queued', 'preparing', 'ready', 'served', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        return sendErrorResponse(res, 400, {
+          message: "Validation failed",
+          code: "VALIDATION_ERROR",
+          details: [{ field: "status", message: `Status must be one of: ${validStatuses.join(', ')}` }]
+        });
+      }
+
+      // Fetch current order to validate transition
+      const currentOrder = await storage.getOrder(id);
+      if (!currentOrder) {
+        return sendErrorResponse(res, 404, "Order not found");
+      }
+
+      // Validate status transition logic
+      const allowedTransitions: Record<string, string[]> = {
+        queued: ['preparing', 'cancelled'],
+        preparing: ['ready', 'cancelled'],
+        ready: ['served', 'cancelled'],
+        served: [],
+        cancelled: [],
+      };
+
+      const currentStatus = currentOrder.orderStatus;
+      const allowed = allowedTransitions[currentStatus] || [];
+      if (!allowed.includes(status)) {
+        return sendErrorResponse(res, 400, {
+          message: `Transisi status tidak valid: tidak bisa mengubah dari '${currentStatus}' ke '${status}'`,
+          code: "INVALID_STATUS_TRANSITION",
+          details: [{ field: "status", message: `Status '${currentStatus}' hanya bisa diubah ke: ${allowed.length > 0 ? allowed.join(', ') : '(tidak ada transisi yang diizinkan)'}` }]
+        });
+      }
       
       const order = await storage.updateOrderStatus(id, status);
       
       if (!order) {
         return sendErrorResponse(res, 404, "Order not found");
+      }
+
+      // Auto-create notification for kasir when order becomes ready
+      if (status === 'ready') {
+        try {
+          const user = (req as any).user;
+          await storage.createNotification({
+            type: 'order_ready',
+            title: `Pesanan Siap - Meja ${order.tableNumber}`,
+            message: `Pesanan ${order.customerName} (Meja ${order.tableNumber}) sudah siap untuk diambil`,
+            requestedBy: user.id,
+            relatedId: order.id,
+            relatedData: {
+              orderId: order.id,
+              tableNumber: order.tableNumber,
+              customerName: order.customerName,
+            },
+            status: 'pending',
+            isRead: false,
+          });
+        } catch (notifError) {
+          console.error('Failed to create ready notification:', notifError);
+          // Don't fail the status update if notification creation fails
+        }
       }
       
       res.json(order);

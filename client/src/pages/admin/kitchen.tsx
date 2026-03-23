@@ -16,13 +16,15 @@ export default function KitchenSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: orders = [], isLoading, refetch } = useQuery<Order[]>({
-    queryKey: ["/api/orders"],
+  const { data: ordersData = [], isLoading, refetch } = useQuery<Order[]>({
+    queryKey: ["/api/orders/kitchen"],
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
     refetchIntervalInBackground: true,
     staleTime: 0,
   });
+
+  const orders = ordersData;
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -40,27 +42,20 @@ export default function KitchenSection() {
       return response.json();
     },
     onMutate: async ({ orderId, status }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/orders'] });
-      
-      // Snapshot the previous value
-      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders']);
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData<Order[]>(['/api/orders'], (old) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/orders/kitchen'] });
+      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders/kitchen']);
+      queryClient.setQueryData<Order[]>(['/api/orders/kitchen'], (old) => {
         if (!old) return old;
         return old.map(order => 
           order.id === orderId 
-            ? { ...order, status, updatedAt: new Date() }
+            ? { ...order, orderStatus: status, updatedAt: new Date() }
             : order
         );
       });
-      
-      // Return a context object with the snapshotted value
       return { previousOrders };
     },
     onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
       if (status === 'preparing') {
         toast({
           title: "Pesanan dimulai",
@@ -74,9 +69,8 @@ export default function KitchenSection() {
       }
     },
     onError: (err, variables, context) => {
-      // If we have a previous value, rollback to it
       if (context?.previousOrders) {
-        queryClient.setQueryData(['/api/orders'], context.previousOrders);
+        queryClient.setQueryData(['/api/orders/kitchen'], context.previousOrders);
       }
       toast({
         title: "Gagal update status",
@@ -85,47 +79,38 @@ export default function KitchenSection() {
       });
     },
     onSettled: () => {
-      // Always refetch after error or success to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
     }
   });
 
-  // Separate mutation for auto-completing orders
   const autoCompleteMutation = useMutation({
     mutationFn: async ({ orderId }: { orderId: string }) => {
-      const response = await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status: 'completed' });
+      const response = await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status: 'served' });
       return response.json();
     },
     onMutate: async ({ orderId }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/orders'] });
-      
-      // Snapshot the previous value
-      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders']);
-      
-      // Optimistically update to completed
-      queryClient.setQueryData<Order[]>(['/api/orders'], (old) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/orders/kitchen'] });
+      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders/kitchen']);
+      queryClient.setQueryData<Order[]>(['/api/orders/kitchen'], (old) => {
         if (!old) return old;
         return old.map(order => 
           order.id === orderId 
-            ? { ...order, status: 'completed', updatedAt: new Date() }
+            ? { ...order, orderStatus: 'served', updatedAt: new Date() }
             : order
         );
       });
-      
       return { previousOrders };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
       toast({
-        title: "Pesanan selesai",
-        description: "Pesanan telah otomatis diselesaikan dan siap disajikan",
+        title: "Pesanan siap disajikan",
+        description: "Pesanan telah diselesaikan dan siap disajikan ke meja",
       });
     },
     onError: (err, variables, context) => {
-      // If auto-complete fails, rollback to the previous state (should be 'ready')
       if (context?.previousOrders) {
-        queryClient.setQueryData(['/api/orders'], context.previousOrders);
+        queryClient.setQueryData(['/api/orders/kitchen'], context.previousOrders);
       }
       toast({
         title: "Gagal menyelesaikan pesanan",
@@ -134,7 +119,7 @@ export default function KitchenSection() {
       });
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
     }
   });
 
