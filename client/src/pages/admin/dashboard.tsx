@@ -17,6 +17,7 @@ import AuditReportsSection from "./audit-reports";
 import ApprovalsSection from "./approvals";
 import BannersSection from "./banners";
 import MembersSection from "./members";
+import BranchesSection from "./branches";
 import PrinterPage from "../printer";
 import { Menu, Bell } from "lucide-react";
 import { useState } from "react";
@@ -40,6 +41,7 @@ const SECTION_LABELS: Record<string, string> = {
   categories: "Kategori Menu",
   printer: "Pengaturan Printer",
   "print-settings": "Pengaturan Cetak",
+  branches: "Manajemen Cabang",
 };
 
 export default function AdminDashboard() {
@@ -118,6 +120,7 @@ export default function AdminDashboard() {
       case "inventory": return <InventorySection />;
       case "banners": return <BannersSection />;
       case "settings": return <SettingsSection />;
+      case "branches": return user.branchId === null ? <BranchesSection /> : <OrdersSection />;
       default: return <OrdersSection />;
     }
   };

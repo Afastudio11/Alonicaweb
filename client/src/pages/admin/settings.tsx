@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Building, Mail, Phone, MapPin, Clock, Star, AlignLeft } from "lucide-react";
+import { Save, Building, Mail, Phone, MapPin, Clock, Star, AlignLeft, ToggleLeft, ToggleRight, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +23,7 @@ export default function SettingsSection() {
     rating: "",
     reviewCount: "",
     tagline: "",
+    multiBranchEnabled: false,
   });
 
   const { data: storeProfile, isLoading } = useQuery<StoreProfile | null>({
@@ -76,6 +77,7 @@ export default function SettingsSection() {
         rating: savedProfile.rating || "",
         reviewCount: savedProfile.reviewCount || "",
         tagline: savedProfile.tagline || "",
+        multiBranchEnabled: savedProfile.multiBranchEnabled ?? false,
       });
       
       toast({
@@ -106,6 +108,7 @@ export default function SettingsSection() {
         rating: storeProfile.rating || "",
         reviewCount: storeProfile.reviewCount || "",
         tagline: storeProfile.tagline || "",
+        multiBranchEnabled: storeProfile.multiBranchEnabled ?? false,
       });
     }
   }, [storeProfile]);
@@ -142,6 +145,7 @@ export default function SettingsSection() {
       rating: formData.rating?.trim() || "",
       reviewCount: formData.reviewCount?.trim() || "",
       tagline: formData.tagline?.trim() || "",
+      multiBranchEnabled: formData.multiBranchEnabled ?? false,
     };
 
     updateProfileMutation.mutate(filteredData);
@@ -349,6 +353,50 @@ export default function SettingsSection() {
               data-testid="input-tagline"
             />
             <p className="text-xs text-muted-foreground">Ditampilkan di slide pertama banner halaman pelanggan</p>
+          </div>
+
+          {/* Multi-branch toggle */}
+          <div className="border-t pt-4">
+            <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+              <span style={{ background: "#FF9500", borderRadius: 4, width: 4, height: 16, display: "inline-block" }} />
+              Sistem Multi-Cabang
+            </p>
+            <p className="text-xs text-muted-foreground mb-4">
+              Aktifkan untuk menampilkan pilihan cabang kepada pelanggan sebelum memesan
+            </p>
+            <div
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "14px 16px", background: "#F9F9F9", borderRadius: 12,
+                border: "1.5px solid #E5E5EA",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: 10,
+                  background: formData.multiBranchEnabled ? "rgba(255,149,0,0.12)" : "#EFEFEF",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <GitBranch size={18} style={{ color: formData.multiBranchEnabled ? "#FF9500" : "#8E8E93" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F" }}>Mode Multi-Cabang</p>
+                  <p style={{ fontSize: 12, color: "#6E6E73" }}>
+                    {formData.multiBranchEnabled ? "Pelanggan akan memilih cabang sebelum memesan" : "Semua pesanan masuk ke satu lokasi"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, multiBranchEnabled: !prev.multiBranchEnabled }))}
+                data-testid="toggle-multi-branch"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
+              >
+                {formData.multiBranchEnabled
+                  ? <ToggleRight size={38} style={{ color: "#FF9500" }} />
+                  : <ToggleLeft size={38} style={{ color: "#C7C7CC" }} />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}

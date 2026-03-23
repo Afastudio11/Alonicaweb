@@ -25,15 +25,36 @@ export type RefundType = z.infer<typeof RefundTypeEnum>;
 export type RefundStatus = z.infer<typeof RefundStatusEnum>;
 export type ConnectionType = z.infer<typeof ConnectionTypeEnum>;
 
+// Branches — for multi-location support
+export const branches = pgTable("branches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  address: text("address").notNull().default(""),
+  city: text("city").notNull().default(""),
+  phone: text("phone").default(""),
+  openingHours: text("opening_hours").default("08.00 – 22.00"),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("branches_is_active_idx").on(table.isActive),
+]);
+
+export const insertBranchSchema = createInsertSchema(branches).omit({ id: true, createdAt: true });
+export type InsertBranch = z.infer<typeof insertBranchSchema>;
+export type Branch = typeof branches.$inferSelect;
+
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull().default("admin"),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
   isActive: boolean("is_active").notNull().default(true),
 }, (table) => [
   index("users_role_idx").on(table.role),
   index("users_is_active_idx").on(table.isActive),
+  index("users_branch_id_idx").on(table.branchId),
 ]);
 
 // Sessions table for persistent authentication
@@ -42,6 +63,7 @@ export const sessions = pgTable("sessions", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   username: text("username").notNull(),
   role: text("role").notNull(),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 }, (table) => [
@@ -60,10 +82,12 @@ export const banners = pgTable("banners", {
   imageUrl: text("image_url"),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 }, (table) => [
   index("banners_is_active_idx").on(table.isActive),
   index("banners_sort_order_idx").on(table.sortOrder),
+  index("banners_branch_id_idx").on(table.branchId),
 ]);
 
 export const insertBannerSchema = createInsertSchema(banners).omit({ id: true, createdAt: true });
@@ -91,12 +115,14 @@ export type Member = typeof members.$inferSelect;
 
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull().unique(),
+  name: text("name").notNull(),
   description: text("description"),
   isActive: boolean("is_active").notNull().default(true),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 }, (table) => [
   index("categories_is_active_idx").on(table.isActive),
+  index("categories_branch_id_idx").on(table.branchId),
 ]);
 
 export const menuItems = pgTable("menu_items", {
@@ -107,10 +133,12 @@ export const menuItems = pgTable("menu_items", {
   description: text("description"),
   image: text("image"),
   isAvailable: boolean("is_available").notNull().default(true),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 }, (table) => [
   index("menu_items_category_id_idx").on(table.categoryId),
   index("menu_items_availability_idx").on(table.isAvailable),
+  index("menu_items_branch_id_idx").on(table.branchId),
 ]);
 
 export const orders = pgTable("orders", {
@@ -135,6 +163,7 @@ export const orders = pgTable("orders", {
   customerPhone: text("customer_phone"), // Customer phone number
   orderType: text("order_type").notNull().default("dine_in"), // 'dine_in' | 'take_away'
   scheduledTime: text("scheduled_time"), // null = order now, ISO string = scheduled time
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 }, (table) => [
@@ -143,6 +172,7 @@ export const orders = pgTable("orders", {
   index("orders_payment_method_idx").on(table.paymentMethod),
   index("orders_order_status_idx").on(table.orderStatus),
   index("orders_table_number_idx").on(table.tableNumber),
+  index("orders_branch_id_idx").on(table.branchId),
 ]);
 
 export const inventoryItems = pgTable("inventory_items", {
@@ -190,6 +220,8 @@ export const storeProfile = pgTable("store_profile", {
   rating: text("rating").default("4.9"),
   reviewCount: text("review_count").default("1.4rb ulasan"),
   tagline: text("tagline").default("Minuman & makanan khas Bantaeng yang bikin betah"),
+  // Multi-branch feature flag
+  multiBranchEnabled: boolean("multi_branch_enabled").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),

@@ -107,6 +107,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### March 2026 – Multi-Branch System
+
+- ✅ **Schema**: Added `branches` table (id, name, address, city, phone, openingHours, isActive, sortOrder); added `branchId` nullable FK to users, sessions, banners, categories, menuItems, orders; added `multiBranchEnabled` boolean to storeProfile
+- ✅ **Auth**: `SessionData` and `createSession`/`getSession` now include `branchId`; `requireAuth` injects `req.user.branchId`; login response includes `branchId`
+- ✅ **Middleware**: `requireSuperAdmin` (role=admin AND branchId=null); `getBranchFilter` helper; super admin sees all, branch admin sees only their branch
+- ✅ **Backend routes**: `/api/branches` (public, active only); `/api/admin/branches` CRUD (super admin only); public `/api/menu`, `/api/categories`, `/api/banners` accept `?branchId=` filter; `/api/restaurant-info` returns `multiBranchEnabled`
+- ✅ **Storage**: Branch CRUD methods added to DatabaseStorage, MemStorage stubs, HybridStorage stubs
+- ✅ **Customer UI (welcome.tsx)**: If `multiBranchEnabled=true` and no branch stored in localStorage, shows `BranchPickerModal` (bottom sheet); stores `ngehnoom-branch` in localStorage; all queries pass `?branchId=`; navbar shows selected branch name with tap-to-change
+- ✅ **Admin sidebar**: "MULTI-CABANG" group with "Manajemen Cabang" nav item visible only to super admin (role=admin, branchId=null)
+- ✅ **Admin pages**: New `branches.tsx` page — CRUD for branches with toggle active/inactive, sortOrder
+- ✅ **Settings page**: Toggle for `multiBranchEnabled` in Pengaturan Toko form
+
 ### March 2026 – Full Fore Coffee-Inspired Redesign
 
 - ✅ **Landing page (welcome.tsx)**: Hero carousel banner, sticky navbar with cart icon, category filter pills, menu card grid with inline add/quantity controls, floating cart bar — fully redesigned

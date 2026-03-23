@@ -83,6 +83,8 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
   );
 }
 
+const BRANCH_KEY = "ngehnoom-branch";
+
 type RestaurantInfo = {
   restaurantName: string;
   city: string | null;
@@ -90,7 +92,97 @@ type RestaurantInfo = {
   rating: string | null;
   reviewCount: string | null;
   tagline: string | null;
+  multiBranchEnabled: boolean;
 };
+
+type BranchInfo = {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  openingHours: string | null;
+};
+
+function BranchPickerModal({ branches, onSelect }: { branches: BranchInfo[]; onSelect: (id: string) => void }) {
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div
+        style={{
+          background: "#fff", borderRadius: "24px 24px 0 0",
+          width: "100%", maxWidth: 480,
+          padding: "28px 24px 40px",
+          boxShadow: "0 -8px 40px rgba(0,0,0,0.2)",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{
+            width: 48, height: 4, borderRadius: 2,
+            background: "#E5E5EA", margin: "0 auto 20px",
+          }} />
+          <p style={{ fontSize: 13, color: "#FF9500", fontWeight: 600, letterSpacing: "0.04em", marginBottom: 6 }}>PILIH CABANG</p>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+            Mau pesan di mana?
+          </h2>
+          <p style={{ fontSize: 14, color: "#6E6E73", marginTop: 6 }}>
+            Pilih cabang ngehnoom terdekat
+          </p>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {branches.map(branch => (
+            <button
+              key={branch.id}
+              data-testid={`branch-select-${branch.id}`}
+              onClick={() => onSelect(branch.id)}
+              style={{
+                display: "flex", alignItems: "center", gap: 14,
+                padding: "14px 16px", borderRadius: 16,
+                border: "1.5px solid #E5E5EA", background: "#F9F9F9",
+                cursor: "pointer", textAlign: "left", transition: "all 0.15s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#FF9500";
+                (e.currentTarget as HTMLElement).style.background = "rgba(255,149,0,0.05)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = "#E5E5EA";
+                (e.currentTarget as HTMLElement).style.background = "#F9F9F9";
+              }}
+            >
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: "linear-gradient(135deg, #FFAB00, #FF9500)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <MapPin size={20} style={{ color: "#fff" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#1D1D1F", marginBottom: 2 }}>{branch.name}</p>
+                {branch.address && (
+                  <p style={{ fontSize: 12, color: "#6E6E73", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {branch.address}{branch.city ? `, ${branch.city}` : ""}
+                  </p>
+                )}
+                {branch.openingHours && (
+                  <p style={{ fontSize: 11, color: "#FF9500", marginTop: 2 }}>
+                    <Clock size={10} style={{ display: "inline", marginRight: 4 }} />
+                    {branch.openingHours}
+                  </p>
+                )}
+              </div>
+              <ChevronRight size={18} style={{ color: "#C7C7CC", flexShrink: 0 }} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
@@ -101,6 +193,34 @@ export default function WelcomePage() {
     queryKey: ["/api/restaurant-info"],
   });
 
+  // Multi-branch: read selected branch from localStorage
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(() =>
+    localStorage.getItem(BRANCH_KEY)
+  );
+  const [showBranchPicker, setShowBranchPicker] = useState(false);
+
+  const multiBranchEnabled = restaurantInfo?.multiBranchEnabled ?? false;
+
+  const { data: branches = [] } = useQuery<BranchInfo[]>({
+    queryKey: ["/api/branches"],
+    enabled: multiBranchEnabled,
+  });
+
+  // Show branch picker when multi-branch is on and no branch selected
+  useEffect(() => {
+    if (multiBranchEnabled && branches.length > 0 && !selectedBranchId) {
+      setShowBranchPicker(true);
+    }
+  }, [multiBranchEnabled, branches.length, selectedBranchId]);
+
+  const handleSelectBranch = (id: string) => {
+    localStorage.setItem(BRANCH_KEY, id);
+    setSelectedBranchId(id);
+    setShowBranchPicker(false);
+  };
+
+  const branchQs = multiBranchEnabled && selectedBranchId ? `?branchId=${selectedBranchId}` : "";
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -108,9 +228,18 @@ export default function WelcomePage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const slideTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const { data: menuItems = [] } = useQuery<MenuItem[]>({ queryKey: ["/api/menu"] });
-  const { data: categories = [] } = useQuery<Category[]>({ queryKey: ["/api/categories"] });
-  const { data: apiBanners = [] } = useQuery<Banner[]>({ queryKey: ["/api/banners"] });
+  const { data: menuItems = [] } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu", selectedBranchId],
+    queryFn: () => fetch(`/api/menu${branchQs}`).then(r => r.json()),
+  });
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories", selectedBranchId],
+    queryFn: () => fetch(`/api/categories${branchQs}`).then(r => r.json()),
+  });
+  const { data: apiBanners = [] } = useQuery<Banner[]>({
+    queryKey: ["/api/banners", selectedBranchId],
+    queryFn: () => fetch(`/api/banners${branchQs}`).then(r => r.json()),
+  });
 
   const dynamicTagline = restaurantInfo?.tagline || "Minuman & makanan khas Bantaeng yang bikin betah";
   const SLIDES = apiBanners.length > 0
@@ -158,18 +287,44 @@ export default function WelcomePage() {
 
   const slide = SLIDES[currentSlide];
 
+  // Get selected branch display name
+  const selectedBranch = branches.find(b => b.id === selectedBranchId);
+
   return (
     <div
       className="min-h-screen"
       style={{ background: "#F5F5F7", fontFamily: "var(--font-sans)" }}
     >
+      {/* Branch picker modal */}
+      {showBranchPicker && branches.length > 0 && (
+        <BranchPickerModal branches={branches} onSelect={handleSelectBranch} />
+      )}
+
       {/* ─── FROSTED NAVBAR ─── */}
       <header
         className="ng-navbar sticky top-0 z-50"
         style={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 h-14">
-          <NgehnoomLogo size={30} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <NgehnoomLogo size={30} />
+            {multiBranchEnabled && selectedBranch && (
+              <button
+                onClick={() => setShowBranchPicker(true)}
+                data-testid="button-change-branch"
+                style={{
+                  display: "flex", alignItems: "center", gap: 4,
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 0, marginTop: 2,
+                }}
+              >
+                <MapPin size={10} style={{ color: "#FF9500" }} />
+                <span style={{ fontSize: 11, color: "#FF9500", fontWeight: 600 }}>
+                  {selectedBranch.name}
+                </span>
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowSearch(s => !s)}

@@ -24,11 +24,17 @@ export interface SessionData {
   userId: string;
   username: string;
   role: string;
+  branchId: string | null;
   expires: Date;
 }
 
 // Database session management (persistent across restarts)
-export const createSession = async (userId: string, username: string, role: string): Promise<string> => {
+export const createSession = async (
+  userId: string,
+  username: string,
+  role: string,
+  branchId: string | null = null
+): Promise<string> => {
   const token = generateSessionToken();
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + 24); // Session expires in 24 hours
@@ -38,6 +44,7 @@ export const createSession = async (userId: string, username: string, role: stri
     userId,
     username,
     role,
+    branchId,
     expiresAt,
   });
   
@@ -66,6 +73,7 @@ export const getSession = async (token: string): Promise<SessionData | null> => 
     userId: session.userId,
     username: session.username,
     role: session.role,
+    branchId: session.branchId ?? null,
     expires: session.expiresAt,
   };
 };

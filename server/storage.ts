@@ -67,6 +67,14 @@ export interface IStorage {
   deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<StockDeductionResult>;
   getLowStockItems(): Promise<InventoryItem[]>;
 
+  // Branches
+  getBranches(): Promise<import("@shared/schema").Branch[]>;
+  getActiveBranches(): Promise<import("@shared/schema").Branch[]>;
+  getBranch(id: string): Promise<import("@shared/schema").Branch | undefined>;
+  createBranch(branch: import("@shared/schema").InsertBranch): Promise<import("@shared/schema").Branch>;
+  updateBranch(id: string, branch: Partial<import("@shared/schema").InsertBranch>): Promise<import("@shared/schema").Branch | undefined>;
+  deleteBranch(id: string): Promise<boolean>;
+
   // Store Profile
   getStoreProfile(): Promise<StoreProfile | undefined>;
   createStoreProfile(profile: InsertStoreProfile): Promise<StoreProfile>;
@@ -1038,6 +1046,41 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // Branches methods
+  async getBranches(): Promise<import("@shared/schema").Branch[]> {
+    const { branches } = await import("@shared/schema");
+    return db.select().from(branches).orderBy(branches.sortOrder);
+  }
+
+  async getActiveBranches(): Promise<import("@shared/schema").Branch[]> {
+    const { branches } = await import("@shared/schema");
+    return db.select().from(branches).where(eq(branches.isActive, true)).orderBy(branches.sortOrder);
+  }
+
+  async getBranch(id: string): Promise<import("@shared/schema").Branch | undefined> {
+    const { branches } = await import("@shared/schema");
+    const [branch] = await db.select().from(branches).where(eq(branches.id, id)).limit(1);
+    return branch || undefined;
+  }
+
+  async createBranch(branch: import("@shared/schema").InsertBranch): Promise<import("@shared/schema").Branch> {
+    const { branches } = await import("@shared/schema");
+    const [created] = await db.insert(branches).values({ ...branch, id: randomUUID() }).returning();
+    return created;
+  }
+
+  async updateBranch(id: string, branch: Partial<import("@shared/schema").InsertBranch>): Promise<import("@shared/schema").Branch | undefined> {
+    const { branches } = await import("@shared/schema");
+    const [updated] = await db.update(branches).set(branch).where(eq(branches.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteBranch(id: string): Promise<boolean> {
+    const { branches } = await import("@shared/schema");
+    const result = await db.delete(branches).where(eq(branches.id, id)).returning();
+    return result.length > 0;
+  }
+
   // Store Profile methods
   async getStoreProfile(): Promise<StoreProfile | undefined> {
     const [profile] = await db.select().from(storeProfile).where(eq(storeProfile.isActive, true)).limit(1);
@@ -1972,6 +2015,14 @@ class MemStorage implements IStorage {
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return { success: true, deductions: [] }; }
   async getLowStockItems(): Promise<any[]> { return []; }
 
+  // Branches methods (stub implementations)
+  async getBranches(): Promise<any[]> { return []; }
+  async getActiveBranches(): Promise<any[]> { return []; }
+  async getBranch(id: string): Promise<any | undefined> { return undefined; }
+  async createBranch(branch: any): Promise<any> { return { ...branch, id: randomUUID() }; }
+  async updateBranch(id: string, branch: any): Promise<any | undefined> { return undefined; }
+  async deleteBranch(id: string): Promise<boolean> { return false; }
+
   // Store Profile methods (stub implementations)
   async getStoreProfile(): Promise<any | undefined> { return undefined; }
   async createStoreProfile(profile: any): Promise<any> { const id = randomUUID(); const newProfile = { ...profile, id }; this.storeProfile.set(id, newProfile); return newProfile; }
@@ -2476,6 +2527,14 @@ class FallbackStorage implements IStorage {
   async validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.validateStockAvailability(orderItems) : this.dbStorage.validateStockAvailability(orderItems)); }
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deductStock(orderItems) : this.dbStorage.deductStock(orderItems)); }
   async getLowStockItems(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getLowStockItems() : this.dbStorage.getLowStockItems()); }
+
+  // Branches methods (stub)
+  async getBranches(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getBranches() : this.dbStorage.getBranches()); }
+  async getActiveBranches(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getActiveBranches() : this.dbStorage.getActiveBranches()); }
+  async getBranch(id: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getBranch(id) : this.dbStorage.getBranch(id)); }
+  async createBranch(branch: any): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.createBranch(branch) : this.dbStorage.createBranch(branch)); }
+  async updateBranch(id: string, branch: any): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.updateBranch(id, branch) : this.dbStorage.updateBranch(id, branch)); }
+  async deleteBranch(id: string): Promise<boolean> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deleteBranch(id) : this.dbStorage.deleteBranch(id)); }
 
   // Store Profile methods (stub)
   async getStoreProfile(): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getStoreProfile() : this.dbStorage.getStoreProfile()); }

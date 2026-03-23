@@ -220,8 +220,13 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({ message: "Account is disabled or no longer exists" });
     }
     
-    // Add user info to request with current data
-    (req as any).user = { id: session.userId, username: currentUser.username, role: currentUser.role };
+    // Add user info to request with current data (including branchId for multi-branch)
+    (req as any).user = {
+      id: session.userId,
+      username: currentUser.username,
+      role: currentUser.role,
+      branchId: currentUser.branchId ?? null,
+    };
   } catch (error) {
     // If we can't check user status, invalidate session for security
     await deleteSession(sessionToken);
@@ -256,6 +261,22 @@ function requireAdminOrKasir(req: Request, res: Response, next: NextFunction) {
     return res.status(403).json({ message: "Admin or Kasir access required" });
   }
   next();
+}
+
+// Super admin = admin with NO branchId (global access across all branches)
+function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  const user = (req as any).user;
+  if (user?.role !== 'admin' || user?.branchId !== null) {
+    return res.status(403).json({ message: "Super admin access required" });
+  }
+  next();
+}
+
+// Helper: get branch filter for admin queries
+// Super admin (branchId=null) sees all; branch admin only sees their branch
+function getBranchFilter(req: Request): string | null {
+  const user = (req as any).user;
+  return user?.branchId ?? null;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -399,8 +420,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Create persistent session in database
-      const sessionToken = await createSession(user.id, user.username, user.role);
+      // Create persistent session in database (include branchId for branch-scoped admins)
+      const sessionToken = await createSession(user.id, user.username, user.role, user.branchId ?? null);
       
       // Set httpOnly cookie for security (protects against XSS)
       res.cookie('session_token', sessionToken, {
@@ -412,8 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.json({ 
-        user: { id: user.id, username: user.username, role: user.role }
-        // Token no longer sent in response body for security
+        user: { id: user.id, username: user.username, role: user.role, branchId: user.branchId ?? null }
       });
     } catch (error) {
       console.error("❌ Login error:", error);
@@ -438,7 +458,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       user: { 
         id: session.userId, 
         username: session.username, 
-        role: session.role 
+        role: session.role,
+        branchId: session.branchId ?? null,
       } 
     });
   });
@@ -505,6 +526,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("❌ Admin verification error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // ── Branches ────────────────────────────────────────────────────────────
+  // Public: get active branches (for customer branch selection)
+  app.get("/api/branches", async (req, res) => {
+    try {
+      const branches = await storage.getActiveBranches();
+      res.json(branches);
+    } catch (error) {
+      console.error("❌ Get branches error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin: get all branches (super admin sees all)
+  app.get("/api/admin/branches", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const branchList = await storage.getBranches();
+      res.json(branchList);
+    } catch (error) {
+      console.error("❌ Get all branches error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin: create branch
+  app.post("/api/admin/branches", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const { insertBranchSchema } = await import("@shared/schema");
+      const parsed = insertBranchSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid branch data", errors: parsed.error.errors });
+      }
+      const branch = await storage.createBranch(parsed.data);
+      res.status(201).json(branch);
+    } catch (error) {
+      console.error("❌ Create branch error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin: update branch
+  app.patch("/api/admin/branches/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { insertBranchSchema } = await import("@shared/schema");
+      const parsed = insertBranchSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid branch data", errors: parsed.error.errors });
+      }
+      const branch = await storage.updateBranch(id, parsed.data);
+      if (!branch) return res.status(404).json({ message: "Branch not found" });
+      res.json(branch);
+    } catch (error) {
+      console.error("❌ Update branch error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Admin: delete branch
+  app.delete("/api/admin/branches/:id", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteBranch(id);
+      if (!success) return res.status(404).json({ message: "Branch not found" });
+      res.json({ message: "Branch deleted" });
+    } catch (error) {
+      console.error("❌ Delete branch error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -1713,8 +1804,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories (public read access for customer menu, admin required for modifications)
   app.get("/api/categories", async (req, res) => {
     try {
+      const branchId = req.query.branchId as string | undefined;
       const categories = await storage.getCategories();
-      res.json(categories);
+      // If branchId provided: show categories belonging to that branch OR global categories (null)
+      const filtered = branchId
+        ? categories.filter((c: any) => c.branchId === branchId || c.branchId === null)
+        : categories;
+      res.json(filtered);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1824,8 +1920,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Banners (public read, admin write)
   app.get("/api/banners", async (req, res) => {
     try {
+      const branchId = req.query.branchId as string | undefined;
       const allBanners = await storage.getActiveBanners();
-      res.json(allBanners);
+      const filtered = branchId
+        ? allBanners.filter((b: any) => b.branchId === branchId || b.branchId === null)
+        : allBanners;
+      res.json(filtered);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1874,7 +1974,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Menu Items (public read access for customer menu, admin required for modifications)
   app.get("/api/menu", async (req, res) => {
     try {
-      const { limit, offset, category, available } = req.query;
+      const { limit, offset, category, available, branchId } = req.query;
+      const bId = branchId as string | undefined;
       
       if (limit || offset) {
         const result = await storage.getPaginatedMenuItems({
@@ -1883,10 +1984,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           categoryId: category as string,
           available: available === 'true' ? true : available === 'false' ? false : undefined
         });
+        // Filter by branchId if provided (items of that branch or global items)
+        if (bId) {
+          result.items = result.items.filter((i: any) => i.branchId === bId || i.branchId === null);
+          result.total = result.items.length;
+        }
         res.json(result);
       } else {
         const items = await storage.getMenuItems();
-        res.json(items);
+        // Filter by branchId if provided (items of that branch or global items)
+        const filtered = bId
+          ? items.filter((i: any) => i.branchId === bId || i.branchId === null)
+          : items;
+        res.json(filtered);
       }
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -2755,6 +2865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rating: "4.9",
           reviewCount: "1.4rb ulasan",
           tagline: "Minuman & makanan khas Bantaeng yang bikin betah",
+          multiBranchEnabled: false,
         });
       }
       res.json({
@@ -2764,6 +2875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rating: profile.rating,
         reviewCount: profile.reviewCount,
         tagline: profile.tagline,
+        multiBranchEnabled: profile.multiBranchEnabled ?? false,
       });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

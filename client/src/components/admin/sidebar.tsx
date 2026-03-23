@@ -21,6 +21,7 @@ import {
   CreditCard,
   Crown,
   Menu as MenuIcon,
+  GitBranch,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -30,9 +31,10 @@ interface AdminSidebarProps {
   currentSection: string;
 }
 
-const NAV_GROUPS = [
+const BASE_NAV_GROUPS = [
   {
     label: "POS & PESANAN",
+    superAdminOnly: false,
     items: [
       { key: "cashier", label: "Kasir", icon: CreditCard },
       { key: "orders", label: "Pesanan", icon: ClipboardList },
@@ -42,6 +44,7 @@ const NAV_GROUPS = [
   },
   {
     label: "PELANGGAN",
+    superAdminOnly: false,
     items: [
       { key: "members", label: "Data Member", icon: Crown },
       { key: "users", label: "Pengguna Admin", icon: Users },
@@ -49,6 +52,7 @@ const NAV_GROUPS = [
   },
   {
     label: "PROMO & KONTEN",
+    superAdminOnly: false,
     items: [
       { key: "discounts", label: "Diskon & Voucher", icon: PercentIcon },
       { key: "banners", label: "Banner Halaman Depan", icon: ImageIcon },
@@ -56,6 +60,7 @@ const NAV_GROUPS = [
   },
   {
     label: "LAPORAN",
+    superAdminOnly: false,
     items: [
       { key: "approvals", label: "Persetujuan", icon: CheckSquare },
       { key: "audit-reports", label: "Laporan Keuangan", icon: Building2 },
@@ -65,6 +70,7 @@ const NAV_GROUPS = [
   },
   {
     label: "PENGATURAN",
+    superAdminOnly: false,
     items: [
       { key: "settings", label: "Pengaturan Toko", icon: Cog },
       { key: "menu", label: "Manajemen Menu", icon: Utensils },
@@ -72,7 +78,19 @@ const NAV_GROUPS = [
       { key: "printer", label: "Pengaturan Printer", icon: Printer },
     ],
   },
+  {
+    label: "MULTI-CABANG",
+    superAdminOnly: true,
+    items: [
+      { key: "branches", label: "Manajemen Cabang", icon: GitBranch },
+    ],
+  },
 ];
+
+function getNavGroups(user: any) {
+  const isSuperAdmin = user?.role === "admin" && user?.branchId === null;
+  return BASE_NAV_GROUPS.filter(g => !g.superAdminOnly || isSuperAdmin);
+}
 
 function NgehnoomLogo() {
   return (
@@ -115,7 +133,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user }: {
 
       {/* Navigation */}
       <nav style={{ flex: 1, overflowY: "auto", padding: "12px 10px" }}>
-        {NAV_GROUPS.map((group, gi) => (
+        {getNavGroups(user).map((group, gi) => (
           <div key={group.label} style={{ marginTop: gi > 0 ? 20 : 0 }}>
             <p style={{
               fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
@@ -202,7 +220,7 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
   const { logout, user } = useAuth();
 
   const SECTION_TO_PATH: Record<string, string> = Object.fromEntries(
-    NAV_GROUPS.flatMap(g => g.items.map(i => [i.key, `/admin/${i.key}`]))
+    BASE_NAV_GROUPS.flatMap(g => g.items.map(i => [i.key, `/admin/${i.key}`]))
   );
 
   const handleNavigate = (key: string) => {
