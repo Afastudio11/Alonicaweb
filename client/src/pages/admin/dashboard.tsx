@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       />
 
       {/* Main Content — offset for tablet/desktop sidebar */}
-      <div style={{ flex: 1, minWidth: 0 }} className="md:pl-[240px]">
+      <div style={{ flex: 1, minWidth: 0 }} className="md:pl-16 lg:pl-[240px]">
         {/* Top Header Bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 30,

@@ -118,29 +118,58 @@ function NgehnoomLogo() {
   );
 }
 
-function SidebarContent({ currentSection, onNavigate, onLogout, user }: {
+function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed = false }: {
   currentSection: string;
   onNavigate: (key: string) => void;
   onLogout: () => void;
   user: any;
+  collapsed?: boolean;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Header */}
-      <div style={{ padding: "20px 18px 16px", borderBottom: "1px solid #F0F0F0" }}>
-        <NgehnoomLogo />
+      <div style={{
+        padding: collapsed ? "20px 0 16px" : "20px 18px 16px",
+        borderBottom: "1px solid #F0F0F0",
+        display: "flex", alignItems: "center",
+        justifyContent: collapsed ? "center" : "flex-start",
+      }}>
+        {collapsed ? (
+          <div style={{
+            width: 34, height: 34, borderRadius: "50%",
+            background: "linear-gradient(135deg, #FFAB00, #FF9500, #FF2D55)",
+            padding: 2, flexShrink: 0,
+          }}>
+            <div style={{
+              width: "100%", height: "100%", borderRadius: "50%",
+              background: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width={16} height={12} viewBox="0 0 22 18" fill="none">
+                <path d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16" stroke="#FF9500" strokeWidth="3" strokeLinecap="round" />
+                <path d="M11 16V6C11 6 11 2 15.5 2C20 2 20 6 20 6V16" stroke="#FF9500" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </div>
+          </div>
+        ) : (
+          <NgehnoomLogo />
+        )}
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: "12px 10px" }}>
+      <nav style={{ flex: 1, overflowY: "auto", padding: collapsed ? "12px 6px" : "12px 10px" }}>
         {getNavGroups(user).map((group, gi) => (
-          <div key={group.label} style={{ marginTop: gi > 0 ? 20 : 0 }}>
-            <p style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
-              color: "#AEAEB2", padding: "0 10px", marginBottom: 4,
-            }}>
-              {group.label}
-            </p>
+          <div key={group.label} style={{ marginTop: gi > 0 ? (collapsed ? 8 : 20) : 0 }}>
+            {!collapsed && (
+              <p style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+                color: "#AEAEB2", padding: "0 10px", marginBottom: 4,
+              }}>
+                {group.label}
+              </p>
+            )}
+            {collapsed && gi > 0 && (
+              <div style={{ height: 1, background: "#F0F0F0", margin: "4px 6px 8px" }} />
+            )}
             <div>
               {group.items.map((item) => {
                 const Icon = item.icon;
@@ -150,9 +179,14 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user }: {
                     key={item.key}
                     onClick={() => onNavigate(item.key)}
                     data-testid={`nav-${item.key}`}
+                    title={collapsed ? item.label : undefined}
                     style={{
-                      display: "flex", alignItems: "center", gap: 10,
-                      width: "100%", padding: "9px 10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: collapsed ? "center" : "flex-start",
+                      gap: collapsed ? 0 : 10,
+                      width: "100%",
+                      padding: collapsed ? "10px 0" : "9px 10px",
                       borderRadius: 12, border: "none", cursor: "pointer",
                       background: isActive ? "rgba(255,149,0,0.1)" : "transparent",
                       marginBottom: 2, transition: "background 0.15s",
@@ -161,20 +195,31 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user }: {
                     onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
                     <Icon
-                      size={17}
+                      size={collapsed ? 20 : 17}
                       style={{ color: isActive ? "#FF9500" : "#6E6E73", flexShrink: 0 }}
                     />
-                    <span style={{
-                      fontSize: 13.5, fontWeight: isActive ? 600 : 400,
-                      color: isActive ? "#FF9500" : "#1D1D1F",
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                    }}>
-                      {item.label}
-                    </span>
-                    {isActive && (
+                    {!collapsed && (
+                      <>
+                        <span style={{
+                          fontSize: 13.5, fontWeight: isActive ? 600 : 400,
+                          color: isActive ? "#FF9500" : "#1D1D1F",
+                          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        }}>
+                          {item.label}
+                        </span>
+                        {isActive && (
+                          <div style={{
+                            marginLeft: "auto", width: 6, height: 6, borderRadius: "50%",
+                            background: "#FF9500", flexShrink: 0,
+                          }} />
+                        )}
+                      </>
+                    )}
+                    {collapsed && isActive && (
                       <div style={{
-                        marginLeft: "auto", width: 6, height: 6, borderRadius: "50%",
-                        background: "#FF9500", flexShrink: 0,
+                        position: "absolute", right: 0,
+                        width: 3, height: 20, borderRadius: "2px 0 0 2px",
+                        background: "#FF9500",
                       }} />
                     )}
                   </button>
@@ -186,30 +231,47 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user }: {
       </nav>
 
       {/* Footer - User info + logout */}
-      <div style={{ borderTop: "1px solid #F0F0F0", padding: "12px 10px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "#F5F5F7" }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-            background: "linear-gradient(135deg, #FF9500, #FF2D55)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
-              {user?.username?.[0]?.toUpperCase() || "A"}
-            </span>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F", lineHeight: 1 }}>{user?.username || "Admin"}</p>
-            <p style={{ fontSize: 11, color: "#AEAEB2", marginTop: 2 }}>{user?.role === "admin" ? "Administrator" : "Kasir"}</p>
-          </div>
+      <div style={{ borderTop: "1px solid #F0F0F0", padding: collapsed ? "12px 6px" : "12px 10px" }}>
+        {collapsed ? (
           <button
             onClick={onLogout}
             data-testid="button-logout-sidebar"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 8 }}
             title="Logout"
+            style={{
+              width: "100%", display: "flex", justifyContent: "center", alignItems: "center",
+              padding: "8px 0", borderRadius: 10, border: "none", cursor: "pointer",
+              background: "transparent",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.05)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
-            <LogOut size={16} style={{ color: "#AEAEB2" }} />
+            <LogOut size={18} style={{ color: "#AEAEB2" }} />
           </button>
-        </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 12, background: "#F5F5F7" }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>
+                {user?.username?.[0]?.toUpperCase() || "A"}
+              </span>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F", lineHeight: 1 }}>{user?.username || "Admin"}</p>
+              <p style={{ fontSize: 11, color: "#AEAEB2", marginTop: 2 }}>{user?.role === "admin" ? "Administrator" : "Kasir"}</p>
+            </div>
+            <button
+              onClick={onLogout}
+              data-testid="button-logout-sidebar"
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 8 }}
+              title="Logout"
+            >
+              <LogOut size={16} style={{ color: "#AEAEB2" }} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -232,9 +294,27 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
 
   return (
     <>
-      {/* Desktop/Tablet Sidebar */}
+      {/* Tablet Sidebar — icon-only, 64px (md to lg) */}
       <div
-        className="hidden md:flex"
+        className="hidden md:flex lg:hidden"
+        style={{
+          position: "fixed", top: 0, left: 0, bottom: 0, width: 64,
+          background: "#FFFFFF", borderRight: "1px solid #F0F0F0",
+          zIndex: 40, flexDirection: "column",
+        }}
+      >
+        <SidebarContent
+          currentSection={currentSection}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+          user={user}
+          collapsed={true}
+        />
+      </div>
+
+      {/* Desktop Sidebar — full, 240px (lg+) */}
+      <div
+        className="hidden lg:flex"
         style={{
           position: "fixed", top: 0, left: 0, bottom: 0, width: 240,
           background: "#FFFFFF", borderRight: "1px solid #F0F0F0",
@@ -247,6 +327,7 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
             onNavigate={handleNavigate}
             onLogout={handleLogout}
             user={user}
+            collapsed={false}
           />
         </div>
       </div>
