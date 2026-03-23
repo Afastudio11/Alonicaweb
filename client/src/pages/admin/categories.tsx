@@ -96,7 +96,7 @@ export default function CategoriesSection() {
           <div className="h-8 w-48 bg-muted rounded animate-pulse"></div>
           <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="alonica-card p-4 animate-pulse">
               <div className="h-20 bg-muted rounded"></div>
@@ -132,7 +132,7 @@ export default function CategoriesSection() {
       </div>
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {categories.map((category) => (
           <div key={category.id} className="alonica-card p-4" data-testid={`card-category-${category.id}`}>
             <div className="flex items-start justify-between">

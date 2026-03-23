@@ -214,9 +214,9 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* Desktop/Tablet Sidebar */}
       <div
-        className="hidden lg:flex"
+        className="hidden md:flex"
         style={{
           position: "fixed", top: 0, left: 0, bottom: 0, width: 240,
           background: "#FFFFFF", borderRight: "1px solid #F0F0F0",
@@ -233,11 +233,11 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer (only on small screens) */}
       {isOpen && (
         <div
           style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex" }}
-          className="lg:hidden"
+          className="md:hidden"
         >
           {/* Backdrop */}
           <div

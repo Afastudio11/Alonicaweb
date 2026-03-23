@@ -131,8 +131,8 @@ export default function AdminDashboard() {
         currentSection={section}
       />
 
-      {/* Main Content — offset for desktop sidebar */}
-      <div style={{ flex: 1, minWidth: 0 }} className="lg:pl-[240px]">
+      {/* Main Content — offset for tablet/desktop sidebar */}
+      <div style={{ flex: 1, minWidth: 0 }} className="md:pl-[240px]">
         {/* Top Header Bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 30,
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {/* Mobile hamburger */}
               <button
-                className="lg:hidden"
+                className="md:hidden"
                 onClick={() => setSidebarOpen(true)}
                 data-testid="button-mobile-menu"
                 style={{

@@ -141,7 +141,7 @@ export default function MenuSection() {
           <div className="h-8 w-48 bg-muted rounded animate-pulse"></div>
           <div className="h-10 w-32 bg-muted rounded animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={i} className="alonica-card p-4 animate-pulse">
               <div className="h-32 bg-muted rounded"></div>
@@ -199,7 +199,7 @@ export default function MenuSection() {
       </div>
 
       {/* Menu Items Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filteredItems.map((item) => (
           <div key={item.id} className="alonica-card overflow-hidden" data-testid={`card-menu-item-${item.id}`}>
             <div className="flex">

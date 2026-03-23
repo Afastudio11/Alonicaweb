@@ -352,7 +352,7 @@ export default function KitchenSection() {
             </div>
 
             {/* Kitchen Orders Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pending Kitchen Orders */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -451,7 +451,7 @@ export default function KitchenSection() {
             </div>
 
             {/* Bar Orders Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pending Bar Orders */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
