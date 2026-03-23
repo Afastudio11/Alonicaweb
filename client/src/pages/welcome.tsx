@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ShoppingCart, Search, Settings, X, Plus, Minus, ChevronRight, Clock, MapPin, Star, Coffee } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { ShoppingCart, Search, X, Plus, Minus, ChevronRight, Clock, MapPin, Star, Coffee } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import type { MenuItem, Category, Banner } from "@shared/schema";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 
 const FALLBACK_SLIDES = [
   {
@@ -89,7 +85,6 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
 
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
-  const { login } = useAuth();
   const { cartItems, addToCart, updateQuantity, totalItems, total } = useCart();
   const { toast } = useToast();
 
@@ -97,9 +92,6 @@ export default function WelcomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminUsername, setAdminUsername] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const slideTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -149,16 +141,6 @@ export default function WelcomePage() {
     toast({ title: `${item.name} ditambahkan`, duration: 1500 });
   };
 
-  const handleAdminLogin = async () => {
-    try {
-      await login(adminUsername, adminPassword);
-      setShowAdminLogin(false);
-      setLocation("/admin");
-    } catch {
-      toast({ title: "Login gagal", variant: "destructive" });
-    }
-  };
-
   const slide = SLIDES[currentSlide];
 
   return (
@@ -196,14 +178,6 @@ export default function WelcomePage() {
                   {totalItems}
                 </span>
               )}
-            </button>
-            <button
-              onClick={() => setShowAdminLogin(true)}
-              className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
-              style={{ opacity: 0.15 }}
-              data-testid="button-admin"
-            >
-              <Settings size={16} style={{ color: "#1D1D1F" }} />
             </button>
           </div>
         </div>
@@ -597,48 +571,6 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* ─── ADMIN LOGIN DIALOG ─── */}
-      <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
-        <DialogContent className="rounded-3xl max-w-sm mx-auto" style={{ fontFamily: "var(--font-sans)" }}>
-          <DialogHeader>
-            <div className="flex justify-center mb-2">
-              <NgehnoomLogo size={28} />
-            </div>
-            <DialogTitle className="text-center font-bold" style={{ color: "#1D1D1F" }}>
-              Admin Login
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-2">
-            <input
-              type="text"
-              placeholder="Username"
-              value={adminUsername}
-              onChange={e => setAdminUsername(e.target.value)}
-              className="w-full px-4 h-11 rounded-2xl text-sm outline-none"
-              style={{ background: "#F5F5F7", color: "#1D1D1F" }}
-              data-testid="input-admin-username"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={adminPassword}
-              onChange={e => setAdminPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
-              className="w-full px-4 h-11 rounded-2xl text-sm outline-none"
-              style={{ background: "#F5F5F7", color: "#1D1D1F" }}
-              data-testid="input-admin-password"
-            />
-            <button
-              onClick={handleAdminLogin}
-              className="ng-tap w-full h-11 rounded-2xl font-bold text-white text-sm"
-              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
-              data-testid="button-admin-login"
-            >
-              Masuk
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
