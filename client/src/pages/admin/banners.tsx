@@ -5,6 +5,41 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Banner, InsertBanner } from "@shared/schema";
 
+async function compressImage(
+  file: File,
+  maxWidth = 1200,
+  maxHeight = 500,
+  quality = 0.82
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas not supported"));
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("Compression failed"));
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
+    img.src = url;
+  });
+}
+
 const GRADIENT_PRESETS = [
   { label: "Orange → Pink", value: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)" },
   { label: "Orange → Red", value: "linear-gradient(135deg, #FF9500 0%, #FF6B35 50%, #FF2D55 100%)" },
@@ -133,15 +168,19 @@ export default function BannersSection() {
       toast({ title: "File tidak valid", description: "Hanya file gambar yang diperbolehkan", variant: "destructive" });
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File terlalu besar", description: "Ukuran maksimal file adalah 5MB", variant: "destructive" });
+    if (file.size > 20 * 1024 * 1024) {
+      toast({ title: "File terlalu besar", description: "Ukuran maksimal file adalah 20MB", variant: "destructive" });
       return;
     }
 
     setIsUploading(true);
     try {
+      const originalKB = Math.round(file.size / 1024);
+      const compressed = await compressImage(file, 1200, 500, 0.82);
+      const compressedKB = Math.round(compressed.size / 1024);
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressed);
 
       const response = await fetch("/api/objects/upload", {
         method: "POST",
@@ -160,7 +199,10 @@ export default function BannersSection() {
 
       setForm(f => ({ ...f, imageUrl }));
       setImageMode("image");
-      toast({ title: "Gambar berhasil diupload" });
+      toast({
+        title: "Gambar berhasil diupload",
+        description: `${originalKB}KB → ${compressedKB}KB (hemat ${Math.round((1 - compressedKB / originalKB) * 100)}%)`,
+      });
     } catch (error) {
       toast({
         title: "Upload gagal",
@@ -509,7 +551,7 @@ export default function BannersSection() {
                         <strong>1200 × 500 px</strong> (rasio 2.4:1) · Format JPG atau PNG
                       </p>
                       <p className="text-xs mt-0.5" style={{ color: "#6E6E73" }}>
-                        Ukuran file maks. 5 MB · Gambar akan di-crop ke area banner
+                        Otomatis dikompres · Maks. 20 MB · Gambar menyesuaikan area banner
                       </p>
                     </div>
 
@@ -560,7 +602,7 @@ export default function BannersSection() {
                               <Upload size={22} style={{ color: "#FF9500" }} />
                             </div>
                             <span className="text-sm font-semibold" style={{ color: "#1D1D1F" }}>Pilih Gambar</span>
-                            <span className="text-xs" style={{ color: "#6E6E73" }}>JPG, PNG · maks. 5 MB</span>
+                            <span className="text-xs" style={{ color: "#6E6E73" }}>JPG, PNG · dikompres otomatis</span>
                           </>
                         )}
                       </button>
