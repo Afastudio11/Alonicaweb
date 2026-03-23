@@ -1660,81 +1660,96 @@ export default function CashierSection() {
                     </Button>
                   </div>
 
-                  {/* Payment Method Selection */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Metode Pembayaran</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setPaymentMethod("cash")}
-                        data-testid="button-method-cash"
-                        className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
-                        style={paymentMethod === "cash"
-                          ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
-                          : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
-                        }
-                      >
-                        <Banknote className="h-4 w-4" />
-                        Tunai
-                      </button>
-                      <button
-                        onClick={() => setPaymentMethod("qris")}
-                        data-testid="button-method-qris"
-                        className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
-                        style={paymentMethod === "qris"
-                          ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
-                          : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
-                        }
-                      >
-                        <QrCode className="h-4 w-4" />
-                        QRIS
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Payment Button */}
-                  <Button
-                    onClick={handleSubmitOrder}
-                    disabled={createOrderMutation.isPending || cart.length === 0 || getUnpaidAssignedCount() > 0}
-                    className="w-full bg-primary hover:bg-primary/90 text-white h-12 text-base font-semibold"
-                    data-testid="button-submit-order"
-                  >
-                    {createOrderMutation.isPending
-                      ? "Processing..."
-                      : paymentMethod === "qris"
-                        ? "Bayar dengan QRIS"
-                        : "Bayar Tunai"}
-                  </Button>
-
-                  {/* Secondary Actions */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={handleCreateOpenBill}
-                      disabled={createOpenBillMutation.isPending || getUnpaidAssignedCount() > 0}
-                      variant="outline"
-                      className="h-9 text-xs"
-                      data-testid="button-create-open-bill"
-                    >
-                      <FileText className="h-3.5 w-3.5 mr-1.5" />
-                      {createOpenBillMutation.isPending 
-                        ? "Saving..." 
-                        : editingBill 
-                          ? "Update Bill" 
-                          : "Open Bill"}
-                    </Button>
-                    
-                    <Button
-                      onClick={initiateSplitBill}
-                      variant="outline"
-                      className="h-9 text-xs"
-                      data-testid="button-split-bill"
-                      disabled={splitParts.length > 0}
-                    >
-                      <Split className="h-3.5 w-3.5 mr-1.5" />
-                      {splitParts.length > 0 ? "Split Active" : "Split Bill"}
-                    </Button>
-                  </div>
                 </>
               )}
+
+              {/* Payment Method Selection — always visible */}
+              <div className="space-y-2 pt-3 border-t">
+                <p className="text-xs font-medium text-muted-foreground">Metode Pembayaran</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setPaymentMethod("cash")}
+                    data-testid="button-method-cash"
+                    className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
+                    style={paymentMethod === "cash"
+                      ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                      : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
+                    }
+                  >
+                    <Banknote className="h-4 w-4" />
+                    Tunai
+                  </button>
+                  <button
+                    onClick={() => setPaymentMethod("qris")}
+                    data-testid="button-method-qris"
+                    className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
+                    style={paymentMethod === "qris"
+                      ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                      : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
+                    }
+                  >
+                    <QrCode className="h-4 w-4" />
+                    QRIS
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Button — always visible */}
+              <button
+                onClick={handleSubmitOrder}
+                disabled={createOrderMutation.isPending || cart.length === 0 || getUnpaidAssignedCount() > 0}
+                data-testid="button-submit-order"
+                style={{
+                  width: "100%", height: 52, borderRadius: 14, border: "none",
+                  cursor: cart.length === 0 ? "not-allowed" : "pointer",
+                  fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em",
+                  transition: "all 0.15s",
+                  background: cart.length === 0
+                    ? "#E5E5EA"
+                    : paymentMethod === "qris"
+                      ? "linear-gradient(135deg, #FF9500, #FF6B00)"
+                      : "linear-gradient(135deg, #FF9500, #FF2D55)",
+                  color: cart.length === 0 ? "#8E8E93" : "#fff",
+                  boxShadow: cart.length === 0 ? "none" : "0 4px 16px rgba(255,149,0,0.35)",
+                }}
+              >
+                {createOrderMutation.isPending
+                  ? "Memproses..."
+                  : cart.length === 0
+                    ? "Tambahkan item dulu"
+                    : paymentMethod === "qris"
+                      ? `Bayar dengan QRIS — ${formatCurrency(total)}`
+                      : `Bayar Tunai — ${formatCurrency(total)}`}
+              </button>
+
+              {/* Secondary Actions */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleCreateOpenBill}
+                  disabled={createOpenBillMutation.isPending || cart.length === 0 || getUnpaidAssignedCount() > 0}
+                  variant="outline"
+                  className="h-9 text-xs"
+                  data-testid="button-create-open-bill"
+                >
+                  <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  {createOpenBillMutation.isPending 
+                    ? "Saving..." 
+                    : editingBill 
+                      ? "Update Bill" 
+                      : "Open Bill"}
+                </Button>
+                
+                <Button
+                  onClick={initiateSplitBill}
+                  variant="outline"
+                  className="h-9 text-xs"
+                  data-testid="button-split-bill"
+                  disabled={splitParts.length > 0 || cart.length === 0}
+                >
+                  <Split className="h-3.5 w-3.5 mr-1.5" />
+                  {splitParts.length > 0 ? "Split Active" : "Split Bill"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
