@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Search, Mic, Plus, ChefHat, Coffee, Fish, Utensils, Soup, Cookie } from "lucide-react";
+import { Search, Mic, Plus, ChefHat, Coffee, Fish, Utensils, Soup, Cookie, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -182,7 +182,7 @@ export default function MenuPage() {
         {/* Menu Items Header */}
         <div className="mb-6">
           <h1 className="page-title flex items-center gap-2">
-            🛒 Daftar Menu
+            <ShoppingCart className="h-5 w-5" /> Daftar Menu
           </h1>
         </div>
 

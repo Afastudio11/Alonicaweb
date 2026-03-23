@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ShoppingCart, Search, Settings, X, Plus, Minus, ChevronRight } from "lucide-react";
+import { ShoppingCart, Search, Settings, X, Plus, Minus, ChevronRight, Clock, MapPin, Star, Coffee } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
@@ -322,19 +322,26 @@ export default function WelcomePage() {
         {!searchQuery && (
           <div className="px-4 py-3 flex gap-2 overflow-x-auto no-scroll-bar">
             {[
-              { icon: "🕐", text: "08.30 – 23.00" },
-              { icon: "📍", text: "Bantaeng" },
-              { icon: "⭐", text: "4.9 · 1.4rb ulasan" },
-            ].map(info => (
-              <div
-                key={info.text}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
-                style={{ background: "#fff", fontSize: 12, color: "#6E6E73", fontWeight: 500, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-              >
-                <span>{info.icon}</span>
-                <span>{info.text}</span>
-              </div>
-            ))}
+              { icon: "Clock", text: "08.30 – 23.00" },
+              { icon: "MapPin", text: "Bantaeng" },
+              { icon: "Star", text: "4.9 · 1.4rb ulasan" },
+            ].map(info => {
+              const iconMap: Record<string, JSX.Element> = {
+                Clock: <Clock size={13} style={{ color: "#6E6E73", flexShrink: 0 }} />,
+                MapPin: <MapPin size={13} style={{ color: "#6E6E73", flexShrink: 0 }} />,
+                Star: <Star size={13} style={{ color: "#6E6E73", flexShrink: 0 }} />,
+              };
+              return (
+                <div
+                  key={info.text}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full flex-shrink-0"
+                  style={{ background: "#fff", fontSize: 12, color: "#6E6E73", fontWeight: 500, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+                >
+                  {iconMap[info.icon]}
+                  <span>{info.text}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -373,7 +380,9 @@ export default function WelcomePage() {
         <div className="px-4 pb-36">
           {filteredItems.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-3">🍵</div>
+              <div className="flex justify-center mb-3">
+                <Coffee size={48} style={{ color: "#AEAEB2" }} />
+              </div>
               <p className="font-semibold" style={{ color: "#1D1D1F" }}>Menu belum tersedia</p>
               <p className="text-sm mt-1" style={{ color: "#6E6E73" }}>Coba cari kata lain atau pilih kategori berbeda</p>
             </div>

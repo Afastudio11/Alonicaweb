@@ -58,7 +58,7 @@ export default function SuccessPage() {
               Terima Kasih!
             </h1>
             <p style={{ color: "#6E6E73", fontSize: 15 }} data-testid="text-success-message">
-              Pesanan kamu sedang kami siapkan 🍵
+              Pesanan kamu sedang kami siapkan
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export default function SuccessPage() {
           {/* Footer */}
           <div className="text-center mt-8 pt-6 border-t border-border">
             <p className="text-sm text-muted-foreground mb-2">
-              Terima kasih telah memesan di Alonica!
+              Terima kasih telah memesan di ngehnoom!
             </p>
             <p className="text-xs text-muted-foreground">
               Makanan Anda akan segera disiapkan

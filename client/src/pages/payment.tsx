@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, CreditCard, Check, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, CreditCard, Check, Clock, CheckCircle, XCircle, RefreshCw, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
@@ -266,7 +266,7 @@ export default function PaymentPage() {
                 </p>
               ) : (
                 <div className="text-center">
-                  <div className="text-4xl mb-2">📱</div>
+                  <Smartphone size={40} style={{ color: "#AEAEB2" }} className="mx-auto mb-2" />
                   <p className="text-xs" style={{ color: "#6E6E73" }}>QR Code QRIS</p>
                 </div>
               )}
@@ -317,7 +317,7 @@ export default function PaymentPage() {
             <h2 className="font-extrabold text-2xl mb-1" style={{ color: "#1D1D1F", letterSpacing: "-0.03em" }}>
               Pembayaran Berhasil!
             </h2>
-            <p style={{ color: "#6E6E73", fontSize: 14 }}>Pesanan kamu sedang kami siapkan 🍵</p>
+            <p style={{ color: "#6E6E73", fontSize: 14 }}>Pesanan kamu sedang kami siapkan</p>
           </div>
         </div>
       );

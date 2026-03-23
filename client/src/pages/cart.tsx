@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Minus, Plus, Trash2, Utensils, Package, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, Utensils, Package, Clock, Calendar, ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -268,7 +268,9 @@ export default function CartPage() {
           </p>
           {cartItems.length === 0 ? (
             <div className="py-10 text-center">
-              <div className="text-4xl mb-2">🛒</div>
+              <div className="flex justify-center mb-2">
+                <ShoppingCart size={40} style={{ color: "#AEAEB2" }} />
+              </div>
               <p className="font-semibold text-sm" style={{ color: "#6E6E73" }}>Keranjang masih kosong</p>
               <button
                 onClick={() => setLocation("/")}
