@@ -181,16 +181,20 @@ export default function MenuSection() {
       </div>
 
       {/* Category Filters */}
-      <div className="flex space-x-2">
+      <div className="flex flex-wrap gap-2">
         {MENU_CATEGORY_FILTERS.map((filter) => (
-          <Button
+          <button
             key={filter.value}
-            variant={categoryFilter === filter.value ? "default" : "outline"}
             onClick={() => setCategoryFilter(filter.value)}
+            className="h-9 px-4 rounded-full text-sm font-medium transition-all"
+            style={categoryFilter === filter.value
+              ? { background: "#FF9500", color: "#fff", border: "none" }
+              : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+            }
             data-testid={`button-filter-${filter.value}`}
           >
             {filter.label}
-          </Button>
+          </button>
         ))}
       </div>
 

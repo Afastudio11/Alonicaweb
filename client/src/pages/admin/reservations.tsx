@@ -466,34 +466,25 @@ export default function ReservationsSection() {
               </TabsList>
             </Tabs>
 
-            <div className="flex items-center space-x-2">
-              <Button
-                variant={dateRangeMode === "day" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateRangeMode("day")}
-                className="h-8 text-xs"
-                data-testid="button-daily"
-              >
-                Daily
-              </Button>
-              <Button
-                variant={dateRangeMode === "week" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateRangeMode("week")}
-                className="h-8 text-xs"
-                data-testid="button-weekly"
-              >
-                Weekly
-              </Button>
-              <Button
-                variant={dateRangeMode === "month" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setDateRangeMode("month")}
-                className="h-8 text-xs"
-                data-testid="button-monthly"
-              >
-                Monthly
-              </Button>
+            <div className="flex items-center gap-2">
+              {[
+                { value: "day", label: "Harian", testid: "button-daily" },
+                { value: "week", label: "Mingguan", testid: "button-weekly" },
+                { value: "month", label: "Bulanan", testid: "button-monthly" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setDateRangeMode(opt.value as typeof dateRangeMode)}
+                  className="h-8 px-3 rounded-full text-xs font-medium transition-all"
+                  style={dateRangeMode === opt.value
+                    ? { background: "#FF9500", color: "#fff", border: "none" }
+                    : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+                  }
+                  data-testid={opt.testid}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>

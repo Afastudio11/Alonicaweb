@@ -180,22 +180,30 @@ export default function InventorySection() {
 
       {/* Category Filters */}
       <div className="flex flex-wrap gap-2">
-        <Button
-          variant={categoryFilter === 'all' ? "default" : "outline"}
+        <button
           onClick={() => setCategoryFilter('all')}
+          className="h-9 px-4 rounded-full text-sm font-medium transition-all"
+          style={categoryFilter === 'all'
+            ? { background: "#FF9500", color: "#fff", border: "none" }
+            : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+          }
           data-testid="button-filter-all"
         >
-          All
-        </Button>
+          Semua
+        </button>
         {INVENTORY_CATEGORIES.map((category) => (
-          <Button
+          <button
             key={category}
-            variant={categoryFilter === category ? "default" : "outline"}
             onClick={() => setCategoryFilter(category)}
+            className="h-9 px-4 rounded-full text-sm font-medium transition-all"
+            style={categoryFilter === category
+              ? { background: "#FF9500", color: "#fff", border: "none" }
+              : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+            }
             data-testid={`button-filter-${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
           >
             {category}
-          </Button>
+          </button>
         ))}
       </div>
 

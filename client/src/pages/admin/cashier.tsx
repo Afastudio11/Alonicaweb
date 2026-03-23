@@ -1332,30 +1332,22 @@ export default function CashierSection() {
               {/* Horizontal Scrollable Categories */}
               <div className="mb-4">
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {/* Category Buttons - English names for consistency */}
                   {[
-                    { id: null, name: 'Appetizers' },
-                    ...categories.slice(0, 8).map(cat => ({
-                      id: cat.id,
-                      name: cat.name === 'Nasi & Mie' ? 'Seafood platters' : 
-                            cat.name === 'Ikan & Seafood' ? 'Fish' :
-                            cat.name === 'Ayam & Daging' ? 'Shrimp' :
-                            cat.name === 'Sayur & Sup' ? 'Crab' :
-                            cat.name === 'Minuman' ? 'Drinks' :
-                            cat.name === 'Camilan & Dessert' ? 'Dessert' :
-                            cat.name
-                    }))
+                    { id: null, name: 'Semua' },
+                    ...categories.map(cat => ({ id: cat.id, name: cat.name }))
                   ].map((category, index) => (
-                    <Button
-                      key={category.id || 'all'}
-                      variant={selectedCategory === category.id ? "default" : "outline"}
-                      size="sm"
+                    <button
+                      key={category.id ?? 'all'}
                       onClick={() => setSelectedCategory(category.id)}
-                      className={`whitespace-nowrap flex-shrink-0 h-9 px-4 ${selectedCategory === category.id ? 'bg-primary text-white' : ''}`}
+                      className="whitespace-nowrap flex-shrink-0 h-9 px-4 rounded-full text-sm font-medium transition-all"
+                      style={selectedCategory === category.id
+                        ? { background: "#FF9500", color: "#fff", border: "none" }
+                        : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+                      }
                       data-testid={`button-category-${index}`}
                     >
                       {category.name}
-                    </Button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1478,30 +1470,23 @@ export default function CashierSection() {
           </div>
           {/* Order Type Tabs */}
           <div className="flex gap-2 mt-3">
-            <Button
-              variant={orderType === "dine_in" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setOrderType("dine_in")}
-              className="flex-1 h-8"
-            >
-              Dine in
-            </Button>
-            <Button
-              variant={orderType === "takeaway" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setOrderType("takeaway")}
-              className="flex-1 h-8"
-            >
-              Takeaway
-            </Button>
-            <Button
-              variant={orderType === "delivery" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setOrderType("delivery")}
-              className="flex-1 h-8"
-            >
-              Delivery
-            </Button>
+            {[
+              { value: "dine_in", label: "Dine in" },
+              { value: "takeaway", label: "Takeaway" },
+              { value: "delivery", label: "Delivery" },
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setOrderType(opt.value as typeof orderType)}
+                className="flex-1 h-8 rounded-full text-xs font-medium transition-all"
+                style={orderType === opt.value
+                  ? { background: "#FF9500", color: "#fff", border: "none" }
+                  : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
+                }
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </CardHeader>
         </Card>
