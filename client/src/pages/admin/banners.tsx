@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit2, Trash2, Eye, EyeOff, GripVertical } from "lucide-react";
+import { Plus, Edit2, Trash2, Eye, EyeOff, Upload, X, ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Banner, InsertBanner } from "@shared/schema";
@@ -20,6 +20,7 @@ const emptyForm: Partial<InsertBanner> = {
   tag: "",
   ctaText: "Pesan Sekarang",
   gradient: GRADIENT_PRESETS[0].value,
+  imageUrl: "",
   isActive: true,
   sortOrder: 0,
 };
@@ -27,11 +28,15 @@ const emptyForm: Partial<InsertBanner> = {
 export default function BannersSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Banner | null>(null);
   const [form, setForm] = useState<Partial<InsertBanner>>(emptyForm);
   const [customGradient, setCustomGradient] = useState("");
   const [selectedPreset, setSelectedPreset] = useState(GRADIENT_PRESETS[0].value);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imageMode, setImageMode] = useState<"gradient" | "image">("gradient");
 
   const { data: banners = [], isLoading } = useQuery<Banner[]>({
     queryKey: ["/api/banners/all"],
@@ -94,6 +99,7 @@ export default function BannersSection() {
     setForm(emptyForm);
     setSelectedPreset(GRADIENT_PRESETS[0].value);
     setCustomGradient("");
+    setImageMode("gradient");
   };
 
   const handleEdit = (banner: Banner) => {
@@ -104,6 +110,7 @@ export default function BannersSection() {
       tag: banner.tag ?? "",
       ctaText: banner.ctaText,
       gradient: banner.gradient,
+      imageUrl: banner.imageUrl ?? "",
       isActive: banner.isActive,
       sortOrder: banner.sortOrder,
     });
@@ -114,7 +121,56 @@ export default function BannersSection() {
       setSelectedPreset("custom");
       setCustomGradient(banner.gradient);
     }
+    setImageMode(banner.imageUrl ? "image" : "gradient");
     setShowForm(true);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "File tidak valid", description: "Hanya file gambar yang diperbolehkan", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File terlalu besar", description: "Ukuran maksimal file adalah 5MB", variant: "destructive" });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/objects/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${localStorage.getItem("alonica-token")}` },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Upload failed");
+      }
+
+      const data = await response.json();
+      const imageUrl = data.path || data.uploadURL;
+      if (!imageUrl) throw new Error("Server tidak mengembalikan URL gambar");
+
+      setForm(f => ({ ...f, imageUrl }));
+      setImageMode("image");
+      toast({ title: "Gambar berhasil diupload" });
+    } catch (error) {
+      toast({
+        title: "Upload gagal",
+        description: error instanceof Error ? error.message : "Silakan coba lagi",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      event.target.value = "";
+    }
   };
 
   const handleSubmit = () => {
@@ -122,7 +178,11 @@ export default function BannersSection() {
       toast({ title: "Judul banner wajib diisi", variant: "destructive" }); return;
     }
     const gradient = selectedPreset === "custom" ? customGradient : selectedPreset;
-    const payload = { ...form, gradient };
+    const payload = {
+      ...form,
+      gradient,
+      imageUrl: imageMode === "image" ? (form.imageUrl || "") : "",
+    };
     if (editing) {
       updateMutation.mutate({ id: editing.id, data: payload });
     } else {
@@ -163,7 +223,7 @@ export default function BannersSection() {
         </div>
       ) : banners.length === 0 ? (
         <div className="text-center py-20">
-          <div className="text-5xl mb-3">🖼️</div>
+          <ImageIcon size={48} className="mx-auto mb-3 text-muted-foreground" />
           <p className="font-semibold text-foreground">Belum ada banner</p>
           <p className="text-sm text-muted-foreground mt-1">Tambahkan banner untuk ditampilkan di halaman depan</p>
         </div>
@@ -175,14 +235,16 @@ export default function BannersSection() {
               className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border flex"
               data-testid={`banner-item-${banner.id}`}
             >
-              {/* Gradient Preview */}
+              {/* Preview thumbnail */}
               <div
-                className="w-24 flex-shrink-0 flex items-center justify-center p-3 text-center"
-                style={{ background: banner.gradient }}
+                className="w-24 flex-shrink-0 flex items-center justify-center p-3 text-center relative overflow-hidden"
+                style={{ background: banner.imageUrl ? undefined : banner.gradient }}
               >
-                <div>
-                  <p className="text-white text-[10px] font-bold leading-tight line-clamp-2">{banner.title}</p>
-                </div>
+                {banner.imageUrl ? (
+                  <img src={banner.imageUrl} alt={banner.title} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <p className="text-white text-[10px] font-bold leading-tight line-clamp-2 relative z-10">{banner.title}</p>
+                )}
               </div>
 
               {/* Info */}
@@ -191,6 +253,12 @@ export default function BannersSection() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-semibold text-sm text-foreground truncate">{banner.title}</p>
+                      {banner.imageUrl && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                          style={{ background: "rgba(0,122,255,0.1)", color: "#007AFF" }}>
+                          Gambar
+                        </span>
+                      )}
                       {banner.tag && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
                           style={{ background: "rgba(255,149,0,0.1)", color: "#FF9500" }}>
@@ -253,31 +321,49 @@ export default function BannersSection() {
           onClick={handleClose}
         >
           <div
-            className="w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl overflow-y-auto max-h-[90vh]"
+            className="w-full max-w-lg bg-white rounded-t-3xl md:rounded-3xl overflow-y-auto max-h-[92vh]"
             onClick={e => e.stopPropagation()}
           >
-            {/* Preview */}
+            {/* Live Preview */}
             <div
-              className="h-32 flex items-center px-6 relative overflow-hidden"
-              style={{ background: activeGradient || "#FF9500" }}
+              className="h-36 flex items-center px-6 relative overflow-hidden"
+              style={{
+                background: imageMode === "image" && form.imageUrl ? undefined : (activeGradient || "#FF9500"),
+              }}
             >
-              <div
-                style={{
-                  position: "absolute", top: -30, right: -30,
-                  width: 120, height: 120, borderRadius: "50%",
-                  background: "rgba(255,255,255,0.12)"
-                }}
-              />
-              <div>
-                {form.tag && (
+              {imageMode === "image" && form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt="preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
+              <div className="relative z-10">
+                {imageMode !== "image" && form.tag && (
                   <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold mb-1"
                     style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>
                     {form.tag}
                   </span>
                 )}
-                <p className="text-white font-extrabold text-xl leading-tight">{form.title || "Judul Banner"}</p>
-                {form.subtitle && <p className="text-white/80 text-xs mt-0.5">{form.subtitle}</p>}
+                {imageMode !== "image" && (
+                  <p className="text-white font-extrabold text-xl leading-tight drop-shadow">
+                    {form.title || "Judul Banner"}
+                  </p>
+                )}
+                {imageMode !== "image" && form.subtitle && (
+                  <p className="text-white/80 text-xs mt-0.5">{form.subtitle}</p>
+                )}
               </div>
+              {/* Decorative blob */}
+              {imageMode !== "image" && (
+                <div
+                  style={{
+                    position: "absolute", top: -30, right: -30,
+                    width: 120, height: 120, borderRadius: "50%",
+                    background: "rgba(255,255,255,0.12)"
+                  }}
+                />
+              )}
             </div>
 
             <div className="p-5 space-y-4">
@@ -355,38 +441,140 @@ export default function BannersSection() {
                 />
               </div>
 
-              {/* Gradient */}
+              {/* Latar Banner — toggle mode */}
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-2 block">Warna Latar</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {GRADIENT_PRESETS.map(p => (
-                    <button
-                      key={p.value}
-                      onClick={() => setSelectedPreset(p.value)}
-                      className="h-12 rounded-xl border-2 transition-all"
-                      style={{
-                        background: p.value === "custom" ? "#F5F5F7" : p.value,
-                        borderColor: selectedPreset === p.value ? "#1D1D1F" : "transparent",
-                      }}
-                      title={p.label}
-                      data-testid={`button-gradient-${p.value === "custom" ? "custom" : p.label}`}
-                    >
-                      {p.value === "custom" && (
-                        <span className="text-xs font-semibold" style={{ color: "#6E6E73" }}>Custom</span>
-                      )}
-                    </button>
-                  ))}
+                <label className="text-xs font-semibold text-muted-foreground mb-2 block">Latar Banner</label>
+
+                {/* Mode toggle */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => setImageMode("gradient")}
+                    className="flex-1 h-9 rounded-full text-sm font-medium transition-all"
+                    style={imageMode === "gradient"
+                      ? { background: "#FF9500", color: "#fff", border: "none" }
+                      : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
+                  >
+                    Warna Gradien
+                  </button>
+                  <button
+                    onClick={() => setImageMode("image")}
+                    className="flex-1 h-9 rounded-full text-sm font-medium transition-all"
+                    style={imageMode === "image"
+                      ? { background: "#FF9500", color: "#fff", border: "none" }
+                      : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
+                  >
+                    Upload Gambar
+                  </button>
                 </div>
-                {selectedPreset === "custom" && (
-                  <input
-                    type="text"
-                    placeholder="linear-gradient(135deg, #FF9500 0%, #FF2D55 100%)"
-                    value={customGradient}
-                    onChange={e => setCustomGradient(e.target.value)}
-                    className="mt-2 w-full px-4 h-11 rounded-2xl text-sm outline-none font-mono"
-                    style={{ background: "#F5F5F7" }}
-                    data-testid="input-banner-gradient"
-                  />
+
+                {imageMode === "gradient" ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-2">
+                      {GRADIENT_PRESETS.map(p => (
+                        <button
+                          key={p.value}
+                          onClick={() => setSelectedPreset(p.value)}
+                          className="h-12 rounded-xl border-2 transition-all"
+                          style={{
+                            background: p.value === "custom" ? "#F5F5F7" : p.value,
+                            borderColor: selectedPreset === p.value ? "#1D1D1F" : "transparent",
+                          }}
+                          title={p.label}
+                          data-testid={`button-gradient-${p.value === "custom" ? "custom" : p.label}`}
+                        >
+                          {p.value === "custom" && (
+                            <span className="text-xs font-semibold" style={{ color: "#6E6E73" }}>Custom</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    {selectedPreset === "custom" && (
+                      <input
+                        type="text"
+                        placeholder="linear-gradient(135deg, #FF9500 0%, #FF2D55 100%)"
+                        value={customGradient}
+                        onChange={e => setCustomGradient(e.target.value)}
+                        className="mt-2 w-full px-4 h-11 rounded-2xl text-sm outline-none font-mono"
+                        style={{ background: "#F5F5F7" }}
+                        data-testid="input-banner-gradient"
+                      />
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    {/* Image info */}
+                    <div className="mb-3 px-4 py-3 rounded-2xl" style={{ background: "rgba(0,122,255,0.06)" }}>
+                      <p className="text-xs font-semibold" style={{ color: "#007AFF" }}>Rekomendasi ukuran gambar</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#3A3A3C" }}>
+                        <strong>1200 × 500 px</strong> (rasio 2.4:1) · Format JPG atau PNG
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "#6E6E73" }}>
+                        Ukuran file maks. 5 MB · Gambar akan di-crop ke area banner
+                      </p>
+                    </div>
+
+                    {/* Upload area */}
+                    {form.imageUrl ? (
+                      <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: "2.4/1" }}>
+                        <img
+                          src={form.imageUrl}
+                          alt="Banner"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => { setForm(f => ({ ...f, imageUrl: "" })); setImageMode("gradient"); }}
+                          className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow"
+                          style={{ background: "rgba(0,0,0,0.5)" }}
+                        >
+                          <X size={14} className="text-white" />
+                        </button>
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 h-8 rounded-full text-xs font-semibold text-white shadow"
+                          style={{ background: "rgba(0,0,0,0.5)" }}
+                        >
+                          <Upload size={12} />
+                          Ganti Gambar
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 transition-all"
+                        style={{
+                          aspectRatio: "2.4/1",
+                          background: "#F5F5F7",
+                          border: "2px dashed #D1D1D6",
+                        }}
+                        data-testid="button-upload-banner-image"
+                      >
+                        {isUploading ? (
+                          <>
+                            <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm font-medium" style={{ color: "#6E6E73" }}>Mengupload…</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,149,0,0.1)" }}>
+                              <Upload size={22} style={{ color: "#FF9500" }} />
+                            </div>
+                            <span className="text-sm font-semibold" style={{ color: "#1D1D1F" }}>Pilih Gambar</span>
+                            <span className="text-xs" style={{ color: "#6E6E73" }}>JPG, PNG · maks. 5 MB</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      data-testid="input-banner-image-file"
+                    />
+                  </div>
                 )}
               </div>
 

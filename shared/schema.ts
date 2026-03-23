@@ -57,6 +57,7 @@ export const banners = pgTable("banners", {
   tag: text("tag"),
   ctaText: text("cta_text").notNull().default("Pesan Sekarang"),
   gradient: text("gradient").notNull().default("linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)"),
+  imageUrl: text("image_url"),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),

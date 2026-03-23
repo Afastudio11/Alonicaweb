@@ -102,6 +102,7 @@ export default function WelcomePage() {
   const SLIDES = apiBanners.length > 0
     ? apiBanners.map(b => ({
         bg: b.gradient,
+        imageUrl: b.imageUrl ?? "",
         tag: b.tag ?? "",
         headline: b.title,
         sub: b.subtitle ?? "",
@@ -216,51 +217,45 @@ export default function WelcomePage() {
           <div className="px-4 pt-4 pb-2">
             <div
               className="relative rounded-3xl overflow-hidden ng-tap"
-              style={{ background: slide.bg, minHeight: 200, cursor: "pointer" }}
+              style={{ background: slide.imageUrl ? undefined : slide.bg, minHeight: 200, cursor: "pointer" }}
               onClick={() => setLocation("/cart")}
             >
-              {/* Decorative circles */}
-              <div
-                style={{
-                  position: "absolute", top: -40, right: -40,
-                  width: 160, height: 160,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.12)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute", bottom: -30, right: 40,
-                  width: 100, height: 100,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.10)",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute", top: 30, right: 70,
-                  width: 50, height: 50,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.14)",
-                }}
-              />
+              {/* Background image mode */}
+              {slide.imageUrl ? (
+                <img
+                  src={slide.imageUrl}
+                  alt={slide.headline}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  {/* Decorative circles for gradient mode */}
+                  <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.12)" }} />
+                  <div style={{ position: "absolute", bottom: -30, right: 40, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.10)" }} />
+                  <div style={{ position: "absolute", top: 30, right: 70, width: 50, height: 50, borderRadius: "50%", background: "rgba(255,255,255,0.14)" }} />
+                </>
+              )}
 
-              <div className="relative px-6 py-8">
-                <span
-                  className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3"
-                  style={{ background: "rgba(255,255,255,0.25)", color: "#fff", backdropFilter: "blur(4px)" }}
-                >
-                  {slide.tag}
-                </span>
+              <div className="relative px-6 py-8" style={slide.imageUrl ? { background: "linear-gradient(to right, rgba(0,0,0,0.55) 0%, transparent 100%)" } : {}}>
+                {slide.tag && (
+                  <span
+                    className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3"
+                    style={{ background: "rgba(255,255,255,0.25)", color: "#fff", backdropFilter: "blur(4px)" }}
+                  >
+                    {slide.tag}
+                  </span>
+                )}
                 <h1
                   className="font-extrabold text-white mb-2 leading-tight whitespace-pre-line"
                   style={{ fontSize: 28, letterSpacing: "-0.03em" }}
                 >
                   {slide.headline}
                 </h1>
-                <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 20, maxWidth: 220 }}>
-                  {slide.sub}
-                </p>
+                {slide.sub && (
+                  <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 20, maxWidth: 220 }}>
+                    {slide.sub}
+                  </p>
+                )}
                 <div
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold"
                   style={{ background: "rgba(255,255,255,0.22)", color: "#fff", backdropFilter: "blur(4px)" }}
