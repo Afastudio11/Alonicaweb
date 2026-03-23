@@ -1,8 +1,16 @@
-# Alonica Restaurant Self-Order System
+# ngehnoom Cafe — Self-Order & Admin System
 
 ## Overview
 
-Alonica is a mobile-first restaurant self-ordering web application built for customers to browse menus, place orders, and complete payments seamlessly. The system includes both customer-facing functionality and an admin dashboard for restaurant management. The application is designed with a clean, modern interface using a maroon and white color scheme, optimized for mobile devices (375x812px) while maintaining responsiveness across all screen sizes.
+**ngehnoom** is a mobile-first restaurant self-ordering web application for a cafe based in Bantaeng, Indonesia. Customers browse the menu, place dine-in or take-away orders, and pay via QRIS (Midtrans). The admin dashboard lets cafe staff manage all restaurant content. Brand identity: orange #FF9500, pink #FF2D55, Plus Jakarta Sans, tagline "Yang Nyaman Jadi Sayang".
+
+### Brand Details
+- **Name**: ngehnoom (lowercase)
+- **Origin**: Bantaeng, South Sulawesi
+- **Tagline**: "Yang Nyaman Jadi Sayang" / #YangNyamanJadiSayang
+- **Colors**: primary orange #FF9500, accent pink #FF2D55, amber #FFAB00, surface #F5F5F7, text #1D1D1F, muted #6E6E73
+- **Font**: Plus Jakarta Sans (Google Fonts) + Apple system font stack
+- **Design style**: Apple-inspired — clean white, frosted glass, 20px radius, generous whitespace
 
 ## User Preferences
 

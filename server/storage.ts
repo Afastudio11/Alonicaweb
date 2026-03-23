@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners } from "@shared/schema";
+import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -185,6 +185,11 @@ export interface IStorage {
   createBanner(banner: import("@shared/schema").InsertBanner): Promise<import("@shared/schema").Banner>;
   updateBanner(id: string, banner: Partial<import("@shared/schema").InsertBanner>): Promise<import("@shared/schema").Banner | undefined>;
   deleteBanner(id: string): Promise<boolean>;
+  getMembers(): Promise<import("@shared/schema").Member[]>;
+  getMember(phone: string): Promise<import("@shared/schema").Member | undefined>;
+  upsertMember(phone: string, name: string, orderTotal: number): Promise<import("@shared/schema").Member>;
+  updateMember(phone: string, data: Partial<Pick<import("@shared/schema").Member, 'discountPercent' | 'isVip' | 'notes' | 'name'>>): Promise<import("@shared/schema").Member | undefined>;
+  deleteMember(phone: string): Promise<boolean>;
 }
 
 // Legacy MemStorage class (no longer used, kept for reference)
@@ -1720,7 +1725,47 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
-  // Banner methods
+  // Member methods
+  async getMembers(): Promise<Member[]> {
+    return await db.select().from(members).orderBy(desc(members.lastOrderAt));
+  }
+
+  async getMember(phone: string): Promise<Member | undefined> {
+    const [member] = await db.select().from(members).where(eq(members.phone, phone));
+    return member || undefined;
+  }
+
+  async upsertMember(phone: string, name: string, orderTotal: number): Promise<Member> {
+    const existing = await this.getMember(phone);
+    if (existing) {
+      const [updated] = await db.update(members)
+        .set({
+          name,
+          lastOrderAt: new Date(),
+          totalOrders: sql`${members.totalOrders} + 1`,
+          totalSpent: sql`${members.totalSpent} + ${orderTotal}`,
+        })
+        .where(eq(members.phone, phone))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(members)
+        .values({ phone, name, lastOrderAt: new Date(), totalOrders: 1, totalSpent: orderTotal })
+        .returning();
+      return created;
+    }
+  }
+
+  async updateMember(phone: string, data: Partial<Pick<Member, 'discountPercent' | 'isVip' | 'notes' | 'name'>>): Promise<Member | undefined> {
+    const [updated] = await db.update(members).set(data).where(eq(members.phone, phone)).returning();
+    return updated || undefined;
+  }
+
+  async deleteMember(phone: string): Promise<boolean> {
+    const result = await db.delete(members).where(eq(members.phone, phone));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   async getBanners(): Promise<Banner[]> {
     return await db.select().from(banners).orderBy(banners.sortOrder, banners.createdAt);
   }
@@ -2161,6 +2206,11 @@ class MemStorage implements IStorage {
   async createBanner(banner: any): Promise<any> { throw new Error('Banners not supported in MemStorage'); }
   async updateBanner(id: string, banner: any): Promise<any> { return undefined; }
   async deleteBanner(id: string): Promise<boolean> { return false; }
+  async getMembers(): Promise<any[]> { return []; }
+  async getMember(phone: string): Promise<any> { return undefined; }
+  async upsertMember(phone: string, name: string, orderTotal: number): Promise<any> { return undefined; }
+  async updateMember(phone: string, data: any): Promise<any> { return undefined; }
+  async deleteMember(phone: string): Promise<boolean> { return false; }
 }
 
 // Wrapper that handles database fallback at runtime
@@ -2804,6 +2854,11 @@ class FallbackStorage implements IStorage {
   async createBanner(banner: any): Promise<any> { return this.dbStorage.createBanner(banner); }
   async updateBanner(id: string, banner: any): Promise<any> { return this.dbStorage.updateBanner(id, banner); }
   async deleteBanner(id: string): Promise<boolean> { return this.dbStorage.deleteBanner(id); }
+  async getMembers(): Promise<any[]> { return this.dbStorage.getMembers(); }
+  async getMember(phone: string): Promise<any> { return this.dbStorage.getMember(phone); }
+  async upsertMember(phone: string, name: string, orderTotal: number): Promise<any> { return this.dbStorage.upsertMember(phone, name, orderTotal); }
+  async updateMember(phone: string, data: any): Promise<any> { return this.dbStorage.updateMember(phone, data); }
+  async deleteMember(phone: string): Promise<boolean> { return this.dbStorage.deleteMember(phone); }
 }
 
 console.log('✅ Using DatabaseStorage (PostgreSQL) for all features');

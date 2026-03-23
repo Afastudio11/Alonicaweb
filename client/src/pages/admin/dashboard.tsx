@@ -16,57 +16,83 @@ import PrintSettingsSection from "./print-settings";
 import AuditReportsSection from "./audit-reports";
 import ApprovalsSection from "./approvals";
 import BannersSection from "./banners";
+import MembersSection from "./members";
 import PrinterPage from "../printer";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { useState } from "react";
 import NotificationBell from "@/components/admin/notification-bell";
+
+const SECTION_LABELS: Record<string, string> = {
+  orders: "Pesanan",
+  kitchen: "Dapur",
+  cashier: "Kasir",
+  reservations: "Reservasi",
+  members: "Data Member",
+  users: "Pengguna Admin",
+  discounts: "Diskon & Voucher",
+  banners: "Banner Halaman Depan",
+  approvals: "Persetujuan",
+  "audit-reports": "Laporan Keuangan",
+  analytics: "Laporan Penjualan",
+  inventory: "Laporan Item",
+  settings: "Pengaturan Toko",
+  menu: "Manajemen Menu",
+  categories: "Kategori Menu",
+  printer: "Pengaturan Printer",
+  "print-settings": "Pengaturan Cetak",
+};
 
 export default function AdminDashboard() {
   const [location] = useLocation();
   const { user, logout, isAuthenticated, authReady } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Extract section from URL (e.g., /admin/orders -> orders)
-  const section = location.split('/admin/')[1] || 'orders';
+  const section = location.split("/admin/")[1] || "orders";
+  const pageLabel = SECTION_LABELS[section] || "Dashboard";
 
-  // Show loading while auth is hydrating
   if (!authReady) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Memuat...</p>
+      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%",
+            border: "3px solid #FF9500", borderTopColor: "transparent",
+            animation: "spin 0.8s linear infinite", margin: "0 auto 12px",
+          }} />
+          <p style={{ color: "#6E6E73", fontSize: 14 }}>Memuat...</p>
         </div>
       </div>
     );
   }
 
-  // Show access denied only after auth is ready and user is not authenticated or not admin
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="page-title mb-4">Akses Ditolak</h1>
-          <p className="text-muted-foreground">Silakan login untuk mengakses dashboard admin</p>
+      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Ditolak</h1>
+          <p style={{ color: "#6E6E73", fontSize: 14 }}>Silakan login untuk mengakses dashboard admin</p>
         </div>
       </div>
     );
   }
 
-  // Check if user has admin role
-  if (user.role !== 'admin') {
+  if (user.role !== "admin") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="page-title mb-4">Akses Ditolak</h1>
-          <p className="text-muted-foreground">Akses admin diperlukan. Role saat ini: {user.role}</p>
-          <button 
-            onClick={logout} 
-            className="mt-4 px-4 py-2 bg-primary text-white rounded"
+      <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🚫</div>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Admin Diperlukan</h1>
+          <p style={{ color: "#6E6E73", fontSize: 14, marginBottom: 16 }}>Role saat ini: {user.role}</p>
+          <button
+            onClick={logout}
+            style={{
+              padding: "10px 24px", background: "#FF9500", color: "#fff",
+              border: "none", borderRadius: 12, fontWeight: 600, cursor: "pointer", fontSize: 14,
+            }}
             data-testid="button-logout-access-denied"
           >
-            Keluar dan Login sebagai Admin
+            Keluar & Login sebagai Admin
           </button>
         </div>
       </div>
@@ -75,88 +101,99 @@ export default function AdminDashboard() {
 
   const renderSection = () => {
     switch (section) {
-      case 'orders':
-        return <OrdersSection />;
-      case 'kitchen':
-        return <KitchenSection />;
-      case 'cashier':
-        return <CashierSection />;
-      case 'reservations':
-        return <ReservationsSection />;
-      case 'users':
-        return <UsersSection />;
-      case 'menu':
-        return <MenuSection />;
-      case 'categories':
-        return <CategoriesSection />;
-      case 'discounts':
-        return <DiscountsSection />;
-      case 'analytics':
-        return <AnalyticsSection />;
-      case 'audit-reports':
-        return <AuditReportsSection />;
-      case 'approvals':
-        return <ApprovalsSection />;
-      case 'print-settings':
-        return <PrintSettingsSection />;
-      case 'printer':
-        return <PrinterPage />;
-      case 'inventory':
-        return <InventorySection />;
-      case 'banners':
-        return <BannersSection />;
-      case 'settings':
-        return <SettingsSection />;
-      default:
-        return <OrdersSection />;
+      case "orders": return <OrdersSection />;
+      case "kitchen": return <KitchenSection />;
+      case "cashier": return <CashierSection />;
+      case "reservations": return <ReservationsSection />;
+      case "members": return <MembersSection />;
+      case "users": return <UsersSection />;
+      case "menu": return <MenuSection />;
+      case "categories": return <CategoriesSection />;
+      case "discounts": return <DiscountsSection />;
+      case "analytics": return <AnalyticsSection />;
+      case "audit-reports": return <AuditReportsSection />;
+      case "approvals": return <ApprovalsSection />;
+      case "print-settings": return <PrintSettingsSection />;
+      case "printer": return <PrinterPage />;
+      case "inventory": return <InventorySection />;
+      case "banners": return <BannersSection />;
+      case "settings": return <SettingsSection />;
+      default: return <OrdersSection />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div style={{ minHeight: "100vh", background: "#F5F5F7", display: "flex" }}>
       {/* Sidebar */}
-      <AdminSidebar 
-        isOpen={sidebarOpen} 
+      <AdminSidebar
+        isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         currentSection={section}
       />
 
-      {/* Main Content */}
-      <div className="flex-1 lg:pl-20">
-        {/* Mobile Header */}
-        <div className="lg:hidden bg-white border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              data-testid="button-mobile-menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h1 className="dashboard-title">Dashboard Admin</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <Button variant="outline" size="sm" onClick={logout} data-testid="button-logout">
-              Keluar
-            </Button>
+      {/* Main Content — offset for desktop sidebar */}
+      <div style={{ flex: 1, minWidth: 0 }} className="lg:pl-[240px]">
+        {/* Top Header Bar */}
+        <div style={{
+          position: "sticky", top: 0, zIndex: 30,
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+        }}>
+          {/* Orange gradient accent line */}
+          <div style={{
+            height: 3,
+            background: "linear-gradient(90deg, #FFAB00, #FF9500, #FF2D55)",
+          }} />
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "0 20px", height: 52,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {/* Mobile hamburger */}
+              <button
+                className="lg:hidden"
+                onClick={() => setSidebarOpen(true)}
+                data-testid="button-mobile-menu"
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  padding: 6, borderRadius: 8,
+                }}
+              >
+                <Menu size={20} style={{ color: "#1D1D1F" }} />
+              </button>
+              <div>
+                <h1 style={{ fontSize: 16, fontWeight: 700, color: "#1D1D1F", lineHeight: 1 }}>
+                  {pageLabel}
+                </h1>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <NotificationBell />
+              <button
+                onClick={logout}
+                data-testid="button-logout"
+                style={{
+                  height: 32, padding: "0 14px",
+                  background: "rgba(0,0,0,0.05)", border: "none",
+                  borderRadius: 10, fontSize: 13, fontWeight: 500,
+                  color: "#1D1D1F", cursor: "pointer",
+                }}
+              >
+                Keluar
+              </button>
+            </div>
           </div>
         </div>
-        
+
         {/* Page Content */}
-        <div className="p-4 lg:p-6">
+        <div style={{ padding: "20px 20px 40px" }}>
           {renderSection()}
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden" 
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Spin animation */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

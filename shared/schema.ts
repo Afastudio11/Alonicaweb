@@ -69,6 +69,25 @@ export const insertBannerSchema = createInsertSchema(banners).omit({ id: true, c
 export type InsertBanner = z.infer<typeof insertBannerSchema>;
 export type Banner = typeof banners.$inferSelect;
 
+// Members — phone number as unique identity, auto-registered from orders
+export const members = pgTable("members", {
+  phone: text("phone").primaryKey(),
+  name: text("name").notNull(),
+  joinedAt: timestamp("joined_at").notNull().default(sql`now()`),
+  lastOrderAt: timestamp("last_order_at"),
+  totalOrders: integer("total_orders").notNull().default(0),
+  totalSpent: integer("total_spent").notNull().default(0),
+  discountPercent: integer("discount_percent").notNull().default(0),
+  isVip: boolean("is_vip").notNull().default(false),
+  notes: text("notes"),
+}, (table) => [
+  index("members_is_vip_idx").on(table.isVip),
+]);
+
+export const insertMemberSchema = createInsertSchema(members).omit({ joinedAt: true, lastOrderAt: true });
+export type InsertMember = z.infer<typeof insertMemberSchema>;
+export type Member = typeof members.$inferSelect;
+
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),

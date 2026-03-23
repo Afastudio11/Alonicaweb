@@ -1780,6 +1780,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Members
+  app.get("/api/members", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const all = await storage.getMembers();
+      res.json(all);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/members/check/:phone", async (req, res) => {
+    try {
+      const member = await storage.getMember(req.params.phone);
+      if (!member) return res.json({ exists: false, discountPercent: 0 });
+      res.json({ exists: true, discountPercent: member.discountPercent, isVip: member.isVip, name: member.name });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/members/:phone", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { discountPercent, isVip, notes, name } = req.body;
+      const updated = await storage.updateMember(req.params.phone, { discountPercent, isVip, notes, name });
+      if (!updated) return res.status(404).json({ message: "Member not found" });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/members/:phone", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteMember(req.params.phone);
+      if (!deleted) return res.status(404).json({ message: "Member not found" });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Banners (public read, admin write)
   app.get("/api/banners", async (req, res) => {
     try {
@@ -2088,6 +2129,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mock: true
           }
         };
+      }
+
+      // Auto-register phone as member (fire-and-forget, won't block response)
+      if (customerPhone && customerName) {
+        storage.upsertMember(customerPhone, customerName, total).catch(() => {});
       }
 
       res.status(201).json(responsePayload);
