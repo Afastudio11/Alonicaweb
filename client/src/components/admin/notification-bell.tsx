@@ -43,7 +43,7 @@ export default function NotificationBell() {
   // Fetch pending notifications
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications/pending'],
-    refetchInterval: 5000, // Poll every 5 seconds
+    refetchInterval: 30000, // Poll every 30 seconds — was 5s, too aggressive for rate limiter
   });
 
   // Approve mutation

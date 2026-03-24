@@ -322,10 +322,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Rate limiting middleware - relaxed for production POS system
   const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 500, // increased from 100 to 500 for busy restaurant environment
+    max: 3000, // ~200 req/min — covers multi-user polling (kitchen + kasir + admin + notifications)
     message: { message: "Too many requests, please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => {
+      // Skip rate limiting for operational polling endpoints used by authenticated staff
+      const pollingPaths = [
+        '/api/orders/kitchen',
+        '/api/drink-queue',
+        '/api/notifications/pending',
+        '/api/orders/scheduled',
+        '/api/health',
+      ];
+      return pollingPaths.some(p => req.path === p);
+    },
   });
 
   const authLimiter = rateLimit({

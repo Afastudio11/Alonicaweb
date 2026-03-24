@@ -167,10 +167,26 @@ export default function DrinkQueueSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
+      toast({ title: "Status berhasil diupdate" });
     },
-    onError: () => {
-      toast({ title: "Gagal update status", variant: "destructive" });
+    onError: (error: any) => {
+      const msg = error?.message || "";
+      if (msg.includes("429") || msg.includes("Too many")) {
+        toast({
+          title: "Terlalu banyak request",
+          description: "Tunggu beberapa detik lalu coba lagi",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Gagal update status antrian", description: msg, variant: "destructive" });
+      }
     },
+    retry: (failureCount, error: any) => {
+      const msg = error?.message || "";
+      if (msg.includes("429") && failureCount < 2) return true;
+      return false;
+    },
+    retryDelay: 1500,
   });
 
   const clearTakenMutation = useMutation({

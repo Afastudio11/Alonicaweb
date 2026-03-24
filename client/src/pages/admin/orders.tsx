@@ -27,10 +27,12 @@ export default function OrdersSection() {
 
   const hasActiveFilters = searchQuery !== "" || dateFilter !== "all" || statusFilter !== "all";
 
+  const ordersUrl = hasActiveFilters
+    ? "/api/orders"
+    : `/api/orders?limit=${pageSize}&offset=${page * pageSize}`;
+
   const { data, isLoading, refetch } = useQuery<{ orders: Order[]; total: number } | Order[]>({
-    queryKey: hasActiveFilters 
-      ? ["/api/orders"] 
-      : ["/api/orders", { limit: pageSize, offset: page * pageSize }],
+    queryKey: [ordersUrl],
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
     staleTime: 0,

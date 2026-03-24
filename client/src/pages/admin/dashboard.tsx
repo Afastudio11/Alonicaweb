@@ -176,7 +176,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <NotificationBell />
+              {user?.role === "admin" && <NotificationBell />}
               <button
                 onClick={logout}
                 data-testid="button-logout"

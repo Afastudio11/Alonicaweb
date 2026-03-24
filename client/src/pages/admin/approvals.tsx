@@ -98,7 +98,7 @@ export default function ApprovalsSection() {
   // Fetch all notifications with aggressive polling
   const { data: notifications = [], isLoading: notificationsLoading, refetch: refetchNotifications } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    refetchInterval: 3000, // Poll every 3 seconds for real-time updates
+    refetchInterval: 10000, // Poll every 10 seconds — was 3s, reduced to avoid rate limit
     refetchIntervalInBackground: true,
   });
 
