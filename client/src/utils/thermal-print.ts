@@ -72,10 +72,28 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
+// Fetch store profile for receipt info
+async function fetchStoreProfile(): Promise<any> {
+  try {
+    const res = await fetch('/api/store-profile', { credentials: 'include' });
+    if (res.ok) return await res.json();
+  } catch {}
+  return null;
+}
+
 // Build simple HTML receipt
-function buildReceiptHTML(order: any): string {
+function buildReceiptHTML(order: any, profile?: any, cashierName?: string): string {
   const orderDate = new Date(order.createdAt);
   const orderTime = orderDate.toLocaleTimeString('id-ID');
+
+  const storeName = profile?.restaurantName || 'Ngehnoom Cafe';
+  const storeAddress = profile?.address || 'Bantaeng, Sulawesi Selatan';
+  const storePhone = profile?.phone || '';
+  const wifiName = profile?.wifiName || '';
+  const wifiPassword = profile?.wifiPassword || '';
+  const customHeader = profile?.customReceiptHeader || '';
+  const customFooter = profile?.customReceiptFooter || 'Terima kasih telah berkunjung!';
+  const showCashier = profile?.showCashierName !== false;
   
   let itemsHTML = '';
   if (order.items && Array.isArray(order.items)) {
@@ -96,12 +114,20 @@ function buildReceiptHTML(order: any): string {
     });
   }
 
+  const wifiSection = (wifiName || wifiPassword) ? `
+    <div class="separator"></div>
+    <div style="text-align:center; font-size:10px;">
+      <div>📶 WiFi: <b>${escapeHTML(wifiName)}</b></div>
+      ${wifiPassword ? `<div>Password: <b>${escapeHTML(wifiPassword)}</b></div>` : ''}
+    </div>
+  ` : '';
+
   return `
     <!DOCTYPE html>
     <html>
       <head>
         <meta charset="utf-8">
-        <title>Receipt #${order.id?.slice(-6)?.toUpperCase() || 'ORDER'}</title>
+        <title>Struk #${order.id?.slice(-6)?.toUpperCase() || 'ORDER'}</title>
         <style>
           body {
             margin: 0;
@@ -114,108 +140,51 @@ function buildReceiptHTML(order: any): string {
             width: 240px;
             max-width: 300px;
           }
-          .header {
-            text-align: center;
-            border-bottom: 1px solid #000;
-            padding-bottom: 8px;
-            margin-bottom: 8px;
-          }
-          .restaurant-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-          }
-          .row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2px;
-          }
-          .item {
-            margin-bottom: 6px;
-          }
-          .separator {
-            border-top: 1px dashed #000;
-            margin: 8px 0;
-          }
-          .total {
-            font-weight: bold;
-            font-size: 14px;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 12px;
-            font-size: 10px;
-          }
+          .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+          .restaurant-name { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+          .item { margin-bottom: 6px; }
+          .separator { border-top: 1px dashed #000; margin: 8px 0; }
+          .total { font-weight: bold; font-size: 14px; }
+          .footer { text-align: center; margin-top: 12px; font-size: 10px; }
         </style>
       </head>
       <body>
+        ${customHeader ? `<div style="text-align:center;font-size:11px;margin-bottom:6px;font-style:italic;">${escapeHTML(customHeader)}</div>` : ''}
         <div class="header">
-          <div class="restaurant-name">Alonica Restaurant</div>
-          <div>Jl. Ratulangi No.14, Bantaeng</div>
-          <div>Telp: 0515-4545</div>
+          <div class="restaurant-name">${escapeHTML(storeName)}</div>
+          <div>${escapeHTML(storeAddress)}</div>
+          ${storePhone ? `<div>Telp: ${escapeHTML(storePhone)}</div>` : ''}
         </div>
         
-        <div class="row">
-          <span>Tanggal:</span>
-          <span>${formatDate(orderDate)}</span>
-        </div>
-        <div class="row">
-          <span>Waktu:</span>
-          <span>${orderTime}</span>
-        </div>
-        <div class="row">
-          <span>Customer:</span>
-          <span>${escapeHTML(order.customerName || 'N/A')}</span>
-        </div>
-        <div class="row">
-          <span>Meja:</span>
-          <span>${escapeHTML(order.tableNumber || 'N/A')}</span>
-        </div>
-        <div class="row">
-          <span>Order ID:</span>
-          <span>#${escapeHTML(order.id?.slice(-8)?.toUpperCase() || 'N/A')}</span>
-        </div>
+        <div class="row"><span>Tanggal:</span><span>${formatDate(orderDate)}</span></div>
+        <div class="row"><span>Order ID:</span><span>#${escapeHTML(order.id?.slice(-8)?.toUpperCase() || 'N/A')}</span></div>
+        <div class="row"><span>Customer:</span><span>${escapeHTML(order.customerName || 'N/A')}</span></div>
+        <div class="row"><span>Meja:</span><span>${escapeHTML(order.tableNumber || 'N/A')}</span></div>
+        ${(showCashier && cashierName) ? `<div class="row"><span>Kasir:</span><span>${escapeHTML(cashierName)}</span></div>` : ''}
         
         <div class="separator"></div>
-        
         <div style="font-weight: bold; margin-bottom: 8px;">Detail Pesanan:</div>
         ${itemsHTML}
         
         <div class="separator"></div>
-        
-        <div class="row">
-          <span>Subtotal:</span>
-          <span>${formatCurrency(order.subtotal || 0)}</span>
-        </div>
-        
-        <div class="row total">
-          <span>Total:</span>
-          <span>${formatCurrency(order.total || 0)}</span>
-        </div>
+        <div class="row"><span>Subtotal:</span><span>${formatCurrency(order.subtotal || 0)}</span></div>
+        <div class="row total"><span>TOTAL:</span><span>${formatCurrency(order.total || 0)}</span></div>
         
         <div class="separator"></div>
+        <div class="row"><span>Pembayaran:</span><span>${order.paymentMethod === 'cash' ? 'TUNAI' : 'QRIS'}</span></div>
         
-        <div class="row">
-          <span>Metode Pembayaran:</span>
-          <span>${order.paymentMethod === 'cash' ? 'TUNAI' : 'QRIS'}</span>
-        </div>
-        
-        <div class="row">
-          <span>Status:</span>
-          <span>${order.status === 'completed' ? 'Selesai' : order.status === 'ready' ? 'Siap' : order.status === 'preparing' ? 'Diproses' : 'Pending'}</span>
-        </div>
+        ${wifiSection}
         
         <div class="footer">
-          <div>Terima kasih telah berkunjung!</div>
-          <div>Alonica Restaurant - Cita Rasa Nusantara</div>
+          <div>${escapeHTML(customFooter)}</div>
+          <div>${escapeHTML(storeName)}</div>
         </div>
         
         <script>
           window.onload = function() {
             window.print();
-            setTimeout(function() {
-              window.close();
-            }, 500);
+            setTimeout(function() { window.close(); }, 500);
           };
         </script>
       </body>
@@ -331,34 +300,38 @@ export function disconnectBluetoothPrinter(): void {
 /**
  * Convert order to ESC/POS thermal printer commands
  */
-function buildReceiptCommands(order: any): string {
+function buildReceiptCommands(order: any, profile?: any, cashierName?: string): string {
   const orderDate = new Date(order.createdAt);
-  
+
+  const storeName = (profile?.restaurantName || 'Ngehnoom Cafe').toUpperCase();
+  const storeAddress = profile?.address || 'Bantaeng, Sulawesi Selatan';
+  const storePhone = profile?.phone || '';
+  const wifiName = profile?.wifiName || '';
+  const wifiPassword = profile?.wifiPassword || '';
+  const customFooter = profile?.customReceiptFooter || 'Terima kasih telah berkunjung!';
+  const showCashier = profile?.showCashierName !== false;
+
   let commands = '';
-  
-  // Initialize printer
   commands += ESC_POS_COMMANDS.INIT;
   
-  // Header
   commands += ESC_POS_COMMANDS.CENTER;
   commands += ESC_POS_COMMANDS.BOLD_ON;
   commands += ESC_POS_COMMANDS.DOUBLE_HEIGHT;
-  commands += 'ALONICA RESTAURANT\n';
+  commands += `${storeName}\n`;
   commands += ESC_POS_COMMANDS.NORMAL_SIZE;
   commands += ESC_POS_COMMANDS.BOLD_OFF;
-  commands += 'Jl. Ratulangi No.14, Bantaeng\n';
-  commands += 'Telp: 0515-4545\n';
+  commands += `${storeAddress}\n`;
+  if (storePhone) commands += `Telp: ${storePhone}\n`;
   commands += '================================\n';
   
-  // Order info
   commands += ESC_POS_COMMANDS.LEFT;
   commands += `Tanggal: ${formatDate(orderDate)}\n`;
   commands += `Customer: ${order.customerName || 'N/A'}\n`;
   commands += `Meja: ${order.tableNumber || 'N/A'}\n`;
   commands += `Order ID: #${order.id?.slice(-8)?.toUpperCase() || 'N/A'}\n`;
+  if (showCashier && cashierName) commands += `Kasir: ${cashierName}\n`;
   commands += '================================\n';
   
-  // Items
   commands += ESC_POS_COMMANDS.BOLD_ON;
   commands += 'DETAIL PESANAN:\n';
   commands += ESC_POS_COMMANDS.BOLD_OFF;
@@ -371,37 +344,31 @@ function buildReceiptCommands(order: any): string {
       const qty = item.quantity || 0;
       const price = formatCurrency(item.price || 0);
       const total = formatCurrency(itemTotal);
-      
       commands += `${itemName}\n`;
       commands += `  ${qty}x ${price}${' '.repeat(Math.max(0, 16 - total.length))}${total}\n`;
-      
-      if (item.notes) {
-        commands += `  Catatan: ${item.notes}\n`;
-      }
+      if (item.notes) commands += `  Catatan: ${item.notes}\n`;
     });
   }
   
   commands += '--------------------------------\n';
-  
-  // Totals
   commands += `Subtotal:${' '.repeat(16)}${formatCurrency(order.subtotal || 0)}\n`;
   commands += ESC_POS_COMMANDS.BOLD_ON;
   commands += `TOTAL:${' '.repeat(18)}${formatCurrency(order.total || 0)}\n`;
   commands += ESC_POS_COMMANDS.BOLD_OFF;
   commands += '================================\n';
-  
-  // Payment info
   commands += `Metode: ${order.paymentMethod === 'cash' ? 'TUNAI' : 'QRIS'}\n`;
-  commands += `Status: ${order.status === 'completed' ? 'Selesai' : order.status === 'ready' ? 'Siap' : order.status === 'preparing' ? 'Diproses' : 'Pending'}\n`;
+
+  if (wifiName || wifiPassword) {
+    commands += '================================\n';
+    commands += ESC_POS_COMMANDS.CENTER;
+    if (wifiName) commands += `WiFi: ${wifiName}\n`;
+    if (wifiPassword) commands += `Password: ${wifiPassword}\n`;
+    commands += ESC_POS_COMMANDS.LEFT;
+  }
+
   commands += '================================\n';
-  
-  // Footer
   commands += ESC_POS_COMMANDS.CENTER;
-  commands += '\nTerima kasih telah berkunjung!\n';
-  commands += 'Alonica Restaurant\n';
-  commands += 'Cita Rasa Nusantara\n';
-  
-  // Cut paper and feed
+  commands += `\n${customFooter}\n`;
   commands += '\n\n\n';
   commands += ESC_POS_COMMANDS.CUT_PAPER;
   
@@ -411,28 +378,26 @@ function buildReceiptCommands(order: any): string {
 /**
  * Print receipt via Bluetooth (direct printing)
  */
-export async function printReceiptBluetooth(order: any): Promise<boolean> {
+export async function printReceiptBluetooth(order: any, profile?: any, cashierName?: string): Promise<boolean> {
   if (!isBluetoothPrinterConnected()) {
     const connected = await connectBluetoothPrinter();
     if (!connected) {
-      alert('Tidak dapat terhubung ke printer Bluetooth. Menggunakan print dialog Windows.');
-      printReceipt(order);
+      alert('Tidak dapat terhubung ke printer Bluetooth. Menggunakan print dialog.');
+      printReceipt(order, profile, cashierName);
       return false;
     }
   }
 
   try {
-    const commands = buildReceiptCommands(order);
+    const commands = buildReceiptCommands(order, profile, cashierName);
     const encoder = new TextEncoder();
     const data = encoder.encode(commands);
-    
     await bluetoothCharacteristic!.writeValue(data);
-    
     return true;
   } catch (error) {
     console.error('Bluetooth print error:', error);
     alert('Error saat print via Bluetooth. Menggunakan print dialog.');
-    printReceipt(order);
+    printReceipt(order, profile, cashierName);
     return false;
   }
 }
@@ -440,16 +405,14 @@ export async function printReceiptBluetooth(order: any): Promise<boolean> {
 /**
  * Simple receipt printing - open new window and print (fallback)
  */
-export function printReceipt(order: any): void {
+export function printReceipt(order: any, profile?: any, cashierName?: string): void {
   try {
-    const receiptHTML = buildReceiptHTML(order);
+    const receiptHTML = buildReceiptHTML(order, profile, cashierName);
     const printWindow = window.open('', '_blank', 'width=300,height=600,scrollbars=yes');
-    
     if (!printWindow) {
-      alert('Print blocked! Please allow popups for this site.');
+      alert('Print blocked! Izinkan popup untuk situs ini.');
       return;
     }
-    
     printWindow.document.write(receiptHTML);
     printWindow.document.close();
   } catch (error) {
@@ -459,18 +422,19 @@ export function printReceipt(order: any): void {
 }
 
 /**
- * Smart print function - tries Bluetooth first, fallback to Windows dialog
+ * Smart print function - tries Bluetooth first, fallback to browser dialog
+ * Automatically fetches store profile for dynamic receipt info
  */
-export async function smartPrintReceipt(order: any): Promise<void> {
+export async function smartPrintReceipt(order: any, options?: { cashierName?: string }): Promise<void> {
+  const profile = await fetchStoreProfile();
+  const cashierName = options?.cashierName;
+
   if (isBluetoothPrinterConnected()) {
-    const success = await printReceiptBluetooth(order);
-    if (success) {
-      return; // Success with Bluetooth
-    }
+    const success = await printReceiptBluetooth(order, profile, cashierName);
+    if (success) return;
   }
   
-  // Fallback to Windows print dialog
-  printReceipt(order);
+  printReceipt(order, profile, cashierName);
 }
 
 // Legacy functions for compatibility (deprecated)

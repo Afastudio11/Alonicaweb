@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 import { smartPrintReceipt } from "@/utils/thermal-print";
+import { useAuth } from "@/hooks/use-auth";
 import type { MenuItem, Category, InsertOrder, Order, Discount } from "@shared/schema";
 
 interface CartItem {
@@ -40,6 +41,7 @@ interface PaymentData {
 export default function CashierSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   // Customer & order state
   const [customerName, setCustomerName] = useState("");
@@ -719,7 +721,7 @@ export default function CashierSection() {
   // Print receipt
   const handlePrintReceipt = async () => {
     if (paymentData?.order) {
-      await smartPrintReceipt(paymentData.order);
+      await smartPrintReceipt(paymentData.order, { cashierName: user?.name || user?.username || undefined });
     }
   };
 

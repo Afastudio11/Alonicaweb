@@ -44,7 +44,7 @@ const SECTION_LABELS: Record<string, string> = {
   printer: "Pengaturan Printer",
   "print-settings": "Pengaturan Cetak",
   branches: "Manajemen Cabang",
-  "drink-queue": "Antrian Minuman",
+  "drink-queue": "Antrian Pesanan",
 };
 
 export default function AdminDashboard() {

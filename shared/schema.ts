@@ -222,6 +222,12 @@ export const storeProfile = pgTable("store_profile", {
   tagline: text("tagline").default("Minuman & makanan khas Bantaeng yang bikin betah"),
   // Multi-branch feature flag
   multiBranchEnabled: boolean("multi_branch_enabled").notNull().default(false),
+  // Receipt custom fields
+  wifiName: text("wifi_name"), // WiFi SSID shown on receipt
+  wifiPassword: text("wifi_password"), // WiFi password shown on receipt
+  customReceiptHeader: text("custom_receipt_header"), // Extra text at top of receipt
+  customReceiptFooter: text("custom_receipt_footer"), // Closing message e.g. "Terima kasih sudah berkunjung!"
+  showCashierName: boolean("show_cashier_name").notNull().default(true), // Show cashier name on receipt
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
@@ -463,7 +469,8 @@ export const drinkQueue = pgTable("drink_queue", {
   orderId: varchar("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
   customerName: text("customer_name").notNull(),
   tableNumber: text("table_number").notNull(),
-  drinkName: text("drink_name").notNull(),
+  drinkName: text("drink_name").notNull(), // item name (drink or food)
+  itemType: text("item_type").notNull().default("drink"), // 'drink' | 'food'
   quantity: integer("quantity").notNull().default(1),
   notes: text("notes"),
   status: text("status").notNull().default("waiting"), // 'waiting' | 'making' | 'ready' | 'taken'
@@ -475,6 +482,7 @@ export const drinkQueue = pgTable("drink_queue", {
   index("drink_queue_status_idx").on(table.status, table.createdAt),
   index("drink_queue_branch_idx").on(table.branchId),
   index("drink_queue_order_idx").on(table.orderId),
+  index("drink_queue_type_idx").on(table.itemType, table.status),
 ]);
 
 // Stock Movements — audit trail of all inventory changes

@@ -40,7 +40,7 @@ const BASE_NAV_GROUPS = [
       { key: "cashier", label: "Kasir", icon: CreditCard },
       { key: "orders", label: "Pesanan", icon: ClipboardList },
       { key: "kitchen", label: "Dapur", icon: ChefHat },
-      { key: "drink-queue", label: "Antrian Minuman", icon: GlassWater },
+      { key: "drink-queue", label: "Antrian Pesanan", icon: GlassWater },
       { key: "reservations", label: "Reservasi", icon: Calendar },
     ],
   },

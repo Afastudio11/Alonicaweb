@@ -197,7 +197,7 @@ async function updateDailyReportForOrder(orderId: string) {
   }
 }
 
-// Helper: auto-create drink queue entries for drink items in an order
+// Helper: auto-create item queue entries for ALL items (food + drink) in an order
 async function autoCreateDrinkQueue(order: { id: string; customerName: string; tableNumber: string; orderType: string; branchId?: string | null; items: any[] }) {
   try {
     const categories = await storage.getCategories();
@@ -213,7 +213,7 @@ async function autoCreateDrinkQueue(order: { id: string; customerName: string; t
       const menuItem = await storage.getMenuItem(item.itemId);
       if (!menuItem) continue;
       const isDrink = drinkCategoryIds.has(menuItem.categoryId);
-      if (!isDrink) continue;
+      const itemType = isDrink ? 'drink' : 'food';
 
       for (let q = 0; q < (item.quantity || 1); q++) {
         await storage.createDrinkQueueItem({
@@ -222,6 +222,7 @@ async function autoCreateDrinkQueue(order: { id: string; customerName: string; t
           customerName: order.customerName,
           tableNumber: order.tableNumber,
           drinkName: item.name || menuItem.name,
+          itemType,
           quantity: 1,
           notes: item.notes || null,
           status: 'waiting',
@@ -232,7 +233,7 @@ async function autoCreateDrinkQueue(order: { id: string; customerName: string; t
       }
     }
   } catch (error) {
-    console.error('Error creating drink queue entries:', error);
+    console.error('Error creating item queue entries:', error);
   }
 }
 
@@ -2957,8 +2958,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store Profile (admin access required)
   app.get("/api/store-profile", requireAuth, requireAdmin, async (req, res) => {
     try {
-      const profile = await storage.getStoreProfile();
-      res.json(profile || null);
+      let profile = await storage.getStoreProfile();
+      // Auto-create default profile if none exists
+      if (!profile) {
+        profile = await storage.createStoreProfile({
+          restaurantName: "Ngehnoom Cafe",
+          address: "Bantaeng, Sulawesi Selatan",
+          phone: "0515-0000",
+          email: "",
+          description: "Yang Nyaman Jadi Sayang",
+          city: "Bantaeng",
+          openingHours: "08.30 – 23.00",
+          rating: "4.9",
+          reviewCount: "1.4rb ulasan",
+          tagline: "Yang Nyaman Jadi Sayang",
+          multiBranchEnabled: false,
+          showCashierName: true,
+        });
+      }
+      res.json(profile);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
