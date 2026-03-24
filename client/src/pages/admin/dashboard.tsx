@@ -19,9 +19,11 @@ import BannersSection from "./banners";
 import MembersSection from "./members";
 import BranchesSection from "./branches";
 import PrinterPage from "../printer";
+import DrinkQueueSection from "./drink-queue";
 import { Menu, Bell } from "lucide-react";
 import { useState } from "react";
 import NotificationBell from "@/components/admin/notification-bell";
+import ScheduledOrderReminder from "@/components/admin/scheduled-reminder";
 
 const SECTION_LABELS: Record<string, string> = {
   orders: "Pesanan",
@@ -42,6 +44,7 @@ const SECTION_LABELS: Record<string, string> = {
   printer: "Pengaturan Printer",
   "print-settings": "Pengaturan Cetak",
   branches: "Manajemen Cabang",
+  "drink-queue": "Antrian Minuman",
 };
 
 export default function AdminDashboard() {
@@ -120,6 +123,7 @@ export default function AdminDashboard() {
       case "inventory": return <InventorySection />;
       case "banners": return <BannersSection />;
       case "settings": return <SettingsSection />;
+      case "drink-queue": return <DrinkQueueSection />;
       case "branches": return user.branchId === null ? <BranchesSection /> : <OrdersSection />;
       default: return <OrdersSection />;
     }
@@ -194,6 +198,9 @@ export default function AdminDashboard() {
           {renderSection()}
         </div>
       </div>
+
+      {/* Floating reminder for scheduled orders */}
+      <ScheduledOrderReminder />
 
       {/* Spin animation */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

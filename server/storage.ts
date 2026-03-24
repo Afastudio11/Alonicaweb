@@ -1,6 +1,6 @@
-import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members } from "@shared/schema";
+import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, type DrinkQueue, type InsertDrinkQueue, type StockMovement, type InsertStockMovement, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members, drinkQueue, stockMovements } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql, gte, lte, inArray } from "drizzle-orm";
+import { eq, desc, sql, gte, lte, inArray, and, lt, isNull, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -199,6 +199,20 @@ export interface IStorage {
   upsertMember(phone: string, name: string, orderTotal: number): Promise<import("@shared/schema").Member>;
   updateMember(phone: string, data: Partial<Pick<import("@shared/schema").Member, 'discountPercent' | 'isVip' | 'notes' | 'name'>>): Promise<import("@shared/schema").Member | undefined>;
   deleteMember(phone: string): Promise<boolean>;
+
+  // Drink Queue
+  getDrinkQueue(branchId?: string | null): Promise<import("@shared/schema").DrinkQueue[]>;
+  getDrinkQueueItem(id: string): Promise<import("@shared/schema").DrinkQueue | undefined>;
+  createDrinkQueueItem(item: import("@shared/schema").InsertDrinkQueue): Promise<import("@shared/schema").DrinkQueue>;
+  updateDrinkQueueStatus(id: string, status: string): Promise<import("@shared/schema").DrinkQueue | undefined>;
+  clearTakenDrinkQueue(branchId?: string | null): Promise<number>;
+  getNextQueueNumber(branchId?: string | null): Promise<number>;
+  getScheduledOrders(minutesBefore?: number): Promise<Order[]>;
+
+  // Stock Movements
+  getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string }): Promise<import("@shared/schema").StockMovement[]>;
+  createStockMovement(movement: import("@shared/schema").InsertStockMovement): Promise<import("@shared/schema").StockMovement>;
+  adjustStock(inventoryItemId: string, quantity: number, reason: string, type: 'in' | 'out' | 'adjustment', performedBy?: string, orderId?: string, branchId?: string | null): Promise<{ item: InventoryItem; movement: import("@shared/schema").StockMovement }>;
 }
 
 // Legacy MemStorage class (no longer used, kept for reference)
@@ -1847,6 +1861,139 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(banners).where(eq(banners.id, id));
     return (result.rowCount ?? 0) > 0;
   }
+
+  // ── Drink Queue ──────────────────────────────────────────────────────────
+  async getDrinkQueue(branchId?: string | null): Promise<DrinkQueue[]> {
+    const conditions = [
+      or(
+        eq(drinkQueue.status, 'waiting'),
+        eq(drinkQueue.status, 'making'),
+        eq(drinkQueue.status, 'ready')
+      )
+    ];
+    if (branchId !== undefined) {
+      conditions.push(branchId ? eq(drinkQueue.branchId, branchId) : isNull(drinkQueue.branchId));
+    }
+    return await db.select().from(drinkQueue)
+      .where(and(...conditions))
+      .orderBy(drinkQueue.queueNumber);
+  }
+
+  async getDrinkQueueItem(id: string): Promise<DrinkQueue | undefined> {
+    const [item] = await db.select().from(drinkQueue).where(eq(drinkQueue.id, id));
+    return item || undefined;
+  }
+
+  async createDrinkQueueItem(item: InsertDrinkQueue): Promise<DrinkQueue> {
+    const [created] = await db.insert(drinkQueue).values(item).returning();
+    return created;
+  }
+
+  async updateDrinkQueueStatus(id: string, status: string): Promise<DrinkQueue | undefined> {
+    const [updated] = await db.update(drinkQueue)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(drinkQueue.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async clearTakenDrinkQueue(branchId?: string | null): Promise<number> {
+    const conditions = [eq(drinkQueue.status, 'taken')];
+    if (branchId !== undefined && branchId !== null) {
+      conditions.push(eq(drinkQueue.branchId, branchId));
+    }
+    const result = await db.delete(drinkQueue).where(and(...conditions));
+    return result.rowCount ?? 0;
+  }
+
+  async getNextQueueNumber(branchId?: string | null): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const conditions = [gte(drinkQueue.createdAt, today)];
+    if (branchId !== undefined && branchId !== null) {
+      conditions.push(eq(drinkQueue.branchId, branchId));
+    }
+    const result = await db.select({ max: sql<number>`COALESCE(MAX(${drinkQueue.queueNumber}), 0)` })
+      .from(drinkQueue)
+      .where(and(...conditions));
+    return (result[0]?.max ?? 0) + 1;
+  }
+
+  async getScheduledOrders(minutesBefore: number = 10): Promise<Order[]> {
+    const now = new Date();
+    const windowEnd = new Date(now.getTime() + minutesBefore * 60 * 1000);
+    // Get all non-cancelled, non-served orders with scheduledTime set
+    const allOrders = await db.select().from(orders)
+      .where(
+        and(
+          sql`${orders.scheduledTime} IS NOT NULL`,
+          sql`${orders.orderStatus} NOT IN ('served', 'cancelled')`
+        )
+      )
+      .orderBy(orders.scheduledTime);
+    // Filter: scheduledTime is within the next `minutesBefore` minutes
+    return allOrders.filter(order => {
+      if (!order.scheduledTime) return false;
+      const scheduledAt = new Date(order.scheduledTime);
+      return scheduledAt >= now && scheduledAt <= windowEnd;
+    });
+  }
+
+  // ── Stock Movements ──────────────────────────────────────────────────────
+  async getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string }): Promise<StockMovement[]> {
+    const conditions = [];
+    if (params.inventoryItemId) conditions.push(eq(stockMovements.inventoryItemId, params.inventoryItemId));
+    if (params.branchId !== undefined && params.branchId !== null) conditions.push(eq(stockMovements.branchId, params.branchId));
+    if (params.type) conditions.push(eq(stockMovements.type, params.type));
+
+    const query = db.select().from(stockMovements)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(stockMovements.createdAt))
+      .limit(params.limit ?? 100);
+    return await query;
+  }
+
+  async createStockMovement(movement: InsertStockMovement): Promise<StockMovement> {
+    const [created] = await db.insert(stockMovements).values(movement).returning();
+    return created;
+  }
+
+  async adjustStock(
+    inventoryItemId: string,
+    quantity: number,
+    reason: string,
+    type: 'in' | 'out' | 'adjustment',
+    performedBy?: string,
+    orderId?: string,
+    branchId?: string | null
+  ): Promise<{ item: InventoryItem; movement: StockMovement }> {
+    const [currentItem] = await db.select().from(inventoryItems).where(eq(inventoryItems.id, inventoryItemId));
+    if (!currentItem) throw new Error(`Inventory item ${inventoryItemId} not found`);
+
+    const stockBefore = currentItem.currentStock;
+    const delta = type === 'out' ? -Math.abs(quantity) : Math.abs(quantity);
+    const stockAfter = Math.max(0, stockBefore + delta);
+
+    const [updatedItem] = await db.update(inventoryItems)
+      .set({ currentStock: stockAfter })
+      .where(eq(inventoryItems.id, inventoryItemId))
+      .returning();
+
+    const [movement] = await db.insert(stockMovements).values({
+      inventoryItemId,
+      inventoryItemName: currentItem.name,
+      type,
+      quantity: delta,
+      stockBefore,
+      stockAfter,
+      reason,
+      orderId: orderId ?? null,
+      performedBy: performedBy ?? null,
+      branchId: branchId ?? null,
+    }).returning();
+
+    return { item: updatedItem, movement };
+  }
 }
 
 // Complete MemStorage implementation as fallback
@@ -2931,6 +3078,16 @@ class FallbackStorage implements IStorage {
   async upsertMember(phone: string, name: string, orderTotal: number): Promise<any> { return this.dbStorage.upsertMember(phone, name, orderTotal); }
   async updateMember(phone: string, data: any): Promise<any> { return this.dbStorage.updateMember(phone, data); }
   async deleteMember(phone: string): Promise<boolean> { return this.dbStorage.deleteMember(phone); }
+  async getDrinkQueue(branchId?: string | null): Promise<any[]> { return this.dbStorage.getDrinkQueue(branchId); }
+  async getDrinkQueueItem(id: string): Promise<any> { return this.dbStorage.getDrinkQueueItem(id); }
+  async createDrinkQueueItem(item: any): Promise<any> { return this.dbStorage.createDrinkQueueItem(item); }
+  async updateDrinkQueueStatus(id: string, status: string): Promise<any> { return this.dbStorage.updateDrinkQueueStatus(id, status); }
+  async clearTakenDrinkQueue(branchId?: string | null): Promise<number> { return this.dbStorage.clearTakenDrinkQueue(branchId); }
+  async getNextQueueNumber(branchId?: string | null): Promise<number> { return this.dbStorage.getNextQueueNumber(branchId); }
+  async getScheduledOrders(minutesBefore?: number): Promise<any[]> { return this.dbStorage.getScheduledOrders(minutesBefore); }
+  async getStockMovements(params: any): Promise<any[]> { return this.dbStorage.getStockMovements(params); }
+  async createStockMovement(movement: any): Promise<any> { return this.dbStorage.createStockMovement(movement); }
+  async adjustStock(inventoryItemId: string, quantity: number, reason: string, type: any, performedBy?: string, orderId?: string, branchId?: string | null): Promise<any> { return this.dbStorage.adjustStock(inventoryItemId, quantity, reason, type, performedBy, orderId, branchId); }
 }
 
 console.log('✅ Using DatabaseStorage (PostgreSQL) for all features');

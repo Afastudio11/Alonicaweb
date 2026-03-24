@@ -456,6 +456,47 @@ export const deletionPins = pgTable("deletion_pins", {
   index("deletion_pins_pin_idx").on(table.pin),
 ]);
 
+// Drink Queue — each drink item in an order becomes a queue entry
+export const drinkQueue = pgTable("drink_queue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  queueNumber: integer("queue_number").notNull(), // daily sequential number e.g. 1, 2, 3
+  orderId: varchar("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  customerName: text("customer_name").notNull(),
+  tableNumber: text("table_number").notNull(),
+  drinkName: text("drink_name").notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  notes: text("notes"),
+  status: text("status").notNull().default("waiting"), // 'waiting' | 'making' | 'ready' | 'taken'
+  orderType: text("order_type").notNull().default("dine_in"), // 'dine_in' | 'take_away'
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+  updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("drink_queue_status_idx").on(table.status, table.createdAt),
+  index("drink_queue_branch_idx").on(table.branchId),
+  index("drink_queue_order_idx").on(table.orderId),
+]);
+
+// Stock Movements — audit trail of all inventory changes
+export const stockMovements = pgTable("stock_movements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  inventoryItemId: varchar("inventory_item_id").notNull().references(() => inventoryItems.id, { onDelete: "cascade" }),
+  inventoryItemName: text("inventory_item_name").notNull(),
+  type: text("type").notNull(), // 'in' | 'out' | 'adjustment' | 'order_deduction'
+  quantity: integer("quantity").notNull(), // positive for in, negative for out
+  stockBefore: integer("stock_before").notNull(),
+  stockAfter: integer("stock_after").notNull(),
+  reason: text("reason"), // e.g. "Restock dari supplier", "Order #12345"
+  orderId: varchar("order_id").references(() => orders.id, { onDelete: "set null" }),
+  performedBy: varchar("performed_by").references(() => users.id, { onDelete: "set null" }),
+  branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("stock_movements_item_idx").on(table.inventoryItemId, table.createdAt.desc()),
+  index("stock_movements_branch_idx").on(table.branchId, table.createdAt.desc()),
+  index("stock_movements_type_idx").on(table.type),
+]);
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -608,6 +649,17 @@ export const insertDeletionPinSchema = createInsertSchema(deletionPins).omit({
   ),
 });
 
+export const insertDrinkQueueSchema = createInsertSchema(drinkQueue).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStockMovementSchema = createInsertSchema(stockMovements).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -665,6 +717,12 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export type DeletionPin = typeof deletionPins.$inferSelect;
 export type InsertDeletionPin = z.infer<typeof insertDeletionPinSchema>;
+
+export type DrinkQueue = typeof drinkQueue.$inferSelect;
+export type InsertDrinkQueue = z.infer<typeof insertDrinkQueueSchema>;
+
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;
 
 // Cart item type for frontend
 export interface CartItem {

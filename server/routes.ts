@@ -197,6 +197,45 @@ async function updateDailyReportForOrder(orderId: string) {
   }
 }
 
+// Helper: auto-create drink queue entries for drink items in an order
+async function autoCreateDrinkQueue(order: { id: string; customerName: string; tableNumber: string; orderType: string; branchId?: string | null; items: any[] }) {
+  try {
+    const categories = await storage.getCategories();
+    const drinkCategoryIds = new Set(
+      categories.filter(c => c.name.toLowerCase().includes('minuman')).map(c => c.id)
+    );
+
+    const branchId = order.branchId ?? null;
+    const queueStartNumber = await storage.getNextQueueNumber(branchId);
+    let offset = 0;
+
+    for (const item of order.items) {
+      const menuItem = await storage.getMenuItem(item.itemId);
+      if (!menuItem) continue;
+      const isDrink = drinkCategoryIds.has(menuItem.categoryId);
+      if (!isDrink) continue;
+
+      for (let q = 0; q < (item.quantity || 1); q++) {
+        await storage.createDrinkQueueItem({
+          queueNumber: queueStartNumber + offset,
+          orderId: order.id,
+          customerName: order.customerName,
+          tableNumber: order.tableNumber,
+          drinkName: item.name || menuItem.name,
+          quantity: 1,
+          notes: item.notes || null,
+          status: 'waiting',
+          orderType: order.orderType || 'dine_in',
+          branchId,
+        });
+        offset++;
+      }
+    }
+  } catch (error) {
+    console.error('Error creating drink queue entries:', error);
+  }
+}
+
 // Auth middleware to protect admin routes
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   // Read session token from httpOnly cookie (secure against XSS)
@@ -344,6 +383,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update daily report when payment is confirmed
       if (notificationData.paymentStatus === 'paid') {
         await updateDailyReportForOrder(order.id);
+        // Auto-create drink queue entries for QRIS-paid orders
+        const fullOrder = await storage.getOrder(order.id);
+        if (fullOrder && fullOrder.items) {
+          await autoCreateDrinkQueue({
+            id: fullOrder.id,
+            customerName: fullOrder.customerName,
+            tableNumber: fullOrder.tableNumber || '',
+            orderType: fullOrder.orderType,
+            branchId: fullOrder.branchId,
+            items: fullOrder.items,
+          });
+        }
       }
 
       console.log(`Payment ${notificationData.paymentStatus} for order ${order.id}`);
@@ -2318,6 +2369,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update daily report for this paid order
       await updateDailyReportForOrder(order.id);
+
+      // Auto-create drink queue entries for drink items
+      await autoCreateDrinkQueue({
+        id: order.id,
+        customerName: order.customerName,
+        tableNumber: order.tableNumber,
+        orderType: (req.body.orderType as string) || 'dine_in',
+        branchId: (req as any).user?.branchId ?? null,
+        items: Array.isArray(items) ? items : [],
+      });
       
       const responsePayload = {
         order,
@@ -3827,6 +3888,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get deletion logs by order error:', error);
       return handleApiError(res, error, "Failed to get deletion logs for order");
+    }
+  });
+
+  // ── SCHEDULED ORDERS (Reminder) ──────────────────────────────────────────
+  app.get("/api/orders/scheduled", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const minutesBefore = parseInt(req.query.minutes as string) || 10;
+      const orders = await storage.getScheduledOrders(minutesBefore);
+      res.json(orders);
+    } catch (error) {
+      handleApiError(res, error, "Failed to fetch scheduled orders");
+    }
+  });
+
+  // ── DRINK QUEUE ───────────────────────────────────────────────────────────
+  app.get("/api/drink-queue", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const branchId = (req as any).user?.branchId ?? null;
+      const queue = await storage.getDrinkQueue(branchId);
+      res.json(queue);
+    } catch (error) {
+      handleApiError(res, error, "Failed to fetch drink queue");
+    }
+  });
+
+  app.put("/api/drink-queue/:id", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const validStatuses = ['waiting', 'making', 'ready', 'taken'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      const updated = await storage.updateDrinkQueueStatus(id, status);
+      if (!updated) return res.status(404).json({ message: "Queue item not found" });
+      res.json(updated);
+    } catch (error) {
+      handleApiError(res, error, "Failed to update drink queue item");
+    }
+  });
+
+  app.post("/api/drink-queue/clear-taken", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const branchId = (req as any).user?.branchId ?? null;
+      const count = await storage.clearTakenDrinkQueue(branchId);
+      res.json({ cleared: count });
+    } catch (error) {
+      handleApiError(res, error, "Failed to clear taken items");
+    }
+  });
+
+  // ── STOCK MOVEMENTS ───────────────────────────────────────────────────────
+  app.get("/api/inventory/movements", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { inventoryItemId, type, limit } = req.query;
+      const branchId = (req as any).user?.branchId ?? null;
+      const movements = await storage.getStockMovements({
+        inventoryItemId: inventoryItemId as string | undefined,
+        branchId,
+        type: type as string | undefined,
+        limit: limit ? parseInt(limit as string) : 50,
+      });
+      res.json(movements);
+    } catch (error) {
+      handleApiError(res, error, "Failed to fetch stock movements");
+    }
+  });
+
+  app.post("/api/inventory/adjust", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { inventoryItemId, quantity, reason, type } = req.body;
+      if (!inventoryItemId || quantity === undefined || !type) {
+        return res.status(400).json({ message: "inventoryItemId, quantity, and type are required" });
+      }
+      const validTypes = ['in', 'out', 'adjustment'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ message: "type must be 'in', 'out', or 'adjustment'" });
+      }
+      const userId = (req as any).user?.id;
+      const branchId = (req as any).user?.branchId ?? null;
+      const result = await storage.adjustStock(
+        inventoryItemId,
+        Math.abs(quantity),
+        reason || `Manual ${type}`,
+        type as 'in' | 'out' | 'adjustment',
+        userId,
+        undefined,
+        branchId
+      );
+      res.json(result);
+    } catch (error) {
+      handleApiError(res, error, "Failed to adjust stock");
     }
   });
 
