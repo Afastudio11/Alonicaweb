@@ -71,15 +71,23 @@ export default function OrdersSection() {
 
   // Calculate stats
   const today = new Date().toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
   const todayOrders = orders.filter(order => 
     new Date(order.createdAt).toDateString() === today
+  );
+  const yesterdayOrders = orders.filter(order => 
+    new Date(order.createdAt).toDateString() === yesterdayStr
   );
 
   const stats = {
     totalToday: todayOrders.length,
     completed: todayOrders.filter(order => order.orderStatus === 'served').length,
     pending: todayOrders.filter(order => order.orderStatus === 'queued').length,
-    revenue: todayOrders.reduce((sum, order) => sum + order.total, 0)
+    revenue: todayOrders.reduce((sum, order) => sum + order.total, 0),
+    revenueYesterday: yesterdayOrders.reduce((sum, order) => sum + order.total, 0),
+    totalYesterday: yesterdayOrders.length,
   };
 
   const handleStatusUpdate = (orderId: string, status: string) => {
@@ -171,8 +179,8 @@ export default function OrdersSection() {
     <div className="space-y-6">
       {/* Page Header with Title */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Orders</h1>
-        <p className="text-sm text-muted-foreground mt-1">View and manage all customer orders</p>
+        <h1 className="text-2xl font-bold text-foreground">Pesanan</h1>
+        <p className="text-sm text-muted-foreground mt-1">Lihat dan kelola semua pesanan pelanggan</p>
       </div>
 
       {/* KPI Cards - ShopZen Style */}
@@ -180,13 +188,13 @@ export default function OrdersSection() {
         <div className="bg-card rounded-lg border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Total Orders</p>
+              <p className="text-xs font-medium text-muted-foreground">Total Pesanan Hari Ini</p>
               <p className="text-2xl font-semibold text-foreground" data-testid="stat-total-orders">
                 {stats.totalToday}
               </p>
-              <div className="flex items-center gap-1 text-xs text-green-600">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <TrendingUp className="h-3 w-3" />
-                <span>+12% today</span>
+                <span>kemarin: {stats.totalYesterday} pesanan</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -198,13 +206,13 @@ export default function OrdersSection() {
         <div className="bg-card rounded-lg border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Pending</p>
+              <p className="text-xs font-medium text-muted-foreground">Antrian</p>
               <p className="text-2xl font-semibold text-foreground" data-testid="stat-pending-orders">
                 {stats.pending}
               </p>
               <div className="flex items-center gap-1 text-xs text-orange-600">
                 <Clock className="h-3 w-3" />
-                <span>requires action</span>
+                <span>perlu tindakan</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
@@ -216,13 +224,13 @@ export default function OrdersSection() {
         <div className="bg-card rounded-lg border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Completed</p>
+              <p className="text-xs font-medium text-muted-foreground">Selesai</p>
               <p className="text-2xl font-semibold text-foreground" data-testid="stat-completed-orders">
                 {stats.completed}
               </p>
               <div className="flex items-center gap-1 text-xs text-green-600">
                 <CheckCircle className="h-3 w-3" />
-                <span>served today</span>
+                <span>terlayani hari ini</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
@@ -234,13 +242,13 @@ export default function OrdersSection() {
         <div className="bg-card rounded-lg border border-border p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Revenue Today</p>
+              <p className="text-xs font-medium text-muted-foreground">Pendapatan Hari Ini</p>
               <p className="text-2xl font-semibold text-primary" data-testid="stat-revenue">
                 {formatCurrency(stats.revenue)}
               </p>
-              <div className="flex items-center gap-1 text-xs text-green-600">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <TrendingUp className="h-3 w-3" />
-                <span>+8% from yesterday</span>
+                <span>kemarin: {formatCurrency(stats.revenueYesterday)}</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -256,7 +264,7 @@ export default function OrdersSection() {
         {/* Table Header with Search and Filters */}
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Recent Orders</h2>
+            <h2 className="text-lg font-semibold text-foreground">Daftar Pesanan</h2>
             <Button 
               onClick={() => refetch()}
               disabled={isLoading}
@@ -276,7 +284,7 @@ export default function OrdersSection() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search orders by ID, customer, table, or items..."
+                placeholder="Cari pesanan berdasarkan ID, nama, meja, atau item..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -290,12 +298,12 @@ export default function OrdersSection() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="queued">Queued</SelectItem>
-                  <SelectItem value="preparing">Preparing</SelectItem>
-                  <SelectItem value="ready">Ready</SelectItem>
-                  <SelectItem value="served">Served</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="queued">Antrian</SelectItem>
+                  <SelectItem value="preparing">Diproses</SelectItem>
+                  <SelectItem value="ready">Siap</SelectItem>
+                  <SelectItem value="served">Selesai</SelectItem>
+                  <SelectItem value="cancelled">Dibatalkan</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -304,11 +312,11 @@ export default function OrdersSection() {
                   <SelectValue placeholder="Date" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="yesterday">Yesterday</SelectItem>
-                  <SelectItem value="7days">Last 7 Days</SelectItem>
-                  <SelectItem value="30days">Last 30 Days</SelectItem>
+                  <SelectItem value="all">Semua Waktu</SelectItem>
+                  <SelectItem value="today">Hari Ini</SelectItem>
+                  <SelectItem value="yesterday">Kemarin</SelectItem>
+                  <SelectItem value="7days">7 Hari Terakhir</SelectItem>
+                  <SelectItem value="30days">30 Hari Terakhir</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -320,31 +328,31 @@ export default function OrdersSection() {
             <thead className="bg-muted">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Order ID
+                  ID Pesanan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Customer
+                  Pelanggan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Table
+                  Meja
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-1/4">
-                  Items
+                  Item
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Total
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Payment
+                  Pembayaran
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Time
+                  Waktu
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Actions
+                  Aksi
                 </th>
               </tr>
             </thead>

@@ -111,17 +111,17 @@ export default function CategoriesSection() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Category Management</h2>
+        <h2 className="text-2xl font-bold text-foreground">Manajemen Kategori</h2>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2" data-testid="button-add-category">
               <Plus className="h-4 w-4" />
-              Add New Category
+              Tambah Kategori
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Category</DialogTitle>
+              <DialogTitle>Tambah Kategori Baru</DialogTitle>
             </DialogHeader>
             <CategoryForm
               onSubmit={(category) => createCategoryMutation.mutate(category)}
@@ -145,7 +145,7 @@ export default function CategoriesSection() {
                     variant={category.isActive ? "default" : "secondary"}
                     data-testid={`badge-status-${category.id}`}
                   >
-                    {category.isActive ? 'Active' : 'Inactive'}
+                    {category.isActive ? 'Aktif' : 'Tidak Aktif'}
                   </Badge>
                 </div>
                 
@@ -156,7 +156,7 @@ export default function CategoriesSection() {
                 )}
                 
                 <div className="text-xs text-muted-foreground mb-4">
-                  Created: {new Date(category.createdAt).toLocaleDateString('id-ID')}
+                  Dibuat: {new Date(category.createdAt).toLocaleDateString('id-ID')}
                 </div>
               </div>
               
@@ -186,7 +186,7 @@ export default function CategoriesSection() {
                 data-testid={`button-delete-${category.id}`}
               >
                 <Trash2 className="h-3 w-3" />
-                Delete
+                Hapus
               </Button>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function CategoriesSection() {
       <Dialog open={!!editingCategory} onOpenChange={() => setEditingCategory(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>Edit Kategori</DialogTitle>
           </DialogHeader>
           {editingCategory && (
             <CategoryForm
@@ -245,7 +245,7 @@ function CategoryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Category Name</Label>
+        <Label htmlFor="name">Nama Kategori</Label>
         <Input
           id="name"
           value={formData.name}
@@ -256,7 +256,7 @@ function CategoryForm({
       </div>
 
       <div>
-        <Label htmlFor="description">Description (Optional)</Label>
+        <Label htmlFor="description">Deskripsi (Opsional)</Label>
         <Textarea
           id="description"
           value={formData.description || ''}
@@ -273,12 +273,12 @@ function CategoryForm({
           onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
           data-testid="switch-category-active"
         />
-        <Label htmlFor="isActive">Active</Label>
+        <Label htmlFor="isActive">Aktif</Label>
       </div>
 
       <div className="flex space-x-2 pt-4">
         <Button type="submit" disabled={isLoading} data-testid="button-save-category">
-          {isLoading ? 'Saving...' : 'Save Category'}
+          {isLoading ? 'Menyimpan...' : 'Simpan Kategori'}
         </Button>
       </div>
     </form>

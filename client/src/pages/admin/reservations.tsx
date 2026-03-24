@@ -50,14 +50,14 @@ export default function ReservationsSection() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/reservations'] });
       toast({
-        title: "Reservation status updated",
-        description: "The reservation status has been updated",
+        title: "Status reservasi diperbarui",
+        description: "Status reservasi telah berhasil diperbarui",
       });
     },
     onError: () => {
       toast({
-        title: "Failed to update status",
-        description: "Please try again",
+        title: "Gagal memperbarui status",
+        description: "Silakan coba lagi",
         variant: "destructive",
       });
     },
@@ -145,10 +145,10 @@ export default function ReservationsSection() {
 
   const getStatusLabel = (status: string) => {
     const labels = {
-      pending: "Pending",
-      confirmed: "Confirmed",
-      completed: "Completed", 
-      cancelled: "Cancelled"
+      pending: "Menunggu",
+      confirmed: "Dikonfirmasi",
+      completed: "Selesai", 
+      cancelled: "Dibatalkan"
     };
     return labels[status as keyof typeof labels] || status;
   };
@@ -250,7 +250,7 @@ export default function ReservationsSection() {
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-muted-foreground">Loading reservations...</div>
+        <div className="text-muted-foreground">Memuat reservasi...</div>
       </div>
     );
   }
@@ -258,7 +258,7 @@ export default function ReservationsSection() {
   return (
     <div className="h-full flex bg-background">
       {/* Left Sidebar */}
-      <div className="w-80 border-r border-border bg-background flex flex-col">
+      <div className="hidden md:flex w-80 border-r border-border bg-background flex-col">
         {/* Appointment Calendar Header */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
@@ -492,11 +492,11 @@ export default function ReservationsSection() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="pending">Menunggu</SelectItem>
+                <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
+                <SelectItem value="completed">Selesai</SelectItem>
+                <SelectItem value="cancelled">Dibatalkan</SelectItem>
               </SelectContent>
             </Select>
 
@@ -790,8 +790,8 @@ export default function ReservationsSection() {
                         )}
                       </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-sm font-semibold text-foreground">Pending</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Reservation received</div>
+                        <div className="text-sm font-semibold text-foreground">Menunggu</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">Reservasi diterima</div>
                       </div>
                     </div>
 
@@ -812,8 +812,8 @@ export default function ReservationsSection() {
                         )}
                       </div>
                       <div className="flex-1 pt-1">
-                        <div className="text-sm font-semibold text-foreground">Confirmed</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Reservation confirmed</div>
+                        <div className="text-sm font-semibold text-foreground">Dikonfirmasi</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">Reservasi dikonfirmasi</div>
                       </div>
                     </div>
 
@@ -834,10 +834,10 @@ export default function ReservationsSection() {
                       </div>
                       <div className="flex-1 pt-1">
                         <div className="text-sm font-semibold text-foreground">
-                          {selectedReservation.status === 'cancelled' ? 'Cancelled' : 'Completed'}
+                          {selectedReservation.status === 'cancelled' ? 'Dibatalkan' : 'Selesai'}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {selectedReservation.status === 'cancelled' ? 'Reservation cancelled' : 'Service completed'}
+                          {selectedReservation.status === 'cancelled' ? 'Reservasi dibatalkan' : 'Layanan selesai'}
                         </div>
                       </div>
                     </div>
@@ -856,7 +856,7 @@ export default function ReservationsSection() {
                       className="flex-1"
                       data-testid="button-confirm-reservation"
                     >
-                      Confirm
+                      Konfirmasi
                     </Button>
                     <Button 
                       variant="destructive"
@@ -865,7 +865,7 @@ export default function ReservationsSection() {
                       className="flex-1"
                       data-testid="button-cancel-reservation"
                     >
-                      Cancel
+                      Batalkan
                     </Button>
                   </>
                 )}
@@ -878,7 +878,7 @@ export default function ReservationsSection() {
                       className="flex-1"
                       data-testid="button-complete-reservation"
                     >
-                      Complete
+                      Selesaikan
                     </Button>
                     <Button 
                       variant="destructive"
@@ -887,7 +887,7 @@ export default function ReservationsSection() {
                       className="flex-1"
                       data-testid="button-cancel-reservation"
                     >
-                      Cancel
+                      Batalkan
                     </Button>
                   </>
                 )}

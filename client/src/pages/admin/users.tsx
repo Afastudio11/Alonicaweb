@@ -284,7 +284,7 @@ export default function UsersSection() {
                     {createUserMutation.isPending || updateUserMutation.isPending ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        {editingUser ? "Updating..." : "Creating..."}
+                        {editingUser ? "Memperbarui..." : "Membuat..."}
                       </div>
                     ) : (
                       editingUser ? "Update User" : "Tambah User"

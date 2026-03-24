@@ -186,7 +186,8 @@ export default function ApprovalsSection() {
   // Create PIN mutation
   const createPinMutation = useMutation({
     mutationFn: async (data: { expiresAt?: string; maxUses?: number; description?: string }) => {
-      return await apiRequest('POST', "/api/deletion-pins", data);
+      const res = await apiRequest('POST', "/api/deletion-pins", data);
+      return res.json();
     },
     onSuccess: () => {
       // Invalidate PIN queries
@@ -351,7 +352,7 @@ export default function ApprovalsSection() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+            <CardTitle className="text-sm font-medium">Menunggu Persetujuan</CardTitle>
             <Clock className="h-4 w-4 text-amber-500" />
           </CardHeader>
           <CardContent>
@@ -362,7 +363,7 @@ export default function ApprovalsSection() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deleted</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Dihapus</CardTitle>
             <Trash2 className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -373,7 +374,7 @@ export default function ApprovalsSection() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active PINs</CardTitle>
+            <CardTitle className="text-sm font-medium">PIN Aktif</CardTitle>
             <Key className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -384,7 +385,7 @@ export default function ApprovalsSection() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value Deleted</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Nilai Dihapus</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -414,15 +415,15 @@ export default function ApprovalsSection() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="pending" data-testid="tab-pending">
             <Clock className="h-4 w-4 mr-2" />
-            Pending ({pendingCount})
+            Menunggu ({pendingCount})
           </TabsTrigger>
           <TabsTrigger value="history" data-testid="tab-history">
             <FileText className="h-4 w-4 mr-2" />
-            History ({deletionLogs.length})
+            Riwayat ({deletionLogs.length})
           </TabsTrigger>
           <TabsTrigger value="pins" data-testid="tab-pins">
             <Key className="h-4 w-4 mr-2" />
-            PIN Management
+            Manajemen PIN
           </TabsTrigger>
         </TabsList>
 
@@ -467,19 +468,19 @@ export default function ApprovalsSection() {
                           <div className="bg-muted/50 rounded-lg p-4 mb-4 space-y-2">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <p className="text-muted-foreground">Item Name</p>
+                                <p className="text-muted-foreground">Nama Item</p>
                                 <p className="font-medium" data-testid={`approval-item-name-${notification.id}`}>
                                   {notification.relatedData.item.name}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Quantity</p>
+                                <p className="text-muted-foreground">Jumlah</p>
                                 <p className="font-medium">
                                   {notification.relatedData.item.quantity}x
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Price</p>
+                                <p className="text-muted-foreground">Harga</p>
                                 <p className="font-medium">
                                   {formatCurrency(notification.relatedData.item.price)}
                                 </p>
@@ -492,7 +493,7 @@ export default function ApprovalsSection() {
                               </div>
                             </div>
                             <div className="pt-2 border-t border-border">
-                              <p className="text-muted-foreground text-sm">Reason</p>
+                              <p className="text-muted-foreground text-sm">Alasan</p>
                               <p className="font-medium" data-testid={`approval-reason-${notification.id}`}>
                                 {notification.relatedData.reason}
                               </p>
@@ -503,7 +504,7 @@ export default function ApprovalsSection() {
                         {/* Metadata */}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <span>
-                            Requested by: <strong>{requestedByUser?.username || 'Unknown'}</strong>
+                            Diminta oleh: <strong>{requestedByUser?.username || 'Tidak diketahui'}</strong>
                           </span>
                           <span>•</span>
                           <span>
@@ -523,7 +524,7 @@ export default function ApprovalsSection() {
                           data-testid={`button-approve-${notification.id}`}
                         >
                           <Check className="h-4 w-4 mr-1" />
-                          Approve
+                          Setujui
                         </Button>
                         <Button
                           size="sm"
@@ -534,7 +535,7 @@ export default function ApprovalsSection() {
                           data-testid={`button-reject-${notification.id}`}
                         >
                           <X className="h-4 w-4 mr-1" />
-                          Reject
+                          Tolak
                         </Button>
                       </div>
                     </div>

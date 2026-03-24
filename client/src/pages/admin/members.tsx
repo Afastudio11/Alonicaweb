@@ -156,7 +156,7 @@ export default function MembersSection() {
       {isLoading ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {[1, 2, 3, 4].map(i => (
-            <div key={i} style={{ height: 76, borderRadius: 16, background: "#F5F5F7", animation: "pulse 1.5s infinite" }} />
+            <div key={i} className="animate-pulse" style={{ height: 76, borderRadius: 16, background: "#F5F5F7" }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -246,19 +246,13 @@ export default function MembersSection() {
       {/* Edit Modal */}
       {editing && (
         <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 50,
-            display: "flex", alignItems: "flex-end",
-            background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)",
-          }}
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
           onClick={() => setEditing(null)}
         >
           <div
-            style={{
-              width: "100%", maxWidth: 480, margin: "0 auto",
-              background: "#fff", borderRadius: "24px 24px 0 0",
-              overflow: "hidden",
-            }}
+            className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden"
+            style={{ background: "#fff" }}
             onClick={e => e.stopPropagation()}
           >
             {/* Handle */}
@@ -404,7 +398,6 @@ export default function MembersSection() {
         </div>
       )}
 
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
     </div>
   );
 }

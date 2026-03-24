@@ -10,9 +10,9 @@ import jsPDF from 'jspdf';
 import type { Order } from "@shared/schema";
 
 const TIME_PERIODS = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' }
+  { value: 'daily', label: 'Harian' },
+  { value: 'weekly', label: 'Mingguan' },
+  { value: 'monthly', label: 'Bulanan' }
 ];
 
 export default function AnalyticsSection() {
@@ -20,11 +20,12 @@ export default function AnalyticsSection() {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const { toast } = useToast();
 
-  const { data: orders = [], isLoading } = useQuery<Order[]>({
-    queryKey: ["/api/orders"],
+  const { data: rawOrders, isLoading } = useQuery<{ orders: Order[]; total: number } | Order[]>({
+    queryKey: ["/api/orders?limit=9999"],
   });
 
-  // Calculate analytics based on orders
+  const orders: Order[] = Array.isArray(rawOrders) ? rawOrders : (rawOrders?.orders ?? []);
+
   const analytics = calculateAnalytics(orders, selectedPeriod);
 
   const generatePDFReport = async () => {
@@ -44,12 +45,12 @@ export default function AnalyticsSection() {
       
       // Header
       doc.setFontSize(20);
-      doc.setTextColor(220, 38, 38); // Primary red color
-      doc.text('ALONICA RESTAURANT', pageWidth / 2, 25, { align: 'center' });
+      doc.setTextColor(255, 149, 0); // Ngehnoom orange
+      doc.text('Ngehnoom Cafe', pageWidth / 2, 25, { align: 'center' });
       
       doc.setFontSize(16);
       doc.setTextColor(0, 0, 0);
-      doc.text('Sales Analytics Report', pageWidth / 2, 35, { align: 'center' });
+      doc.text('Laporan Analitik Penjualan', pageWidth / 2, 35, { align: 'center' });
       
       // Period and date info
       doc.setFontSize(12);
@@ -59,25 +60,26 @@ export default function AnalyticsSection() {
         month: 'long', 
         day: 'numeric' 
       });
-      doc.text(`Period: ${selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)}`, 20, 50);
-      doc.text(`Generated: ${currentDate}`, 20, 60);
+      const periodLabel = selectedPeriod === 'daily' ? 'Harian' : selectedPeriod === 'weekly' ? 'Mingguan' : 'Bulanan';
+      doc.text(`Periode: ${periodLabel}`, 20, 50);
+      doc.text(`Dibuat: ${currentDate}`, 20, 60);
       
       // KPI Summary
       doc.setFontSize(14);
-      doc.setTextColor(220, 38, 38);
-      doc.text('Key Performance Indicators', 20, 80);
+      doc.setTextColor(255, 149, 0);
+      doc.text('Indikator Kinerja Utama', 20, 80);
       
       doc.setFontSize(11);
       doc.setTextColor(0, 0, 0);
-      doc.text(`Total Revenue: ${formatCurrency(analytics.totalRevenue)} (+${analytics.revenueGrowth}%)`, 20, 95);
-      doc.text(`Total Orders: ${analytics.totalOrders} (+${analytics.ordersGrowth}%)`, 20, 105);
-      doc.text(`Average Order Value: ${formatCurrency(analytics.averageOrderValue)} (-${analytics.aovChange}%)`, 20, 115);
-      doc.text(`Peak Hour: ${analytics.peakHour} (${analytics.peakHourOrders} orders)`, 20, 125);
+      doc.text(`Total Pendapatan: ${formatCurrency(analytics.totalRevenue)} (+${analytics.revenueGrowth}%)`, 20, 95);
+      doc.text(`Total Pesanan: ${analytics.totalOrders} (+${analytics.ordersGrowth}%)`, 20, 105);
+      doc.text(`Rata-rata Nilai Pesanan: ${formatCurrency(analytics.averageOrderValue)} (-${analytics.aovChange}%)`, 20, 115);
+      doc.text(`Jam Puncak: ${analytics.peakHour} (${analytics.peakHourOrders} pesanan)`, 20, 125);
       
-      // Top Menu Items Table
+      // Menu Terlaris Table
       doc.setFontSize(14);
-      doc.setTextColor(220, 38, 38);
-      doc.text('Top Menu Items', 20, 145);
+      doc.setTextColor(255, 149, 0);
+      doc.text('Menu Terlaris', 20, 145);
       
       try {
         const topItemsData = analytics.topItems && analytics.topItems.length > 0 
@@ -90,25 +92,25 @@ export default function AnalyticsSection() {
         
         autoTable(doc, {
           startY: 155,
-          head: [['Rank', 'Menu Item', 'Orders']],
+          head: [['Peringkat', 'Menu', 'Pesanan']],
           body: topItemsData,
           theme: 'grid',
-          headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+          headStyles: { fillColor: [255, 149, 0], textColor: 255 },
           alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 20, right: 20 },
         });
       } catch (error) {
-        console.warn('Failed to generate Top Menu Items table:', error);
+        console.warn('Failed to generate Menu Terlaris table:', error);
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
-        doc.text('Unable to generate Top Menu Items table', 20, 165);
+        doc.text('Unable to generate Menu Terlaris table', 20, 165);
       }
       
       // Daily Sales Data Table
       let finalY = (doc as any).lastAutoTable?.finalY || 200;
       doc.setFontSize(14);
       doc.setTextColor(220, 38, 38);
-      doc.text('Daily Sales Breakdown', 20, finalY + 20);
+      doc.text('Penjualan Harian', 20, finalY + 20);
       
       try {
         const dailySalesTableData = analytics.dailySalesData && analytics.dailySalesData.length > 0
@@ -123,7 +125,7 @@ export default function AnalyticsSection() {
           head: [['Date', 'Revenue']],
           body: dailySalesTableData,
           theme: 'grid',
-          headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+          headStyles: { fillColor: [255, 149, 0], textColor: 255 },
           alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 20, right: 20 },
         });
@@ -145,7 +147,7 @@ export default function AnalyticsSection() {
         doc.addPage();
         doc.setFontSize(14);
         doc.setTextColor(220, 38, 38);
-        doc.text('Hourly Orders Pattern', 20, 30);
+        doc.text('Pola Pesanan Per Jam', 20, 30);
         
         try {
           const hourlyOrdersTableData = analytics.hourlyOrdersData && analytics.hourlyOrdersData.length > 0
@@ -160,7 +162,7 @@ export default function AnalyticsSection() {
             head: [['Hour', 'Orders']],
             body: hourlyOrdersTableData,
             theme: 'grid',
-            headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+            headStyles: { fillColor: [255, 149, 0], textColor: 255 },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 20, right: 20 },
             columnStyles: {
@@ -177,7 +179,7 @@ export default function AnalyticsSection() {
       } else {
         doc.setFontSize(14);
         doc.setTextColor(220, 38, 38);
-        doc.text('Hourly Orders Pattern', 20, finalY + 20);
+        doc.text('Pola Pesanan Per Jam', 20, finalY + 20);
         
         try {
           const hourlyOrdersTableData = analytics.hourlyOrdersData && analytics.hourlyOrdersData.length > 0
@@ -192,7 +194,7 @@ export default function AnalyticsSection() {
             head: [['Hour', 'Orders']],
             body: hourlyOrdersTableData,
             theme: 'grid',
-            headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+            headStyles: { fillColor: [255, 149, 0], textColor: 255 },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 20, right: 20 },
             columnStyles: {
@@ -208,26 +210,26 @@ export default function AnalyticsSection() {
         }
       }
       
-      // Payment Methods
+      // Metode Pembayaran
       const finalY2 = (doc as any).lastAutoTable?.finalY || 280;
       if (finalY2 > 250) {
         doc.addPage();
         doc.setFontSize(14);
         doc.setTextColor(220, 38, 38);
-        doc.text('Payment Method Distribution', 20, 30);
+        doc.text('Distribusi Metode Pembayaran', 20, 30);
         
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
-        doc.text(`Cash: ${analytics.paymentMethods.cash}%`, 20, 45);
+        doc.text(`Tunai: ${analytics.paymentMethods.cash}%`, 20, 45);
         doc.text(`QRIS: ${analytics.paymentMethods.qris}%`, 20, 55);
       } else {
         doc.setFontSize(14);
         doc.setTextColor(220, 38, 38);
-        doc.text('Payment Method Distribution', 20, finalY2 + 20);
+        doc.text('Distribusi Metode Pembayaran', 20, finalY2 + 20);
         
         doc.setFontSize(11);
         doc.setTextColor(0, 0, 0);
-        doc.text(`Cash: ${analytics.paymentMethods.cash}%`, 20, finalY2 + 35);
+        doc.text(`Tunai: ${analytics.paymentMethods.cash}%`, 20, finalY2 + 35);
         doc.text(`QRIS: ${analytics.paymentMethods.qris}%`, 20, finalY2 + 45);
       }
       
@@ -238,16 +240,16 @@ export default function AnalyticsSection() {
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
         doc.text(`Page ${i} of ${totalPages}`, pageWidth - 20, doc.internal.pageSize.height - 10, { align: 'right' });
-        doc.text('Generated by Alonica POS System', 20, doc.internal.pageSize.height - 10);
+        doc.text('Dibuat oleh Ngehnoom Cafe POS', 20, doc.internal.pageSize.height - 10);
       }
       
       // Save the PDF
-      const filename = `alonica-sales-report-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
+      const filename = `ngehnoom-laporan-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
       
       toast({
         title: "PDF Generated Successfully",
-        description: `Sales report downloaded as ${filename}`,
+        description: `Laporan penjualan diunduh sebagai ${filename}`,
       });
       
     } catch (error) {
@@ -309,7 +311,7 @@ export default function AnalyticsSection() {
           data-testid="button-download-pdf"
         >
           <Download className="h-4 w-4" />
-          {isGeneratingPdf ? 'Generating...' : 'Download PDF'}
+          {isGeneratingPdf ? 'Membuat PDF...' : 'Unduh PDF'}
         </Button>
       </div>
 
@@ -317,7 +319,7 @@ export default function AnalyticsSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="alonica-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -333,23 +335,23 @@ export default function AnalyticsSection() {
 
         <Card className="alonica-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pesanan</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="stat-total-orders-analytics">
+            <div className="text-2xl font-bold" data-testid="stat-total-pesanan-analytics">
               {analytics.totalOrders}
             </div>
             <div className="flex items-center text-xs text-green-600 mt-1">
               <TrendingUp className="h-3 w-3 mr-1" />
-              <span data-testid="stat-orders-growth">+{analytics.ordersGrowth}%</span>
+              <span data-testid="stat-pesanan-growth">+{analytics.ordersGrowth}%</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="alonica-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Rata-rata Nilai Pesanan</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -365,15 +367,15 @@ export default function AnalyticsSection() {
 
         <Card className="alonica-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Peak Hour</CardTitle>
+            <CardTitle className="text-sm font-medium">Jam Puncak</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="stat-peak-hour">
               {analytics.peakHour}
             </div>
-            <p className="text-xs text-muted-foreground mt-1" data-testid="stat-peak-orders">
-              {analytics.peakHourOrders} orders
+            <p className="text-xs text-muted-foreground mt-1" data-testid="stat-peak-pesanan">
+              {analytics.peakHourOrders} pesanan
             </p>
           </CardContent>
         </Card>
@@ -383,7 +385,7 @@ export default function AnalyticsSection() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="alonica-card">
           <CardHeader>
-            <CardTitle>Daily Sales Trend</CardTitle>
+            <CardTitle>Tren Penjualan Harian</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
@@ -415,7 +417,7 @@ export default function AnalyticsSection() {
                   <XAxis dataKey="hour" tick={{fontSize: 12}} />
                   <YAxis tick={{fontSize: 12}} />
                   <Tooltip 
-                    formatter={(value) => [`${value} orders`, 'Orders']}
+                    formatter={(value) => [`${value} pesanan`, 'Orders']}
                     labelFormatter={(label) => `Hour: ${label}:00`}
                   />
                   <Line 
@@ -437,14 +439,14 @@ export default function AnalyticsSection() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="alonica-card">
           <CardHeader>
-            <CardTitle>Top Menu Items</CardTitle>
+            <CardTitle>Menu Terlaris</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {analytics.topItems.map((item, index) => (
                 <div key={index} className="flex justify-between items-center">
                   <span className="text-sm text-foreground">{item.name}</span>
-                  <span className="text-sm font-medium text-primary">{item.orders} orders</span>
+                  <span className="text-sm font-medium text-primary">{item.orders} pesanan</span>
                 </div>
               ))}
             </div>
@@ -453,7 +455,7 @@ export default function AnalyticsSection() {
 
         <Card className="alonica-card">
           <CardHeader>
-            <CardTitle>Payment Methods</CardTitle>
+            <CardTitle>Metode Pembayaran</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -474,7 +476,6 @@ export default function AnalyticsSection() {
 }
 
 function calculateAnalytics(orders: Order[], period: string) {
-  // Ensure orders is an array
   const safeOrders = Array.isArray(orders) ? orders : [];
   
   // Filter orders based on period
@@ -494,7 +495,7 @@ function calculateAnalytics(orders: Order[], period: string) {
     }
   });
 
-  // Filter previous period orders for comparison
+  // Filter previous period pesanan for comparison
   const previousPeriodOrders = safeOrders.filter(order => {
     const orderDate = new Date(order.createdAt);
     switch (period) {
@@ -568,7 +569,7 @@ function calculateAnalytics(orders: Order[], period: string) {
     qris: total > 0 ? Math.round((qrisOrders / total) * 100) : 0
   };
 
-  // Generate chart data for Daily Sales Trend
+  // Generate chart data for Tren Penjualan Harian
   const dailySalesData = [];
   const days = period === 'monthly' ? 30 : (period === 'weekly' ? 7 : 1);
   

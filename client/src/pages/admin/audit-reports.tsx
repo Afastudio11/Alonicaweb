@@ -60,37 +60,37 @@ export default function AuditReportsSection() {
   const { toast } = useToast();
 
   // Fetch all required data with optimized caching
-  const { data: shifts = [], isLoading: shiftsLoading, error: shiftsError } = useQuery<Shift[]>({
+  const { data: shifts = [], isLoading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useQuery<Shift[]>({
     queryKey: ["/api/shifts"],
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
     retry: 2,
   });
 
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery<AppUser[]>({
+  const { data: users = [], isLoading: usersLoading, error: usersError, refetch: refetchUsers } = useQuery<AppUser[]>({
     queryKey: ["/api/users"],
-    staleTime: 60000, // 1 minute (users change less frequently)
+    staleTime: 60000,
     retry: 2,
   });
 
-  const { data: expenses = [], isLoading: expensesLoading, error: expensesError } = useQuery<Expense[]>({
+  const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
     staleTime: 30000,
     retry: 2,
   });
 
-  const { data: cashMovements = [], isLoading: cashMovementsLoading, error: cashMovementsError } = useQuery<CashMovement[]>({
+  const { data: cashMovements = [], isLoading: cashMovementsLoading, error: cashMovementsError, refetch: refetchCashMovements } = useQuery<CashMovement[]>({
     queryKey: ["/api/cash-movements"],
     staleTime: 30000,
     retry: 2,
   });
 
-  const { data: auditLogs = [], isLoading: auditLogsLoading, error: auditLogsError } = useQuery<AuditLog[]>({
+  const { data: auditLogs = [], isLoading: auditLogsLoading, error: auditLogsError, refetch: refetchAuditLogs } = useQuery<AuditLog[]>({
     queryKey: ["/api/audit-logs"],
     staleTime: 30000,
     retry: 2,
   });
 
-  const { data: deletionLogs = [], isLoading: deletionLogsLoading, error: deletionLogsError } = useQuery<DeletionLog[]>({
+  const { data: deletionLogs = [], isLoading: deletionLogsLoading, error: deletionLogsError, refetch: refetchDeletionLogs } = useQuery<DeletionLog[]>({
     queryKey: ["/api/deletion-logs"],
     retry: 1,
     staleTime: 10000,
@@ -269,6 +269,12 @@ export default function AuditReportsSection() {
         </div>
         <Button
           onClick={() => {
+            refetchShifts();
+            refetchUsers();
+            refetchExpenses();
+            refetchCashMovements();
+            refetchAuditLogs();
+            refetchDeletionLogs();
             toast({
               title: "Data Direfresh",
               description: "Data audit telah diperbarui",
