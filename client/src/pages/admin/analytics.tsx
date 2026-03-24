@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, BarChart3, Clock, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Clock, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -15,8 +15,31 @@ const TIME_PERIODS = [
   { value: 'monthly', label: 'Bulanan' }
 ];
 
+function getPeriodLabel(period: string, offset: number): string {
+  const now = new Date();
+  if (period === 'daily') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - offset);
+    return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  if (period === 'weekly') {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() - offset * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    const fmt = (d: Date) => d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    return `${fmt(weekStart)} – ${fmt(weekEnd)} ${weekEnd.getFullYear()}`;
+  }
+  if (period === 'monthly') {
+    const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    return d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  }
+  return '';
+}
+
 export default function AnalyticsSection() {
   const [selectedPeriod, setSelectedPeriod] = useState('daily');
+  const [periodOffset, setPeriodOffset] = useState(0);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const { toast } = useToast();
 
@@ -26,7 +49,8 @@ export default function AnalyticsSection() {
 
   const orders: Order[] = Array.isArray(rawOrders) ? rawOrders : (rawOrders?.orders ?? []);
 
-  const analytics = calculateAnalytics(orders, selectedPeriod);
+  const analytics = calculateAnalytics(orders, selectedPeriod, periodOffset);
+  const periodLabel = getPeriodLabel(selectedPeriod, periodOffset);
 
   const generatePDFReport = async () => {
     try {
@@ -287,23 +311,65 @@ export default function AnalyticsSection() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Download Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex space-x-1 bg-muted rounded-xl p-1 w-fit">
-          {TIME_PERIODS.map((period) => (
+      {/* Header with period selector + navigation + download */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-col gap-2">
+          {/* Period type selector */}
+          <div className="flex space-x-1 bg-muted rounded-xl p-1 w-fit">
+            {TIME_PERIODS.map((period) => (
+              <Button
+                key={period.value}
+                variant={selectedPeriod === period.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => { setSelectedPeriod(period.value); setPeriodOffset(0); }}
+                className={selectedPeriod === period.value ? "bg-white text-primary" : ""}
+                data-testid={`button-period-${period.value}`}
+              >
+                {period.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Period navigation: previous / label / next */}
+          <div className="flex items-center gap-2">
             <Button
-              key={period.value}
-              variant={selectedPeriod === period.value ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setSelectedPeriod(period.value)}
-              className={selectedPeriod === period.value ? "bg-white text-primary" : ""}
-              data-testid={`button-period-${period.value}`}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setPeriodOffset(o => o + 1)}
+              data-testid="button-period-prev"
+              title="Periode sebelumnya"
             >
-              {period.label}
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-          ))}
+            <span className="text-sm font-medium text-muted-foreground min-w-[180px] text-center" data-testid="text-period-label">
+              {periodLabel}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setPeriodOffset(o => Math.max(0, o - 1))}
+              disabled={periodOffset === 0}
+              data-testid="button-period-next"
+              title="Periode berikutnya"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {periodOffset > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs text-primary"
+                onClick={() => setPeriodOffset(0)}
+                data-testid="button-period-now"
+              >
+                Sekarang
+              </Button>
+            )}
+          </div>
         </div>
-        
+
         <Button
           onClick={generatePDFReport}
           disabled={isGeneratingPdf || isLoading}
@@ -475,45 +541,45 @@ export default function AnalyticsSection() {
   );
 }
 
-function calculateAnalytics(orders: Order[], period: string) {
+function getPeriodRange(period: string, offset: number): { start: Date; end: Date } {
+  const now = new Date();
+  if (period === 'daily') {
+    const start = new Date(now);
+    start.setDate(start.getDate() - offset);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  if (period === 'weekly') {
+    const start = new Date(now);
+    start.setDate(now.getDate() - now.getDay() - offset * 7);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  // monthly
+  const start = new Date(now.getFullYear(), now.getMonth() - offset, 1, 0, 0, 0, 0);
+  const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 0, 23, 59, 59, 999);
+  return { start, end };
+}
+
+function calculateAnalytics(orders: Order[], period: string, offset: number = 0) {
   const safeOrders = Array.isArray(orders) ? orders : [];
   
-  // Filter orders based on period
-  const now = new Date();
+  const { start: periodStart, end: periodEnd } = getPeriodRange(period, offset);
+  const { start: prevStart, end: prevEnd } = getPeriodRange(period, offset + 1);
+
   const filteredOrders = safeOrders.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    switch (period) {
-      case 'daily':
-        return orderDate.toDateString() === now.toDateString();
-      case 'weekly':
-        const weekStart = new Date(now.getTime() - (now.getDay() * 24 * 60 * 60 * 1000));
-        return orderDate >= weekStart;
-      case 'monthly':
-        return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
-      default:
-        return true;
-    }
+    const d = new Date(order.createdAt);
+    return d >= periodStart && d <= periodEnd;
   });
 
-  // Filter previous period pesanan for comparison
   const previousPeriodOrders = safeOrders.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    switch (period) {
-      case 'daily':
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        return orderDate.toDateString() === yesterday.toDateString();
-      case 'weekly':
-        const prevWeekStart = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000) - (now.getDay() * 24 * 60 * 60 * 1000));
-        const prevWeekEnd = new Date(prevWeekStart.getTime() + (7 * 24 * 60 * 60 * 1000));
-        return orderDate >= prevWeekStart && orderDate < prevWeekEnd;
-      case 'monthly':
-        const prevMonth = new Date(now);
-        prevMonth.setMonth(prevMonth.getMonth() - 1);
-        return orderDate.getMonth() === prevMonth.getMonth() && orderDate.getFullYear() === prevMonth.getFullYear();
-      default:
-        return false;
-    }
+    const d = new Date(order.createdAt);
+    return d >= prevStart && d <= prevEnd;
   });
 
   const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total, 0);
@@ -574,8 +640,8 @@ function calculateAnalytics(orders: Order[], period: string) {
   const days = period === 'monthly' ? 30 : (period === 'weekly' ? 7 : 1);
   
   for (let i = days - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
+    const date = new Date(periodStart);
+    date.setDate(periodStart.getDate() + (days - 1 - i));
     const dateStr = date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' });
     
     const dayOrders = filteredOrders.filter(order => {

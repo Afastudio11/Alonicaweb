@@ -165,10 +165,16 @@ export default function NotificationBell() {
                       
                       {notification.relatedData && (
                         <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted rounded">
-                          <p><strong>Item:</strong> {notification.relatedData.item.name}</p>
-                          <p><strong>Quantity:</strong> {notification.relatedData.item.quantity}x</p>
-                          <p><strong>Price:</strong> Rp {notification.relatedData.item.price.toLocaleString('id-ID')}</p>
-                          <p><strong>Reason:</strong> {notification.relatedData.reason}</p>
+                          {notification.relatedData.item && (
+                            <>
+                              <p><strong>Item:</strong> {notification.relatedData.item.name}</p>
+                              <p><strong>Quantity:</strong> {notification.relatedData.item.quantity}x</p>
+                              <p><strong>Price:</strong> Rp {notification.relatedData.item.price?.toLocaleString('id-ID')}</p>
+                            </>
+                          )}
+                          {notification.relatedData.reason && (
+                            <p><strong>Alasan:</strong> {notification.relatedData.reason}</p>
+                          )}
                         </div>
                       )}
                       
