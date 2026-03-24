@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { LockKeyhole, ShieldOff } from "lucide-react";
 import AdminSidebar from "@/components/admin/sidebar";
 import OrdersSection from "./orders";
 import KitchenSection from "./kitchen";
@@ -74,7 +75,9 @@ export default function AdminDashboard() {
     return (
       <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <LockKeyhole size={40} color="#8E8E93" />
+          </div>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Ditolak</h1>
           <p style={{ color: "#6E6E73", fontSize: 14 }}>Silakan login untuk mengakses dashboard admin</p>
         </div>
@@ -86,7 +89,9 @@ export default function AdminDashboard() {
     return (
       <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🚫</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+            <ShieldOff size={40} color="#8E8E93" />
+          </div>
           <h1 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>Akses Admin Diperlukan</h1>
           <p style={{ color: "#6E6E73", fontSize: 14, marginBottom: 16 }}>Role saat ini: {user.role}</p>
           <button

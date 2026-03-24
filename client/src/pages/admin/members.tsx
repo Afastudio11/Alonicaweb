@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, Search, Phone, Star, Edit2, Trash2, ChevronRight, Gift, X } from "lucide-react";
+import { Crown, Search, Phone, Star, Edit2, Trash2, ChevronRight, Gift, X, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
@@ -115,15 +115,15 @@ export default function MembersSection() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "Total Member", value: totalMembers, icon: "👥", color: "#FF9500" },
-          { label: "Member VIP", value: vipMembers, icon: "👑", color: "#FFAB00" },
-          { label: "Ada Diskon", value: discountMembers, icon: "🎁", color: "#FF2D55" },
+          { label: "Total Member", value: totalMembers, Icon: Users, color: "#FF9500" },
+          { label: "Member VIP", value: vipMembers, Icon: Crown, color: "#FFAB00" },
+          { label: "Ada Diskon", value: discountMembers, Icon: Gift, color: "#FF2D55" },
         ].map(stat => (
           <div key={stat.label} style={{
             background: "#fff", borderRadius: 16, padding: "14px 16px",
             boxShadow: "0 1px 4px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.04)",
           }}>
-            <p style={{ fontSize: 22, lineHeight: 1, marginBottom: 4 }}>{stat.icon}</p>
+            <div style={{ marginBottom: 4 }}><stat.Icon size={22} color={stat.color} /></div>
             <p style={{ fontSize: 22, fontWeight: 800, color: stat.color, lineHeight: 1 }}>{stat.value}</p>
             <p style={{ fontSize: 12, color: "#6E6E73", marginTop: 3 }}>{stat.label}</p>
           </div>
@@ -161,7 +161,7 @@ export default function MembersSection() {
         </div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 20px" }}>
-          <p style={{ fontSize: 40, marginBottom: 8 }}>📱</p>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}><Phone size={40} color="#AEAEB2" /></div>
           <p style={{ fontWeight: 600, color: "#1D1D1F", marginBottom: 4 }}>
             {search ? "Tidak ditemukan" : "Belum ada member"}
           </p>

@@ -94,7 +94,7 @@ export default function ScheduledOrderReminder() {
                   fontSize: 13, fontWeight: 800, color: isUrgent ? "#FF2D55" : "#FF9500",
                   margin: 0, textTransform: "uppercase", letterSpacing: "0.05em",
                 }}>
-                  {isUrgent ? "⚡ Segera Siapkan!" : "🔔 Pesanan Terjadwal"}
+                  {isUrgent ? "Segera Siapkan!" : "Pesanan Terjadwal"}
                 </p>
                 <p style={{ fontSize: 11, color: "#8E8E93", margin: 0 }}>
                   {order.scheduledTime ? `Jam ${formatTime(order.scheduledTime)}` : ""} · {mins <= 0 ? "sekarang!" : `${mins} menit lagi`}

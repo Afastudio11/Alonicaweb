@@ -133,7 +133,7 @@ function ItemCard({ item, onStatusChange, isPending }: {
         </span>
         {item.notes && (
           <span style={{ display: "block", marginTop: 4, color: "#FF9500", fontStyle: "italic", fontSize: 12 }}>
-            📝 {item.notes}
+            Catatan: {item.notes}
           </span>
         )}
       </p>

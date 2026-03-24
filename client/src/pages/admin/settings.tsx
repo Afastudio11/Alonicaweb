@@ -272,7 +272,7 @@ export default function SettingsSection() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="customReceiptFooter" className="flex items-center gap-2"><FileText size={14} /><span>Pesan Penutup Struk</span></Label>
-            <Textarea id="customReceiptFooter" value={(formData as any).customReceiptFooter || ""} onChange={(e) => setFormData(p => ({ ...p, customReceiptFooter: e.target.value }))} placeholder='Contoh: "Terima kasih telah berkunjung! Sampai jumpa lagi 😊"' rows={2} data-testid="input-receipt-footer" />
+            <Textarea id="customReceiptFooter" value={(formData as any).customReceiptFooter || ""} onChange={(e) => setFormData(p => ({ ...p, customReceiptFooter: e.target.value }))} placeholder='Contoh: "Terima kasih telah berkunjung! Sampai jumpa lagi."' rows={2} data-testid="input-receipt-footer" />
           </div>
 
           {/* ── MULTI-CABANG ── */}
@@ -327,7 +327,7 @@ export default function SettingsSection() {
           {((formData as any).wifiName || (formData as any).wifiPassword) && (
             <>
               <div className="border-t border-dashed my-2" />
-              <p className="text-gray-600">📶 WiFi: {(formData as any).wifiName || "—"}</p>
+              <p className="text-gray-600 flex items-center gap-1"><Wifi size={12} /> WiFi: {(formData as any).wifiName || "—"}</p>
               <p className="text-gray-600">Password: {(formData as any).wifiPassword || "—"}</p>
             </>
           )}
