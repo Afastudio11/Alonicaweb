@@ -559,7 +559,7 @@ export default function PrintSettingsSection() {
                               <Button
                                 type="button"
                                 variant="outline"
-                                size="sm"
+                                className="h-11"
                                 onClick={() => setShowBluetoothDialog(true)}
                                 data-testid="button-select-bluetooth"
                               >
@@ -763,8 +763,8 @@ export default function PrintSettingsSection() {
                       {!setting.isActive && (
                         <Button
                           variant="ghost"
-                          size="sm"
                           onClick={() => handleActivate(setting.id)}
+                          className="h-11 w-11 p-0"
                           data-testid={`button-activate-${setting.id}`}
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -804,22 +804,21 @@ export default function PrintSettingsSection() {
                     <div className="flex space-x-2 mt-4">
                       <Button
                         variant="outline"
-                        size="sm"
                         onClick={() => handleEdit(setting)}
+                        className="h-11 flex-1"
                         data-testid={`button-edit-print-${setting.id}`}
                       >
-                        <Edit className="h-3 w-3 mr-1" />
+                        <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
                       {!setting.isActive && (
                         <Button
                           variant="outline"
-                          size="sm"
                           onClick={() => handleDelete(setting.id)}
-                          className="text-destructive hover:text-destructive"
+                          className="h-11 flex-1 text-destructive hover:text-destructive"
                           data-testid={`button-delete-print-${setting.id}`}
                         >
-                          <Trash2 className="h-3 w-3 mr-1" />
+                          <Trash2 className="h-4 w-4 mr-1" />
                           Hapus
                         </Button>
                       )}
@@ -848,7 +847,7 @@ export default function PrintSettingsSection() {
               </p>
               <Button
                 variant="outline"
-                size="sm"
+                className="h-11"
                 onClick={scanBluetoothDevices}
                 disabled={isScanning}
                 data-testid="button-scan-bluetooth"
@@ -858,7 +857,7 @@ export default function PrintSettingsSection() {
                 ) : (
                   <Search className="h-4 w-4 mr-2" />
                 )}
-                {isScanning ? "Scanning..." : "Scan Device"}
+                {isScanning ? "Mencari..." : "Scan Device"}
               </Button>
             </div>
 
@@ -890,7 +889,7 @@ export default function PrintSettingsSection() {
                       {device.connected && (
                         <Badge variant="secondary" className="text-xs">Connected</Badge>
                       )}
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" className="h-11 px-4">
                         Pilih
                       </Button>
                     </div>

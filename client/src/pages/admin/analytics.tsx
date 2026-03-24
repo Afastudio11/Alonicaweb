@@ -313,16 +313,15 @@ export default function AnalyticsSection() {
     <div className="space-y-6">
       {/* Header with period selector + navigation + download */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {/* Period type selector */}
           <div className="flex space-x-1 bg-muted rounded-xl p-1 w-fit">
             {TIME_PERIODS.map((period) => (
               <Button
                 key={period.value}
                 variant={selectedPeriod === period.value ? "default" : "ghost"}
-                size="sm"
                 onClick={() => { setSelectedPeriod(period.value); setPeriodOffset(0); }}
-                className={selectedPeriod === period.value ? "bg-white text-primary" : ""}
+                className={`h-11 px-4 text-sm font-medium ${selectedPeriod === period.value ? "bg-white text-primary" : ""}`}
                 data-testid={`button-period-${period.value}`}
               >
                 {period.label}
@@ -335,32 +334,31 @@ export default function AnalyticsSection() {
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-11 w-11"
               onClick={() => setPeriodOffset(o => o + 1)}
               data-testid="button-period-prev"
               title="Periode sebelumnya"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
-            <span className="text-sm font-medium text-muted-foreground min-w-[180px] text-center" data-testid="text-period-label">
+            <span className="text-sm font-medium text-muted-foreground min-w-[200px] text-center" data-testid="text-period-label">
               {periodLabel}
             </span>
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-11 w-11"
               onClick={() => setPeriodOffset(o => Math.max(0, o - 1))}
               disabled={periodOffset === 0}
               data-testid="button-period-next"
               title="Periode berikutnya"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
             {periodOffset > 0 && (
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-8 text-xs text-primary"
+                className="h-11 px-4 text-sm text-primary"
                 onClick={() => setPeriodOffset(0)}
                 data-testid="button-period-now"
               >
@@ -382,7 +380,7 @@ export default function AnalyticsSection() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="alonica-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
@@ -454,17 +452,17 @@ export default function AnalyticsSection() {
             <CardTitle>Tren Penjualan Harian</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.dailySalesData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{fontSize: 12}} />
-                  <YAxis tick={{fontSize: 12}} tickFormatter={(value) => formatCurrency(value).replace('Rp. ', '')} />
+                  <XAxis dataKey="date" tick={{fontSize: 11}} />
+                  <YAxis tick={{fontSize: 11}} tickFormatter={(value) => formatCurrency(value).replace('Rp. ', '')} width={60} />
                   <Tooltip 
-                    formatter={(value) => [formatCurrency(value as number), 'Revenue']}
-                    labelFormatter={(label) => `Date: ${label}`}
+                    formatter={(value) => [formatCurrency(value as number), 'Pendapatan']}
+                    labelFormatter={(label) => `Tanggal: ${label}`}
                   />
-                  <Bar dataKey="revenue" fill="#dc2626" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#FF9500" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -473,25 +471,25 @@ export default function AnalyticsSection() {
 
         <Card className="alonica-card">
           <CardHeader>
-            <CardTitle>Hourly Orders Pattern</CardTitle>
+            <CardTitle>Pola Pesanan Per Jam</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={analytics.hourlyOrdersData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" tick={{fontSize: 12}} />
-                  <YAxis tick={{fontSize: 12}} />
+                  <XAxis dataKey="hour" tick={{fontSize: 11}} />
+                  <YAxis tick={{fontSize: 11}} />
                   <Tooltip 
-                    formatter={(value) => [`${value} pesanan`, 'Orders']}
-                    labelFormatter={(label) => `Hour: ${label}:00`}
+                    formatter={(value) => [`${value} pesanan`, 'Pesanan']}
+                    labelFormatter={(label) => `Pukul: ${label}:00`}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="orders" 
-                    stroke="#dc2626" 
+                    stroke="#FF9500" 
                     strokeWidth={3}
-                    dot={{ fill: '#dc2626', r: 4 }}
+                    dot={{ fill: '#FF9500', r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>

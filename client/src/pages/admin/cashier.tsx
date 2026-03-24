@@ -1163,9 +1163,9 @@ export default function CashierSection() {
                 {openBillsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
               </Button>
             </div>
-            <button className="text-sm text-primary hover:underline flex items-center gap-1" onClick={() => setShowOpenBills(true)}>
+            <button className="text-sm text-primary hover:underline flex items-center gap-1 min-h-[44px] px-2" onClick={() => setShowOpenBills(true)}>
               <Eye className="h-4 w-4" />
-              View All
+              Lihat Semua
             </button>
           </div>
           
@@ -1224,23 +1224,21 @@ export default function CashierSection() {
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2">
                         <Button
-                          size="sm"
                           variant="outline"
                           onClick={(e) => { e.stopPropagation(); setViewingBill(bill); }}
-                          className="h-7 flex-1 text-xs"
+                          className="h-10 flex-1 text-xs"
                           data-testid={`button-view-bill-${bill.id}`}
                         >
-                          <Eye className="h-3 w-3 mr-1" />
+                          <Eye className="h-3.5 w-3.5 mr-1" />
                           Lihat
                         </Button>
                         <Button
-                          size="sm"
                           variant="outline"
                           onClick={(e) => { e.stopPropagation(); handleEditOpenBill(bill); }}
-                          className="h-7 flex-1 text-xs"
+                          className="h-10 flex-1 text-xs"
                           data-testid={`button-edit-bill-${bill.id}`}
                         >
-                          <FileText className="h-3 w-3 mr-1" />
+                          <FileText className="h-3.5 w-3.5 mr-1" />
                           Edit
                         </Button>
                       </div>
@@ -1291,11 +1289,10 @@ export default function CashierSection() {
                     </div>
                     <Button
                       onClick={() => addToCart(discountItem)}
-                      size="sm"
-                      className="w-full mt-2 h-7 text-xs"
+                      className="w-full mt-2 h-10 text-sm"
                       data-testid={`button-add-discount-${discountItem.id}`}
                     >
-                      Order
+                      Pesan
                     </Button>
                   </div>
                 );
@@ -1311,8 +1308,8 @@ export default function CashierSection() {
               <div className="flex items-center justify-between mb-3">
                 <CardTitle className="text-lg font-semibold">Product Lists</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    Input manually
+                  <Button variant="outline" className="h-10 text-sm">
+                    Input Manual
                   </Button>
                 </div>
               </div>
@@ -1341,7 +1338,7 @@ export default function CashierSection() {
                     <button
                       key={category.id ?? 'all'}
                       onClick={() => setSelectedCategory(category.id)}
-                      className="whitespace-nowrap flex-shrink-0 h-9 px-4 rounded-full text-sm font-medium transition-all"
+                      className="whitespace-nowrap flex-shrink-0 h-11 px-5 rounded-full text-sm font-medium transition-all"
                       style={selectedCategory === category.id
                         ? { background: "#FF9500", color: "#fff", border: "none" }
                         : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
@@ -1414,20 +1411,18 @@ export default function CashierSection() {
                                 {quantity === 0 ? (
                                   <Button
                                     onClick={() => addToCart(item)}
-                                    className="w-full h-9"
-                                    size="sm"
+                                    className="w-full h-11"
                                     variant="outline"
                                     data-testid={`button-add-${item.id}`}
                                   >
-                                    Add to cart
+                                    Tambah
                                   </Button>
                                 ) : (
                                   <div className="flex items-center justify-between gap-2">
                                     <Button
                                       variant="outline"
-                                      size="sm"
                                       onClick={() => updateQuantity(item.id, quantity - 1)}
-                                      className="h-9 w-9 p-0 rounded-lg"
+                                      className="h-11 w-11 p-0 rounded-lg"
                                       data-testid={`button-decrease-${item.id}`}
                                     >
                                       <Minus className="h-4 w-4" />
@@ -1437,9 +1432,8 @@ export default function CashierSection() {
                                     </span>
                                     <Button
                                       variant="outline"
-                                      size="sm"
                                       onClick={() => updateQuantity(item.id, quantity + 1)}
-                                      className="h-9 w-9 p-0 rounded-lg"
+                                      className="h-11 w-11 p-0 rounded-lg"
                                       data-testid={`button-increase-${item.id}`}
                                     >
                                       <Plus className="h-4 w-4" />
@@ -1480,7 +1474,7 @@ export default function CashierSection() {
               <button
                 key={opt.value}
                 onClick={() => setOrderType(opt.value as typeof orderType)}
-                className="flex-1 h-8 rounded-full text-xs font-medium transition-all"
+                className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                 style={orderType === opt.value
                   ? { background: "#FF9500", color: "#fff", border: "none" }
                   : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
@@ -1505,7 +1499,6 @@ export default function CashierSection() {
                 </Badge>
                 <Button
                   variant="ghost"
-                  size="sm"
                   onClick={() => {
                     setEditingBill(null);
                     setCustomerName("");
@@ -1518,9 +1511,9 @@ export default function CashierSection() {
                     });
                   }}
                   data-testid="button-cancel-edit"
-                  className="text-xs h-7"
+                  className="h-10 text-sm"
                 >
-                  Cancel Edit
+                  Batal Edit
                 </Button>
               </div>
             )}
@@ -1582,12 +1575,11 @@ export default function CashierSection() {
                             <h4 className="text-sm font-medium text-foreground">{item.name}</h4>
                             <Button
                               variant="ghost"
-                              size="sm"
                               onClick={() => removeFromCart(item.id)}
-                              className="text-muted-foreground hover:text-destructive h-6 w-6 p-0 -mt-1"
+                              className="text-muted-foreground hover:text-destructive h-9 w-9 p-0 -mt-1"
                               data-testid={`button-remove-${item.id}`}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                           <div className="flex items-center justify-between">
@@ -1597,24 +1589,22 @@ export default function CashierSection() {
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="outline"
-                                size="sm"
                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="h-7 w-7 p-0 rounded-full"
+                                className="h-9 w-9 p-0 rounded-full"
                                 data-testid={`button-decrease-${item.id}`}
                               >
-                                <Minus className="h-3 w-3" />
+                                <Minus className="h-3.5 w-3.5" />
                               </Button>
                               <span className="text-sm font-medium w-6 text-center" data-testid={`quantity-${item.id}`}>
                                 {item.quantity}
                               </span>
                               <Button
                                 variant="outline"
-                                size="sm"
                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="h-7 w-7 p-0 rounded-full bg-primary text-white hover:bg-primary/90 hover:text-white border-primary"
+                                className="h-9 w-9 p-0 rounded-full bg-primary text-white hover:bg-primary/90 hover:text-white border-primary"
                                 data-testid={`button-increase-${item.id}`}
                               >
-                                <Plus className="h-3 w-3" />
+                                <Plus className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </div>
@@ -1730,26 +1720,26 @@ export default function CashierSection() {
                   onClick={handleCreateOpenBill}
                   disabled={createOpenBillMutation.isPending || cart.length === 0 || getUnpaidAssignedCount() > 0}
                   variant="outline"
-                  className="h-9 text-xs"
+                  className="h-11 text-sm"
                   data-testid="button-create-open-bill"
                 >
-                  <FileText className="h-3.5 w-3.5 mr-1.5" />
+                  <FileText className="h-4 w-4 mr-1.5" />
                   {createOpenBillMutation.isPending 
-                    ? "Saving..." 
+                    ? "Menyimpan..." 
                     : editingBill 
-                      ? "Update Bill" 
+                      ? "Perbarui Bill" 
                       : "Open Bill"}
                 </Button>
                 
                 <Button
                   onClick={initiateSplitBill}
                   variant="outline"
-                  className="h-9 text-xs"
+                  className="h-11 text-sm"
                   data-testid="button-split-bill"
                   disabled={splitParts.length > 0 || cart.length === 0}
                 >
-                  <Split className="h-3.5 w-3.5 mr-1.5" />
-                  {splitParts.length > 0 ? "Split Active" : "Split Bill"}
+                  <Split className="h-4 w-4 mr-1.5" />
+                  {splitParts.length > 0 ? "Split Aktif" : "Split Bill"}
                 </Button>
               </div>
             </CardContent>
@@ -2158,25 +2148,24 @@ export default function CashierSection() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
-                          size="sm"
                           variant="ghost"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="h-10 w-10 p-0"
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
                         <span className="w-8 text-center font-medium">{item.quantity}</span>
                         <Button
-                          size="sm"
                           variant="ghost"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="h-10 w-10 p-0"
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
                         <Button
-                          size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteWithVerification(item.id, item.name)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          className="h-10 w-10 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                           data-testid={`button-delete-${item.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -2195,9 +2184,8 @@ export default function CashierSection() {
                     <Button
                       key={item.id}
                       variant="outline"
-                      size="sm"
                       onClick={() => addToCart(item)}
-                      className="justify-start"
+                      className="h-11 justify-start text-sm"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       {item.name} - {formatCurrency(item.price)}

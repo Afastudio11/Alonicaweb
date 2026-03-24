@@ -518,22 +518,20 @@ export default function ApprovalsSection() {
                       {/* Actions */}
                       <div className="flex flex-col gap-2">
                         <Button
-                          size="sm"
                           variant="default"
                           onClick={() => approveMutation.mutate(notification.id)}
                           disabled={approveMutation.isPending || rejectMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="h-11 bg-green-600 hover:bg-green-700"
                           data-testid={`button-approve-${notification.id}`}
                         >
                           <Check className="h-4 w-4 mr-1" />
                           Setujui
                         </Button>
                         <Button
-                          size="sm"
                           variant="outline"
                           onClick={() => rejectMutation.mutate(notification.id)}
                           disabled={approveMutation.isPending || rejectMutation.isPending}
-                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          className="h-11 border-red-300 text-red-600 hover:bg-red-50"
                           data-testid={`button-reject-${notification.id}`}
                         >
                           <X className="h-4 w-4 mr-1" />
@@ -813,10 +811,10 @@ export default function ApprovalsSection() {
                             <td className="px-4 py-3 text-center">
                               {pin.isActive && (
                                 <Button
-                                  size="sm"
                                   variant="ghost"
                                   onClick={() => deactivatePinMutation.mutate(pin.id)}
                                   disabled={deactivatePinMutation.isPending}
+                                  className="h-11 w-11 p-0"
                                   data-testid={`button-deactivate-${pin.id}`}
                                 >
                                   <X className="h-4 w-4" />

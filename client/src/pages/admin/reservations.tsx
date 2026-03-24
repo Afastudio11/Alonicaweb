@@ -277,7 +277,7 @@ export default function ReservationsSection() {
                 variant="ghost" 
                 size="icon"
                 onClick={() => setSelectedDate(addMonths(selectedDate, -1))}
-                className="h-8 w-8"
+                className="h-10 w-10"
                 data-testid="button-prev-month"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -286,7 +286,7 @@ export default function ReservationsSection() {
                 variant="ghost" 
                 size="icon"
                 onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
-                className="h-8 w-8"
+                className="h-10 w-10"
                 data-testid="button-next-month"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -418,10 +418,10 @@ export default function ReservationsSection() {
                 variant="ghost" 
                 size="icon"
                 onClick={previousPeriod}
-                className="h-8 w-8"
+                className="h-11 w-11"
                 data-testid="button-previous-period"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-5 w-5" />
               </Button>
               
               <div className="px-3 py-1 min-w-[200px] text-center">
@@ -434,33 +434,32 @@ export default function ReservationsSection() {
                 variant="ghost" 
                 size="icon"
                 onClick={nextPeriod}
-                className="h-8 w-8"
+                className="h-11 w-11"
                 data-testid="button-next-period"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
 
             <Button 
               variant="outline"
-              size="sm"
               onClick={goToToday}
-              className="h-8 text-xs"
+              className="h-11 text-sm"
               data-testid="button-today-main"
             >
-              Today
+              Hari Ini
             </Button>
           </div>
 
           <div className="flex items-center space-x-3">
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "calendar" | "log")} className="w-auto">
-              <TabsList className="h-8">
-                <TabsTrigger value="calendar" className="text-xs px-3" data-testid="tab-calendar-view">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Calendar
+              <TabsList className="h-11">
+                <TabsTrigger value="calendar" className="text-sm px-4" data-testid="tab-calendar-view">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Kalender
                 </TabsTrigger>
-                <TabsTrigger value="log" className="text-xs px-3" data-testid="tab-log-view">
-                  <List className="h-3 w-3 mr-1" />
+                <TabsTrigger value="log" className="text-sm px-4" data-testid="tab-log-view">
+                  <List className="h-4 w-4 mr-1" />
                   Log
                 </TabsTrigger>
               </TabsList>
@@ -475,7 +474,7 @@ export default function ReservationsSection() {
                 <button
                   key={opt.value}
                   onClick={() => setDateRangeMode(opt.value as typeof dateRangeMode)}
-                  className="h-8 px-3 rounded-full text-xs font-medium transition-all"
+                  className="h-11 px-4 rounded-full text-sm font-medium transition-all"
                   style={dateRangeMode === opt.value
                     ? { background: "#FF9500", color: "#fff", border: "none" }
                     : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
@@ -488,7 +487,7 @@ export default function ReservationsSection() {
             </div>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32 h-8 text-xs" data-testid="select-status-filter">
+              <SelectTrigger className="w-36 h-11 text-sm" data-testid="select-status-filter">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -500,7 +499,7 @@ export default function ReservationsSection() {
               </SelectContent>
             </Select>
 
-            <Button variant="ghost" size="icon" className="h-8 w-8" data-testid="button-settings">
+            <Button variant="ghost" size="icon" className="h-11 w-11" data-testid="button-settings">
               <Settings className="h-4 w-4" />
             </Button>
           </div>

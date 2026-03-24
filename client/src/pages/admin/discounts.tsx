@@ -742,8 +742,8 @@ export default function DiscountsSection() {
                       </div>
                       <Button
                         variant="ghost"
-                        size="sm"
                         onClick={() => toggleDiscountStatus(discount)}
+                        className="h-11 w-11 p-0"
                         data-testid={`button-toggle-status-${discount.id}`}
                       >
                         {discount.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -782,21 +782,20 @@ export default function DiscountsSection() {
                     <div className="flex space-x-2 mt-4">
                       <Button
                         variant="outline"
-                        size="sm"
                         onClick={() => handleEdit(discount)}
+                        className="h-11 flex-1"
                         data-testid={`button-edit-${discount.id}`}
                       >
-                        <Edit className="h-3 w-3 mr-1" />
+                        <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
                         onClick={() => handleDelete(discount.id)}
-                        className="text-destructive hover:text-destructive"
+                        className="h-11 flex-1 text-destructive hover:text-destructive"
                         data-testid={`button-delete-${discount.id}`}
                       >
-                        <Trash2 className="h-3 w-3 mr-1" />
+                        <Trash2 className="h-4 w-4 mr-1" />
                         Hapus
                       </Button>
                     </div>

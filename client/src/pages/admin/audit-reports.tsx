@@ -439,7 +439,7 @@ export default function AuditReportsSection() {
                     </Badge>
                     <Button
                       variant="outline"
-                      size="sm"
+                      className="h-11"
                       onClick={() => setSelectedShift(
                         selectedShift === auditData.shift.id ? null : auditData.shift.id
                       )}

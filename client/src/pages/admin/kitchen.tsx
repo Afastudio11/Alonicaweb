@@ -287,9 +287,8 @@ export default function KitchenSection() {
           </div>
           <Button
             variant="outline"
-            size="sm"
             onClick={() => refetch()}
-            className="flex items-center gap-2"
+            className="h-11 flex items-center gap-2"
             data-testid="button-refresh-orders"
           >
             <RefreshCw className="h-4 w-4" />
@@ -624,9 +623,8 @@ function KitchenOrderCard({ order, onStartCooking, onMarkReady, onPrint, isPrima
 
           <Button
             variant="outline"
-            size="sm"
             onClick={onPrint}
-            className="flex items-center gap-2"
+            className="h-11 flex items-center gap-2"
             data-testid={`button-print-ticket-${order.id}`}
           >
             <Printer className="h-4 w-4" />
