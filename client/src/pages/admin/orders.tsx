@@ -269,8 +269,7 @@ export default function OrdersSection() {
               onClick={() => refetch()}
               disabled={isLoading}
               variant="outline"
-              size="sm"
-              className="gap-2"
+              className="gap-2 h-10"
               data-testid="button-refresh-orders"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -374,7 +373,7 @@ export default function OrdersSection() {
                       className="text-primary hover:text-primary/80 font-medium transition-colors"
                       data-testid={`button-view-items-${order.id}`}
                     >
-                      {Array.isArray(order.items) ? order.items.length : 0} {Array.isArray(order.items) && order.items.length === 1 ? 'item' : 'items'}
+                      {Array.isArray(order.items) ? order.items.length : 0} item
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-semibold">
@@ -393,12 +392,12 @@ export default function OrdersSection() {
                       }
                       data-testid={`payment-status-${order.id}`}
                     >
-                      {order.paymentStatus === 'paid' ? 'Paid' : 
-                       order.paymentStatus === 'pending' ? 'Pending' :
-                       order.paymentStatus === 'failed' ? 'Failed' :
-                       order.paymentStatus === 'expired' ? 'Expired' :
-                       order.paymentStatus === 'unpaid' ? 'Unpaid' :
-                       order.paymentStatus === 'refunded' ? 'Refunded' : 
+                      {order.paymentStatus === 'paid' ? 'Lunas' : 
+                       order.paymentStatus === 'pending' ? 'Menunggu' :
+                       order.paymentStatus === 'failed' ? 'Gagal' :
+                       order.paymentStatus === 'expired' ? 'Kedaluwarsa' :
+                       order.paymentStatus === 'unpaid' ? 'Belum Bayar' :
+                       order.paymentStatus === 'refunded' ? 'Dikembalikan' : 
                        order.paymentStatus}
                     </Badge>
                   </td>
@@ -413,50 +412,47 @@ export default function OrdersSection() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {formatDate(new Date(order.createdAt))}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-1">
                     {order.orderStatus === 'queued' && (
                       <Button
-                        size="sm"
                         onClick={() => handleStatusUpdate(order.id, 'preparing')}
-                        className="bg-blue-500 hover:bg-blue-600"
+                        className="bg-blue-500 hover:bg-blue-600 h-10 text-xs px-3"
                         data-testid={`button-accept-${order.id}`}
                       >
-                        Accept
+                        Terima
                       </Button>
                     )}
                     {order.orderStatus === 'preparing' && (
                       <Button
-                        size="sm"
                         onClick={() => handleStatusUpdate(order.id, 'ready')}
-                        className="bg-green-500 hover:bg-green-600"
+                        className="bg-green-500 hover:bg-green-600 h-10 text-xs px-3"
                         data-testid={`button-ready-${order.id}`}
                       >
-                        Ready
+                        Siap
                       </Button>
                     )}
                     {order.orderStatus === 'ready' && (
                       <Button
-                        size="sm"
                         variant="outline"
                         onClick={() => handleStatusUpdate(order.id, 'served')}
+                        className="h-10 text-xs px-3"
                         data-testid={`button-complete-${order.id}`}
                       >
-                        Complete
+                        Selesai
                       </Button>
                     )}
                     <Button
-                      size="sm"
                       variant="outline"
                       onClick={() => setViewingOrder(order)}
+                      className="h-10 w-10 p-0"
                       data-testid={`button-view-${order.id}`}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button
-                      size="sm"
                       variant="outline"
                       onClick={() => handlePrintReceipt(order)}
-                      className="bg-green-50 hover:bg-green-100 text-green-700"
+                      className="bg-green-50 hover:bg-green-100 text-green-700 h-10 w-10 p-0"
                       data-testid={`button-receipt-${order.id}`}
                     >
                       <Receipt className="h-4 w-4" />
@@ -480,30 +476,30 @@ export default function OrdersSection() {
         {!hasActiveFilters && (
           <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/50">
             <div className="text-sm text-muted-foreground">
-              Showing {page * pageSize + 1} to {Math.min((page + 1) * pageSize, totalOrders)} of {totalOrders} orders
+              Menampilkan {page * pageSize + 1}–{Math.min((page + 1) * pageSize, totalOrders)} dari {totalOrders} pesanan
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
+                className="h-10 gap-1"
                 data-testid="button-prev-page"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                Sebelumnya
               </Button>
               <div className="text-sm text-muted-foreground">
-                Page {page + 1} of {totalPages || 1}
+                Hal. {page + 1} dari {totalPages || 1}
               </div>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}
+                className="h-10 gap-1"
                 data-testid="button-next-page"
               >
-                Next
+                Berikutnya
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -512,7 +508,7 @@ export default function OrdersSection() {
         {hasActiveFilters && (
           <div className="px-6 py-4 border-t border-border bg-muted/50">
             <div className="text-sm text-muted-foreground text-center">
-              Showing {filteredAndSortedOrders.length} filtered orders
+              Menampilkan {filteredAndSortedOrders.length} pesanan sesuai filter
             </div>
           </div>
         )}

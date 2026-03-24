@@ -169,23 +169,21 @@ export default function CategoriesSection() {
             
             <div className="flex space-x-2 mt-4">
               <Button
-                size="sm"
                 variant="outline"
                 onClick={() => setEditingCategory(category)}
-                className="flex items-center gap-1"
+                className="flex items-center gap-1 h-11 px-4"
                 data-testid={`button-edit-${category.id}`}
               >
-                <Edit className="h-3 w-3" />
+                <Edit className="h-4 w-4" />
                 Edit
               </Button>
               <Button
-                size="sm"
                 variant="outline"
                 onClick={() => handleDelete(category)}
-                className="flex items-center gap-1 text-destructive hover:text-destructive"
+                className="flex items-center gap-1 h-11 px-4 text-destructive hover:text-destructive"
                 data-testid={`button-delete-${category.id}`}
               >
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="h-4 w-4" />
                 Hapus
               </Button>
             </div>

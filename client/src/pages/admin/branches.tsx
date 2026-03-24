@@ -391,38 +391,38 @@ export default function BranchesSection() {
                   data-testid={`button-toggle-branch-${branch.id}`}
                   title={branch.isActive ? "Nonaktifkan" : "Aktifkan"}
                   style={{
-                    width: 32, height: 32, borderRadius: 8, border: "1px solid #E5E5EA",
+                    width: 44, height: 44, borderRadius: 10, border: "1px solid #E5E5EA",
                     background: "#F5F5F7", cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
                   {branch.isActive
-                    ? <ToggleRight size={16} style={{ color: "#34C759" }} />
-                    : <ToggleLeft size={16} style={{ color: "#8E8E93" }} />}
+                    ? <ToggleRight size={20} style={{ color: "#34C759" }} />
+                    : <ToggleLeft size={20} style={{ color: "#8E8E93" }} />}
                 </button>
                 <button
                   onClick={() => { setEditingBranch(branch); setShowModal(true); }}
                   data-testid={`button-edit-branch-${branch.id}`}
                   title="Edit"
                   style={{
-                    width: 32, height: 32, borderRadius: 8, border: "1px solid #E5E5EA",
+                    width: 44, height: 44, borderRadius: 10, border: "1px solid #E5E5EA",
                     background: "#F5F5F7", cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <Pencil size={14} style={{ color: "#FF9500" }} />
+                  <Pencil size={17} style={{ color: "#FF9500" }} />
                 </button>
                 <button
                   onClick={() => handleDelete(branch)}
                   data-testid={`button-delete-branch-${branch.id}`}
                   title="Hapus"
                   style={{
-                    width: 32, height: 32, borderRadius: 8, border: "1px solid #FFE5E5",
+                    width: 44, height: 44, borderRadius: 10, border: "1px solid #FFE5E5",
                     background: "#FFF5F5", cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <Trash2 size={14} style={{ color: "#FF3B30" }} />
+                  <Trash2 size={17} style={{ color: "#FF3B30" }} />
                 </button>
               </div>
             </div>

@@ -145,16 +145,16 @@ function ItemCard({ item, onStatusChange, isPending }: {
           disabled={isPending}
           data-testid={`button-queue-${item.id}-next`}
           style={{
-            marginTop: 14, width: "100%", height: 40,
-            borderRadius: 10, border: "none", cursor: isPending ? "wait" : "pointer",
-            fontSize: 13, fontWeight: 700, display: "flex",
+            marginTop: 14, width: "100%", height: 48,
+            borderRadius: 12, border: "none", cursor: isPending ? "wait" : "pointer",
+            fontSize: 14, fontWeight: 700, display: "flex",
             alignItems: "center", justifyContent: "center", gap: 6,
             ...cfg.nextStyle,
             opacity: isPending ? 0.7 : 1,
           }}
         >
           {cfg.nextLabel}
-          <ChevronRight size={14} />
+          <ChevronRight size={16} />
         </button>
       )}
     </div>
@@ -252,13 +252,13 @@ export default function DrinkQueueSection() {
               onClick={() => refetch()}
               data-testid="button-refresh-queue"
               style={{
-                height: 36, paddingInline: 14, borderRadius: 10,
+                height: 44, paddingInline: 16, borderRadius: 10,
                 border: "1.5px solid #E5E5EA", background: "#fff",
                 display: "flex", alignItems: "center", gap: 6,
                 fontSize: 13, fontWeight: 600, color: "#1D1D1F", cursor: "pointer",
               }}
             >
-              <RefreshCw size={14} />
+              <RefreshCw size={16} />
               Refresh
             </button>
             <button
@@ -266,13 +266,13 @@ export default function DrinkQueueSection() {
               disabled={clearTakenMutation.isPending}
               data-testid="button-clear-taken"
               style={{
-                height: 36, paddingInline: 14, borderRadius: 10,
+                height: 44, paddingInline: 16, borderRadius: 10,
                 border: "1.5px solid #E5E5EA", background: "#F2F2F7",
                 display: "flex", alignItems: "center", gap: 6,
                 fontSize: 13, fontWeight: 600, color: "#6E6E73", cursor: "pointer",
               }}
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
               Bersihkan
             </button>
           </div>

@@ -284,17 +284,17 @@ export default function InventorySection() {
               onClick={() => setTab(key)}
               data-testid={`tab-${key}`}
               style={{
-                height: 34, paddingInline: 16, borderRadius: 8, border: "none",
+                height: 44, paddingInline: 18, borderRadius: 10, border: "none",
                 background: tab === key ? "#fff" : "transparent",
                 color: tab === key ? "#1D1D1F" : "#6E6E73",
                 fontWeight: tab === key ? 700 : 500,
-                fontSize: 13, cursor: "pointer",
+                fontSize: 14, cursor: "pointer",
                 boxShadow: tab === key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                 display: "flex", alignItems: "center", gap: 6,
                 transition: "all 0.15s",
               }}
             >
-              <Icon size={14} />
+              <Icon size={16} />
               {label}
             </button>
           ))}
@@ -303,7 +303,7 @@ export default function InventorySection() {
           <Button
             onClick={() => refetch()}
             variant="outline"
-            size="sm"
+            className="h-11"
             data-testid="button-refresh-inventory"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
@@ -311,7 +311,7 @@ export default function InventorySection() {
           </Button>
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button size="sm" data-testid="button-add-inventory-item">
+              <Button className="h-11" data-testid="button-add-inventory-item">
                 <Plus className="h-4 w-4 mr-2" />
                 Tambah Item
               </Button>
@@ -347,12 +347,12 @@ export default function InventorySection() {
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
                   style={{
-                    height: 32, paddingInline: 14, borderRadius: 999,
+                    height: 44, paddingInline: 16, borderRadius: 999,
                     border: "1.5px solid",
                     borderColor: categoryFilter === cat ? "#FF9500" : "#E5E5EA",
                     background: categoryFilter === cat ? "#FFF3E0" : "#fff",
                     color: categoryFilter === cat ? "#FF9500" : "#6E6E73",
-                    fontSize: 12, fontWeight: 600, cursor: "pointer",
+                    fontSize: 13, fontWeight: 600, cursor: "pointer",
                     transition: "all 0.15s",
                   }}
                   data-testid={`filter-${cat}`}
@@ -426,22 +426,22 @@ export default function InventorySection() {
                         onClick={() => setAdjustingItem(item)}
                         data-testid={`button-adjust-${item.id}`}
                         style={{
-                          height: 34, paddingInline: 14, borderRadius: 9, border: "none",
+                          height: 44, paddingInline: 16, borderRadius: 10, border: "none",
                           background: "linear-gradient(135deg, #FF9500, #FFAB00)",
-                          color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer",
-                          display: "flex", alignItems: "center", gap: 4,
+                          color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                          display: "flex", alignItems: "center", gap: 6,
                         }}
                       >
-                        <SlidersHorizontal size={12} />
+                        <SlidersHorizontal size={14} />
                         Ubah Stok
                       </button>
                       <button
                         onClick={() => setEditingItem(item)}
                         data-testid={`button-edit-inventory-${item.id}`}
                         style={{
-                          height: 34, paddingInline: 14, borderRadius: 9,
+                          height: 44, paddingInline: 16, borderRadius: 10,
                           border: "1.5px solid #E5E5EA", background: "#fff",
-                          color: "#1D1D1F", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          color: "#1D1D1F", fontSize: 13, fontWeight: 600, cursor: "pointer",
                         }}
                       >
                         Edit

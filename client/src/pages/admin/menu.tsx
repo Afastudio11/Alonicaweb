@@ -186,7 +186,7 @@ export default function MenuSection() {
           <button
             key={filter.value}
             onClick={() => setCategoryFilter(filter.value)}
-            className="h-9 px-4 rounded-full text-sm font-medium transition-all"
+            className="h-11 px-4 rounded-full text-sm font-medium transition-all"
             style={categoryFilter === filter.value
               ? { background: "#FF9500", color: "#fff", border: "none" }
               : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
@@ -239,34 +239,31 @@ export default function MenuSection() {
                 </div>
                 <div className="flex space-x-2 mt-4">
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => setEditingItem(item)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 h-10 text-xs px-3"
                     data-testid={`button-edit-${item.id}`}
                   >
-                    <Edit className="h-3 w-3" />
+                    <Edit className="h-4 w-4" />
                     Edit
                   </Button>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => handleDuplicate(item)}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 h-10 text-xs px-3"
                     data-testid={`button-duplicate-${item.id}`}
                   >
-                    <Copy className="h-3 w-3" />
-                    Duplicate
+                    <Copy className="h-4 w-4" />
+                    Duplikat
                   </Button>
                   <Button
-                    size="sm"
                     variant="outline"
                     onClick={() => deleteItemMutation.mutate(item.id)}
-                    className="flex items-center gap-1 text-destructive hover:text-destructive"
+                    className="flex items-center gap-1 h-10 text-xs px-3 text-destructive hover:text-destructive"
                     data-testid={`button-delete-${item.id}`}
                   >
-                    <Trash2 className="h-3 w-3" />
-                    Delete
+                    <Trash2 className="h-4 w-4" />
+                    Hapus
                   </Button>
                 </div>
               </div>
@@ -440,7 +437,7 @@ function MenuItemForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name">Nama Menu</Label>
         <Input
           id="name"
           value={formData.name}
@@ -451,7 +448,7 @@ function MenuItemForm({
       </div>
 
       <div>
-        <Label htmlFor="price">Price (Rp)</Label>
+        <Label htmlFor="price">Harga (Rp)</Label>
         <CurrencyInput
           id="price"
           value={formData.price}
@@ -462,13 +459,13 @@ function MenuItemForm({
       </div>
 
       <div>
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="category">Kategori</Label>
         <Select 
           value={formData.categoryId} 
           onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
         >
           <SelectTrigger data-testid="select-menu-category">
-            <SelectValue placeholder="Select category" />
+            <SelectValue placeholder="Pilih kategori" />
           </SelectTrigger>
           <SelectContent>
             {categories.map(category => (
@@ -479,7 +476,7 @@ function MenuItemForm({
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">Deskripsi</Label>
         <Textarea
           id="description"
           value={formData.description || ''}
@@ -543,11 +540,11 @@ function MenuItemForm({
           onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAvailable: checked }))}
           data-testid="switch-menu-available"
         />
-        <Label htmlFor="isAvailable">Available</Label>
+        <Label htmlFor="isAvailable">Tersedia</Label>
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full" data-testid="button-save-menu">
-        {isLoading ? "Saving..." : "Save Item"}
+      <Button type="submit" disabled={isLoading} className="w-full h-11" data-testid="button-save-menu">
+        {isLoading ? "Menyimpan..." : "Simpan Item"}
       </Button>
     </form>
   );

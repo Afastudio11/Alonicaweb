@@ -320,32 +320,32 @@ export default function BannersSection() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={() => toggleMutation.mutate({ id: banner.id, isActive: !banner.isActive })}
-                      className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center transition-colors"
                       style={{ background: banner.isActive ? "rgba(48,209,88,0.1)" : "rgba(0,0,0,0.04)" }}
                       title={banner.isActive ? "Aktif – klik untuk nonaktifkan" : "Nonaktif – klik untuk aktifkan"}
                       data-testid={`button-toggle-${banner.id}`}
                     >
                       {banner.isActive
-                        ? <Eye size={15} style={{ color: "#30D158" }} />
-                        : <EyeOff size={15} style={{ color: "#AEAEB2" }} />}
+                        ? <Eye size={18} style={{ color: "#30D158" }} />
+                        : <EyeOff size={18} style={{ color: "#AEAEB2" }} />}
                     </button>
                     <button
                       onClick={() => handleEdit(banner)}
-                      className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center"
                       style={{ background: "rgba(255,149,0,0.08)" }}
                       data-testid={`button-edit-${banner.id}`}
                     >
-                      <Edit2 size={14} style={{ color: "#FF9500" }} />
+                      <Edit2 size={17} style={{ color: "#FF9500" }} />
                     </button>
                     <button
                       onClick={() => {
                         if (confirm(`Hapus banner "${banner.title}"?`)) deleteMutation.mutate(banner.id);
                       }}
-                      className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center"
                       style={{ background: "rgba(255,59,48,0.07)" }}
                       data-testid={`button-delete-${banner.id}`}
                     >
-                      <Trash2 size={14} style={{ color: "#FF3B30" }} />
+                      <Trash2 size={17} style={{ color: "#FF3B30" }} />
                     </button>
                   </div>
                 </div>
@@ -491,7 +491,7 @@ export default function BannersSection() {
                 <div className="flex gap-2 mb-3">
                   <button
                     onClick={() => setImageMode("gradient")}
-                    className="flex-1 h-9 rounded-full text-sm font-medium transition-all"
+                    className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                     style={imageMode === "gradient"
                       ? { background: "#FF9500", color: "#fff", border: "none" }
                       : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
@@ -500,7 +500,7 @@ export default function BannersSection() {
                   </button>
                   <button
                     onClick={() => setImageMode("image")}
-                    className="flex-1 h-9 rounded-full text-sm font-medium transition-all"
+                    className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                     style={imageMode === "image"
                       ? { background: "#FF9500", color: "#fff", border: "none" }
                       : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
