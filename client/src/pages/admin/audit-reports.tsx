@@ -165,9 +165,9 @@ export default function AuditReportsSection() {
     // Filter by search query
     if (searchQuery.trim()) {
       return auditData.filter(data => 
-        data.cashier.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        data.shift.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        data.shift.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+        (data.cashier?.username ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (data.shift?.id ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        data.shift?.notes?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 

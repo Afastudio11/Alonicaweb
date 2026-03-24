@@ -94,8 +94,8 @@ export default function MembersSection() {
   };
 
   const filtered = members.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.phone.includes(search)
+    (m.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (m.phone ?? '').includes(search)
   );
 
   const totalMembers = members.length;

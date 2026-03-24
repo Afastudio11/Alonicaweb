@@ -272,8 +272,8 @@ export default function ApprovalsSection() {
       filtered = filtered.filter(n => {
         const requestedByUsername = getUserById(n.requestedBy)?.username?.toLowerCase() || '';
         return (
-          n.title.toLowerCase().includes(query) ||
-          n.message.toLowerCase().includes(query) ||
+          (n.title ?? '').toLowerCase().includes(query) ||
+          (n.message ?? '').toLowerCase().includes(query) ||
           n.relatedData?.item?.name?.toLowerCase().includes(query) ||
           n.relatedData?.reason?.toLowerCase().includes(query) ||
           requestedByUsername.includes(query)
@@ -466,32 +466,34 @@ export default function ApprovalsSection() {
                         {/* Details */}
                         {notification.relatedData && (
                           <div className="bg-muted/50 rounded-lg p-4 mb-4 space-y-2">
+                            {notification.relatedData.item && (
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <p className="text-muted-foreground">Nama Item</p>
                                 <p className="font-medium" data-testid={`approval-item-name-${notification.id}`}>
-                                  {notification.relatedData.item.name}
+                                  {notification.relatedData.item.name ?? '-'}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground">Jumlah</p>
                                 <p className="font-medium">
-                                  {notification.relatedData.item.quantity}x
+                                  {notification.relatedData.item.quantity ?? 0}x
                                 </p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground">Harga</p>
                                 <p className="font-medium">
-                                  {formatCurrency(notification.relatedData.item.price)}
+                                  {formatCurrency(notification.relatedData.item.price ?? 0)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-muted-foreground">Total</p>
                                 <p className="font-medium">
-                                  {formatCurrency(notification.relatedData.item.price * notification.relatedData.item.quantity)}
+                                  {formatCurrency((notification.relatedData.item.price ?? 0) * (notification.relatedData.item.quantity ?? 0))}
                                 </p>
                               </div>
                             </div>
+                            )}
                             <div className="pt-2 border-t border-border">
                               <p className="text-muted-foreground text-sm">Alasan</p>
                               <p className="font-medium" data-testid={`approval-reason-${notification.id}`}>
