@@ -44,6 +44,11 @@ app.use(express.json({ limit: '10mb' })); // Add size limit for security
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser()); // Parse cookies for session management
 
+// Health check endpoint for deployment (must respond fast)
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

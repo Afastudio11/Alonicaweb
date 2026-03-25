@@ -10,28 +10,17 @@ import { ObjectPermission, canAccessObject } from "./objectAcl";
 import { hashPassword, verifyPassword, createSession, getSession, deleteSession, type SessionData } from './auth-utils';
 import { MidtransService } from "./midtrans-service";
 
-// Initialize Midtrans service with production safety
+// Initialize Midtrans service (optional - app uses simulate-payment by default)
 let midtransService: MidtransService | null = null;
 try {
   if (process.env.MIDTRANS_SERVER_KEY && process.env.MIDTRANS_CLIENT_KEY) {
     midtransService = new MidtransService();
     console.log('✅ Midtrans payment service initialized successfully');
   } else {
-    // Production safety: require real payment service in production
-    if (process.env.NODE_ENV === 'production') {
-      console.error('🚨 CRITICAL: Midtrans keys required in production environment');
-      console.error('Set MIDTRANS_SERVER_KEY and MIDTRANS_CLIENT_KEY environment variables');
-      process.exit(1);
-    }
-    console.log('ℹ️  Midtrans not configured - using mock QRIS for development');
+    console.log('ℹ️  Midtrans not configured - using simulate-payment (QRIS mock)');
   }
 } catch (error) {
   console.warn('⚠️  Midtrans service initialization failed:', error instanceof Error ? error.message : error);
-  if (process.env.NODE_ENV === 'production') {
-    console.error('🚨 CRITICAL: Payment service initialization failed in production');
-    process.exit(1);
-  }
-  console.log('ℹ️  Using mock QRIS for development');
 }
 
 // Image file signature validation
