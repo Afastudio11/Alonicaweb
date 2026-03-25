@@ -22,6 +22,7 @@ import {
   Menu as MenuIcon,
   GitBranch,
   GlassWater,
+  ChefHat,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -39,6 +40,7 @@ const BASE_NAV_GROUPS = [
       { key: "cashier", label: "Kasir", icon: CreditCard },
       { key: "orders", label: "Pesanan", icon: ClipboardList },
       { key: "drink-queue", label: "Antrian Pesanan", icon: GlassWater },
+      { key: "kitchen", label: "Dapur & Bar", icon: ChefHat },
       { key: "reservations", label: "Reservasi", icon: Calendar },
     ],
   },

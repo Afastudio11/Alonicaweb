@@ -1,638 +1,338 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChefHat, Clock, CheckCircle, Printer, Play, RefreshCw, Wine } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs as TabsContainer, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { formatCurrency, formatDate, getOrderStatusColor } from "@/lib/utils";
-import { smartPrintKitchenTicket } from "@/utils/thermal-print";
-import type { Order, OrderItem, Category, MenuItem } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { GlassWater, ChefHat, LayoutGrid, Clock, RefreshCw, ChevronRight, Loader2 } from "lucide-react";
+import type { DrinkQueue } from "@shared/schema";
 
+// ──────────────────────────────────────────────
+// Config per-status
+// ──────────────────────────────────────────────
+const STATUS_CFG: Record<string, { label: string; color: string; bg: string; border: string; dot: string; nextLabel: string; nextStatus: string; nextBg: string }> = {
+  waiting: {
+    label: "Antri", color: "#3C3C43", bg: "#F2F2F7", border: "#E5E5EA", dot: "#8E8E93",
+    nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#FF9500",
+  },
+  making: {
+    label: "Dibuat", color: "#FF9500", bg: "#FFF3E0", border: "#FFCC80", dot: "#FF9500",
+    nextLabel: "Tandai Siap", nextStatus: "ready", nextBg: "#34C759",
+  },
+  ready: {
+    label: "Siap", color: "#34C759", bg: "#F0FFF4", border: "#A3D9A5", dot: "#34C759",
+    nextLabel: "Diambil", nextStatus: "taken", nextBg: "#007AFF",
+  },
+  taken: {
+    label: "Selesai", color: "#007AFF", bg: "#EEF4FF", border: "#BDD0FF", dot: "#007AFF",
+    nextLabel: "", nextStatus: "", nextBg: "",
+  },
+};
+
+type QueueItem = DrinkQueue & { itemType?: string };
+type TabType = "all" | "food" | "drink";
+
+// ──────────────────────────────────────────────
+// ItemCard — satu item satu kartu
+// ──────────────────────────────────────────────
+function ItemCard({ item, onStatusChange, pendingId }: {
+  item: QueueItem;
+  onStatusChange: (id: string, status: string) => void;
+  pendingId: string | null;
+}) {
+  const cfg = STATUS_CFG[item.status] ?? STATUS_CFG.waiting;
+  const elapsed = Math.floor((Date.now() - new Date(item.createdAt).getTime()) / 60000);
+  const isFood = (item as any).itemType === "food";
+  const isPending = pendingId === item.id;
+  const isDone = item.status === "taken";
+
+  return (
+    <div
+      data-testid={`kitchen-card-${item.id}`}
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: "18px 18px 14px",
+        border: `2px solid ${cfg.border}`,
+        position: "relative",
+        boxShadow: item.status === "making"
+          ? "0 4px 20px rgba(255,149,0,0.18)"
+          : item.status === "ready"
+          ? "0 4px 20px rgba(52,199,89,0.18)"
+          : "0 2px 8px rgba(0,0,0,0.05)",
+        opacity: isDone ? 0.65 : 1,
+        transition: "all 0.2s",
+      }}
+    >
+      {/* Queue number badge */}
+      <div style={{
+        position: "absolute", top: 14, right: 14,
+        width: 40, height: 40, borderRadius: "50%",
+        background: cfg.bg, border: `2px solid ${cfg.border}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 15, fontWeight: 800, color: cfg.color,
+      }}>
+        {item.queueNumber}
+      </div>
+
+      {/* Status row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <div style={{
+          width: 8, height: 8, borderRadius: "50%", background: cfg.dot,
+          boxShadow: item.status === "making" ? `0 0 0 3px ${cfg.bg}` : "none",
+        }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          {cfg.label}
+        </span>
+        {/* Type chip */}
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 999,
+          background: isFood ? "#FFF3E0" : "#E3F2FD",
+          color: isFood ? "#E65100" : "#1565C0",
+          display: "flex", alignItems: "center", gap: 3,
+        }}>
+          {isFood
+            ? <ChefHat size={9} style={{ display: "inline" }} />
+            : <GlassWater size={9} style={{ display: "inline" }} />}
+          {isFood ? "Makanan" : "Minuman"}
+        </span>
+        <span style={{ fontSize: 11, color: "#8E8E93", marginLeft: "auto", marginRight: 48 }}>
+          <Clock size={10} style={{ display: "inline", marginRight: 2 }} />
+          {elapsed < 1 ? "baru" : `${elapsed}m lalu`}
+        </span>
+      </div>
+
+      {/* Item name */}
+      <p style={{ fontSize: 17, fontWeight: 800, color: "#1D1D1F", margin: "4px 0 2px", lineHeight: 1.3, paddingRight: 48 }}>
+        {item.drinkName}
+      </p>
+
+      {/* Customer + table */}
+      <p style={{ fontSize: 13, color: "#6E6E73", margin: 0 }}>
+        {item.customerName} •{" "}
+        <span style={{ fontWeight: 600 }}>
+          {item.orderType === "take_away" ? "Take Away" : `Meja ${item.tableNumber}`}
+        </span>
+      </p>
+      {item.notes && (
+        <p style={{ fontSize: 12, color: "#FF9500", fontStyle: "italic", margin: "4px 0 0" }}>
+          Catatan: {item.notes}
+        </p>
+      )}
+
+      {/* Action button */}
+      {cfg.nextLabel && (
+        <button
+          onClick={() => onStatusChange(item.id, cfg.nextStatus)}
+          disabled={isPending}
+          data-testid={`button-kitchen-${item.id}-next`}
+          style={{
+            marginTop: 14, width: "100%", height: 48, borderRadius: 12,
+            border: "none", cursor: isPending ? "wait" : "pointer",
+            fontSize: 14, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            background: cfg.nextBg, color: "#fff",
+            opacity: isPending ? 0.7 : 1,
+            transition: "opacity 0.15s",
+          }}
+        >
+          {isPending
+            ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+            : <ChevronRight size={16} />}
+          {cfg.nextLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Main Dapur/Bar page
+// ──────────────────────────────────────────────
 export default function KitchenSection() {
-  const [activeTab, setActiveTab] = useState("kitchen");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-  const { data: ordersData = [], isLoading, refetch } = useQuery<Order[]>({
-    queryKey: ["/api/orders/kitchen"],
-    refetchInterval: 3000,
-    refetchOnWindowFocus: true,
-    refetchIntervalInBackground: true,
-    staleTime: 0,
-  });
-
-  const orders = ordersData;
-
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
-    staleTime: 300000, // Cache for 5 minutes
-  });
-
-  const { data: menuItems = [] } = useQuery<MenuItem[]>({
-    queryKey: ["/api/menu"],
-    staleTime: 300000, // Cache for 5 minutes
+  const { data: queue = [], isLoading, refetch } = useQuery<QueueItem[]>({
+    queryKey: ["/api/drink-queue"],
+    refetchInterval: 4000,
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
-      const response = await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status });
-      return response.json();
-    },
-    onMutate: async ({ orderId, status }) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/orders/kitchen'] });
-      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders/kitchen']);
-      queryClient.setQueryData<Order[]>(['/api/orders/kitchen'], (old) => {
-        if (!old) return old;
-        return old.map(order => 
-          order.id === orderId 
-            ? { ...order, orderStatus: status, updatedAt: new Date() }
-            : order
-        );
-      });
-      return { previousOrders };
-    },
-    onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
-      if (status === 'preparing') {
-        toast({
-          title: "Pesanan dimulai",
-          description: "Pesanan telah masuk ke dapur untuk diproses",
-        });
-      } else {
-        toast({
-          title: "Status berhasil diupdate",
-          description: "Status pesanan telah diperbarui",
-        });
-      }
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousOrders) {
-        queryClient.setQueryData(['/api/orders/kitchen'], context.previousOrders);
-      }
-      toast({
-        title: "Gagal update status",
-        description: "Silakan coba lagi",
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
-    }
-  });
-
-  const autoCompleteMutation = useMutation({
-    mutationFn: async ({ orderId }: { orderId: string }) => {
-      const response = await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status: 'served' });
-      return response.json();
-    },
-    onMutate: async ({ orderId }) => {
-      await queryClient.cancelQueries({ queryKey: ['/api/orders/kitchen'] });
-      const previousOrders = queryClient.getQueryData<Order[]>(['/api/orders/kitchen']);
-      queryClient.setQueryData<Order[]>(['/api/orders/kitchen'], (old) => {
-        if (!old) return old;
-        return old.map(order => 
-          order.id === orderId 
-            ? { ...order, orderStatus: 'served', updatedAt: new Date() }
-            : order
-        );
-      });
-      return { previousOrders };
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      setPendingId(id);
+      const res = await apiRequest("PUT", `/api/drink-queue/${id}`, { status });
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
-      toast({
-        title: "Pesanan siap disajikan",
-        description: "Pesanan telah diselesaikan dan siap disajikan ke meja",
-      });
+      // Invalidate both pages — Antrian Pesanan will update automatically
+      queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
     },
-    onError: (err, variables, context) => {
-      if (context?.previousOrders) {
-        queryClient.setQueryData(['/api/orders/kitchen'], context.previousOrders);
-      }
+    onError: (error: any) => {
+      const msg = error?.message || "";
       toast({
-        title: "Gagal menyelesaikan pesanan",
-        description: "Pesanan tetap dalam status siap saji. Silakan selesaikan manual",
+        title: msg.includes("429") ? "Terlalu banyak request" : "Gagal update status",
+        description: msg.includes("429") ? "Tunggu sebentar lalu coba lagi" : msg,
         variant: "destructive",
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/kitchen'] });
-    }
+    onSettled: () => setPendingId(null),
+    retry: (failureCount, error: any) => error?.message?.includes("429") && failureCount < 2,
+    retryDelay: 1500,
   });
 
-  // Helper function to check if an order contains only drinks
-  const isDrinkOnlyOrder = (order: Order): boolean => {
-    const orderItems = order.items as OrderItem[];
-    if (!orderItems.length) return false;
-    
-    return orderItems.every(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      if (!menuItem) return false;
-      
-      const category = categories.find(cat => cat.id === menuItem.categoryId);
-      return category?.name.toLowerCase().includes('minuman');
-    });
-  };
+  // Filter per tab
+  const activeQueue = queue.filter(q => q.status !== "taken");
+  const foodItems  = activeQueue.filter(q => (q as any).itemType === "food");
+  const drinkItems = activeQueue.filter(q => (q as any).itemType !== "food");
+  const displayQueue = activeTab === "food" ? foodItems : activeTab === "drink" ? drinkItems : activeQueue;
 
-  // Helper function to check if an order contains drink items
-  const hasDrinkItems = (order: Order): boolean => {
-    const orderItems = order.items as OrderItem[];
-    if (!orderItems.length) return false;
-    
-    return orderItems.some(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      if (!menuItem) return false;
-      
-      const category = categories.find(cat => cat.id === menuItem.categoryId);
-      return category?.name.toLowerCase().includes('minuman');
-    });
-  };
-
-  // Helper function to check if an order contains food items
-  const hasFoodItems = (order: Order): boolean => {
-    const orderItems = order.items as OrderItem[];
-    if (!orderItems.length) return true; // Default to kitchen if no items found
-    
-    return orderItems.some(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      if (!menuItem) return true; // Default to kitchen if menu item not found
-      
-      const category = categories.find(cat => cat.id === menuItem.categoryId);
-      return !category?.name.toLowerCase().includes('minuman');
-    });
-  };
-
-  // Filter orders for kitchen and bar - only queued and preparing orders
-  const allActiveOrders = orders.filter(order => 
-    order.orderStatus === 'queued' || order.orderStatus === 'preparing'
+  // Sort: waiting → making → ready (taken hidden from default view)
+  const sortOrder = { waiting: 0, making: 1, ready: 2, taken: 3 };
+  const sortedQueue = [...displayQueue].sort((a, b) =>
+    (sortOrder[a.status as keyof typeof sortOrder] ?? 0) - (sortOrder[b.status as keyof typeof sortOrder] ?? 0)
   );
 
-  // Separate orders by type - mixed orders appear in both tabs
-  const kitchenOrders = allActiveOrders.filter(order => hasFoodItems(order));
-  const barOrders = allActiveOrders.filter(order => hasDrinkItems(order));
+  const waiting = activeQueue.filter(q => q.status === "waiting").length;
+  const making  = activeQueue.filter(q => q.status === "making").length;
+  const ready   = activeQueue.filter(q => q.status === "ready").length;
 
-  // Separate queued and preparing orders for kitchen
-  const pendingKitchenOrders = kitchenOrders.filter(order => order.orderStatus === 'queued');
-  const preparingKitchenOrders = kitchenOrders.filter(order => order.orderStatus === 'preparing');
-
-  // Separate queued and preparing orders for bar
-  const pendingBarOrders = barOrders.filter(order => order.orderStatus === 'queued');
-  const preparingBarOrders = barOrders.filter(order => order.orderStatus === 'preparing');
-
-  const handleStartCooking = (order: Order) => {
-    updateStatusMutation.mutate({ orderId: order.id, status: 'preparing' });
-  };
-
-  const handleMarkReady = (orderId: string, fromStation?: "kitchen" | "bar") => {
-    const order = orders.find(o => o.id === orderId);
-    
-    // Only change order status to 'ready' if:
-    // 1. Called from kitchen, OR
-    // 2. Called from bar and the order contains only drinks
-    const shouldMarkReady = fromStation === 'kitchen' || 
-      (fromStation === 'bar' && order && isDrinkOnlyOrder(order));
-    
-    if (shouldMarkReady) {
-      // Update to 'ready'
-      updateStatusMutation.mutate(
-        { orderId, status: 'ready' },
-        {
-          onSuccess: () => {
-            // Auto-complete logic remains the same
-            const shouldAutoComplete = fromStation === 'kitchen' || 
-              (fromStation === 'bar' && order && isDrinkOnlyOrder(order));
-            
-            if (shouldAutoComplete) {
-              // After successfully marking as ready, automatically complete the order
-              setTimeout(() => {
-                autoCompleteMutation.mutate({ orderId });
-              }, 500); // Small delay to ensure the ready state is visible
-            }
-          }
-        }
-      );
-    } else {
-      // For bar items in mixed orders, just show a message without changing order status
-      toast({
-        title: "Minuman siap",
-        description: "Minuman sudah siap, menunggu makanan selesai dari dapur",
-      });
-    }
-  };
-
-  const handlePrintKitchenTicket = async (order: Order, station?: "kitchen" | "bar") => {
-    const orderItems = order.items as OrderItem[];
-    
-    // Filter items based on station type and enrich with menu item details
-    const filteredItems = station ? orderItems.filter(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      if (!menuItem) return station === 'kitchen'; // Default to kitchen if item not found
-      
-      const category = categories.find(cat => cat.id === menuItem.categoryId);
-      const isDrink = category?.name.toLowerCase().trim().includes('minuman');
-      
-      return station === 'bar' ? isDrink : !isDrink;
-    }).map(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      return {
-        ...orderItem,
-        name: menuItem?.name || orderItem.name || 'Item'
-      };
-    }) : orderItems.map(orderItem => {
-      const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-      return {
-        ...orderItem,
-        name: menuItem?.name || orderItem.name || 'Item'
-      };
-    });
-
-    // Guard against empty tickets
-    if (filteredItems.length === 0) {
-      toast({
-        title: "Tidak ada item untuk dicetak",
-        description: `Tidak ada ${station === 'bar' ? 'minuman' : 'makanan'} dalam pesanan ini`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Print the ticket with filtered items
-    await smartPrintKitchenTicket(order, station, filteredItems);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="alonica-card p-4 animate-pulse">
-              <div className="h-32 bg-muted rounded"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const TABS: { key: TabType; label: string; icon: any; count: number }[] = [
+    { key: "all",   label: "Semua",   icon: LayoutGrid, count: activeQueue.length },
+    { key: "food",  label: "Makanan", icon: ChefHat,    count: foodItems.length },
+    { key: "drink", label: "Minuman", icon: GlassWater, count: drinkItems.length },
+  ];
 
   return (
-    <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <ChefHat className="h-8 w-8 text-primary" />
-            <h2 className="text-2xl font-bold text-foreground">Dapur & Bar</h2>
+    <div style={{ minHeight: "100vh", background: "#F5F5F7" }}>
+      {/* Header */}
+      <div style={{
+        background: "#fff", borderBottom: "1px solid #E5E5EA",
+        padding: "20px 24px 0", position: "sticky", top: 0, zIndex: 10,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <ChefHat size={20} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 800, color: "#1D1D1F", margin: 0 }}>Dapur & Bar</h1>
+              <p style={{ fontSize: 12, color: "#6E6E73", margin: 0 }}>
+                {activeQueue.length} item aktif · auto-refresh 4 detik
+              </p>
+            </div>
           </div>
-          <Button
-            variant="outline"
+          <button
             onClick={() => refetch()}
-            className="h-11 flex items-center gap-2"
-            data-testid="button-refresh-orders"
+            data-testid="button-refresh-kitchen"
+            style={{
+              height: 44, paddingInline: 16, borderRadius: 10,
+              border: "1.5px solid #E5E5EA", background: "#fff",
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 600, color: "#1D1D1F", cursor: "pointer",
+            }}
           >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
+            <RefreshCw size={16} /> Refresh
+          </button>
         </div>
 
-        {/* Tabs for Kitchen and Bar */}
-        <TabsContainer defaultValue="kitchen" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="kitchen" className="flex items-center gap-2">
-              <ChefHat className="h-4 w-4" />
-              Dapur ({kitchenOrders.length})
-            </TabsTrigger>
-            <TabsTrigger value="bar" className="flex items-center gap-2">
-              <Wine className="h-4 w-4" />
-              Bar ({barOrders.length})
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Kitchen Tab Content */}
-          <TabsContent value="kitchen" className="space-y-6">
-            {/* Kitchen Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pesanan Baru</p>
-                    <p className="text-3xl font-bold text-yellow-600" data-testid="stat-pending-kitchen-orders">
-                      {pendingKitchenOrders.length}
-                    </p>
-                  </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
-                </div>
-              </div>
-
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Sedang Dimasak</p>
-                    <p className="text-3xl font-bold text-blue-600" data-testid="stat-preparing-kitchen-orders">
-                      {preparingKitchenOrders.length}
-                    </p>
-                  </div>
-                  <ChefHat className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Aktif</p>
-                    <p className="text-3xl font-bold text-primary" data-testid="stat-total-kitchen-active">
-                      {kitchenOrders.length}
-                    </p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-            </div>
-
-            {/* Kitchen Orders Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Pending Kitchen Orders */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-yellow-600" />
-                  Pesanan Baru ({pendingKitchenOrders.length})
-                </h3>
-                {pendingKitchenOrders.map((order) => (
-                  <KitchenOrderCard 
-                    key={order.id} 
-                    order={order} 
-                    onStartCooking={() => handleStartCooking(order)}
-                    onPrint={() => handlePrintKitchenTicket(order, "kitchen")}
-                    isPrimary={true}
-                    filterType="kitchen"
-                    menuItems={menuItems}
-                    categories={categories}
-                  />
-                ))}
-                {pendingKitchenOrders.length === 0 && (
-                  <div className="alonica-card p-8 text-center">
-                    <p className="text-muted-foreground" data-testid="text-no-pending-kitchen-orders">
-                      Tidak ada pesanan makanan baru
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Preparing Kitchen Orders */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <ChefHat className="h-5 w-5 text-blue-600" />
-                  Sedang Dimasak ({preparingKitchenOrders.length})
-                </h3>
-                {preparingKitchenOrders.map((order) => (
-                  <KitchenOrderCard 
-                    key={order.id} 
-                    order={order} 
-                    onMarkReady={() => handleMarkReady(order.id, "kitchen")}
-                    onPrint={() => handlePrintKitchenTicket(order, "kitchen")}
-                    isPrimary={false}
-                    filterType="kitchen"
-                    menuItems={menuItems}
-                    categories={categories}
-                  />
-                ))}
-                {preparingKitchenOrders.length === 0 && (
-                  <div className="alonica-card p-8 text-center">
-                    <p className="text-muted-foreground" data-testid="text-no-preparing-kitchen-orders">
-                      Tidak ada makanan sedang dimasak
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Bar Tab Content */}
-          <TabsContent value="bar" className="space-y-6">
-            {/* Bar Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pesanan Baru</p>
-                    <p className="text-3xl font-bold text-yellow-600" data-testid="stat-pending-bar-orders">
-                      {pendingBarOrders.length}
-                    </p>
-                  </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
-                </div>
-              </div>
-
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Sedang Dibuat</p>
-                    <p className="text-3xl font-bold text-purple-600" data-testid="stat-preparing-bar-orders">
-                      {preparingBarOrders.length}
-                    </p>
-                  </div>
-                  <Wine className="h-8 w-8 text-purple-600" />
-                </div>
-              </div>
-
-              <div className="alonica-card p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Aktif</p>
-                    <p className="text-3xl font-bold text-primary" data-testid="stat-total-bar-active">
-                      {barOrders.length}
-                    </p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-            </div>
-
-            {/* Bar Orders Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Pending Bar Orders */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-yellow-600" />
-                  Pesanan Baru ({pendingBarOrders.length})
-                </h3>
-                {pendingBarOrders.map((order) => (
-                  <KitchenOrderCard 
-                    key={order.id} 
-                    order={order} 
-                    onStartCooking={() => handleStartCooking(order)}
-                    onPrint={() => handlePrintKitchenTicket(order, "bar")}
-                    isPrimary={true}
-                    filterType="bar"
-                    menuItems={menuItems}
-                    categories={categories}
-                  />
-                ))}
-                {pendingBarOrders.length === 0 && (
-                  <div className="alonica-card p-8 text-center">
-                    <p className="text-muted-foreground" data-testid="text-no-pending-bar-orders">
-                      Tidak ada pesanan minuman baru
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Preparing Bar Orders */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Wine className="h-5 w-5 text-purple-600" />
-                  Sedang Dibuat ({preparingBarOrders.length})
-                </h3>
-                {preparingBarOrders.map((order) => (
-                  <KitchenOrderCard 
-                    key={order.id} 
-                    order={order} 
-                    onMarkReady={() => handleMarkReady(order.id, "bar")}
-                    onPrint={() => handlePrintKitchenTicket(order, "bar")}
-                    isPrimary={false}
-                    filterType="bar"
-                    menuItems={menuItems}
-                    categories={categories}
-                  />
-                ))}
-                {preparingBarOrders.length === 0 && (
-                  <div className="alonica-card p-8 text-center">
-                    <p className="text-muted-foreground" data-testid="text-no-preparing-bar-orders">
-                      Tidak ada minuman sedang dibuat
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-        </TabsContainer>
-    </div>
-  );
-}
-
-interface KitchenOrderCardProps {
-  order: Order;
-  onStartCooking?: () => void;
-  onMarkReady?: () => void;
-  onPrint: () => void;
-  isPrimary: boolean;
-  filterType?: "kitchen" | "bar";
-  menuItems?: MenuItem[];
-  categories?: Category[];
-}
-
-function KitchenOrderCard({ order, onStartCooking, onMarkReady, onPrint, isPrimary, filterType, menuItems = [], categories = [] }: KitchenOrderCardProps) {
-  const orderItems = order.items as OrderItem[];
-  const statusColor = getOrderStatusColor(order.orderStatus);
-  
-  // Filter items based on the current view (kitchen or bar)
-  const filteredItems = filterType ? orderItems.filter(orderItem => {
-    const menuItem = menuItems.find(mi => mi.id === orderItem.itemId);
-    if (!menuItem) return filterType === 'kitchen'; // Default to kitchen if item not found
-    
-    const category = categories.find(cat => cat.id === menuItem.categoryId);
-    const isDrink = category?.name.toLowerCase().includes('minuman');
-    
-    return filterType === 'bar' ? isDrink : !isDrink;
-  }) : orderItems;
-
-  // Don't render if no items match the filter
-  if (filteredItems.length === 0) return null;
-  
-  return (
-    <div className="alonica-card overflow-hidden" data-testid={`card-kitchen-order-${order.id}`}>
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <h4 className="font-semibold text-foreground" data-testid={`text-order-customer-${order.id}`}>
-              {order.customerName}
-            </h4>
-            <Badge 
-              className={statusColor}
-              data-testid={`badge-order-status-${order.id}`}
-            >
-              {order.orderStatus === 'queued' ? 'Menunggu' : (filterType === 'bar' ? 'Dibuat' : 'Dimasak')}
-            </Badge>
-            {filterType && (
-              <Badge variant="outline" className="text-xs">
-                {filterType === 'bar' ? 'Bar' : 'Dapur'}
-              </Badge>
-            )}
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Meja</p>
-            <p className="font-semibold" data-testid={`text-table-${order.id}`}>
-              {order.tableNumber}
-            </p>
-          </div>
-        </div>
-
-        {/* Order Time */}
-        <p className="text-sm text-muted-foreground mb-3" data-testid={`text-order-time-${order.id}`}>
-          {formatDate(new Date(order.createdAt))}
-        </p>
-
-        {/* Items - show only relevant items */}
-        <div className="space-y-2 mb-4">
-          {filteredItems.map((item, index) => (
-            <div key={index} className="flex justify-between items-center">
-              <div>
-                <span className="font-medium" data-testid={`text-item-name-${order.id}-${index}`}>
-                  {item.quantity}x {item.name}
-                </span>
-                {item.notes && (
-                  <p className="text-sm text-muted-foreground" data-testid={`text-item-notes-${order.id}-${index}`}>
-                    Note: {item.notes}
-                  </p>
-                )}
-              </div>
+        {/* Status pills */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+          {[
+            { label: "Antri",  count: waiting, color: "#8E8E93", bg: "#F2F2F7" },
+            { label: "Dibuat", count: making,  color: "#FF9500", bg: "#FFF3E0" },
+            { label: "Siap",   count: ready,   color: "#34C759", bg: "#F0FFF4" },
+          ].map(s => (
+            <div key={s.label} style={{
+              height: 30, paddingInline: 12, borderRadius: 999,
+              background: s.bg, color: s.color,
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 700,
+            }}>
+              <span style={{
+                width: 20, height: 20, borderRadius: "50%",
+                background: s.color + "22",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 800,
+              }}>{s.count}</span>
+              {s.label}
             </div>
           ))}
-          {filterType && filteredItems.length < orderItems.length && (
-            <p className="text-xs text-muted-foreground italic">
-              {orderItems.length - filteredItems.length} item lainnya ada di {filterType === 'bar' ? 'dapur' : 'bar'}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", borderTop: "1px solid #E5E5EA" }}>
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                data-testid={`tab-kitchen-${tab.key}`}
+                style={{
+                  flex: 1, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
+                  gap: 6, border: "none", background: "none", cursor: "pointer",
+                  fontSize: 13, fontWeight: isActive ? 700 : 500,
+                  color: isActive ? "#FF9500" : "#6E6E73",
+                  borderBottom: isActive ? "2.5px solid #FF9500" : "2.5px solid transparent",
+                }}
+              >
+                <Icon size={14} />
+                {tab.label}
+                {tab.count > 0 && (
+                  <span style={{
+                    minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
+                    background: isActive ? "#FF9500" : "#E5E5EA",
+                    color: isActive ? "#fff" : "#6E6E73",
+                    fontSize: 10, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>{tab.count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: 20 }}>
+        {isLoading ? (
+          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} style={{
+                background: "#fff", borderRadius: 20, padding: 20, height: 170,
+                border: "2px solid #E5E5EA", animation: "pulse 1.5s infinite",
+              }} />
+            ))}
+          </div>
+        ) : sortedQueue.length === 0 ? (
+          <div style={{ textAlign: "center", paddingBlock: 80, color: "#8E8E93" }}>
+            <ChefHat size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
+            <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
+              {activeTab === "food" ? "Tidak ada antrian makanan" : activeTab === "drink" ? "Tidak ada antrian minuman" : "Tidak ada antrian aktif"}
             </p>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-2">
-          {isPrimary && onStartCooking && (
-            <Button
-              onClick={onStartCooking}
-              className="flex-1 flex items-center gap-2"
-              data-testid={`button-start-cooking-${order.id}`}
-            >
-              <Play className="h-4 w-4" />
-              {filterType === 'bar' ? 'Mulai Buat' : 'Mulai Masak'}
-            </Button>
-          )}
-          
-          {!isPrimary && onMarkReady && (
-            <Button
-              onClick={onMarkReady}
-              className="flex-1 flex items-center gap-2"
-              data-testid={`button-mark-ready-${order.id}`}
-            >
-              <CheckCircle className="h-4 w-4" />
-              Siap Saji
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            onClick={onPrint}
-            className="h-11 flex items-center gap-2"
-            data-testid={`button-print-ticket-${order.id}`}
-          >
-            <Printer className="h-4 w-4" />
-            Print
-          </Button>
-        </div>
+            <p style={{ fontSize: 13, color: "#AEAEB2" }}>
+              Item akan muncul otomatis saat pesanan masuk
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+            {sortedQueue.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status })}
+                pendingId={pendingId}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
