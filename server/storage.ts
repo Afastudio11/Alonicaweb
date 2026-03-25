@@ -66,6 +66,7 @@ export interface IStorage {
   // Stock Management
   validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<StockDeductionResult>;
   deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<StockDeductionResult>;
+  restoreStock(orderItems: { itemId: string; quantity: number }[]): Promise<void>;
   getLowStockItems(): Promise<InventoryItem[]>;
   deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void>;
   restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void>;
@@ -643,6 +644,18 @@ export class DatabaseStorage implements IStorage {
 
   async createOrder(order: InsertOrder): Promise<Order> {
     const [newOrder] = await db.insert(orders).values(order).returning();
+    // Deduct inventory immediately when order is created (all orders including open bills)
+    try {
+      const orderItems = Array.isArray(newOrder.items) ? newOrder.items : [];
+      if (orderItems.length > 0) {
+        await this.deductStock(orderItems.map((item: any) => ({
+          itemId: item.itemId,
+          quantity: item.quantity
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to deduct stock for new order:', error);
+    }
     return newOrder;
   }
 
@@ -652,23 +665,22 @@ export class DatabaseStorage implements IStorage {
       .set({ orderStatus, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning();
-    
-    // If order is completed, deduct stock automatically
-    if (updated && orderStatus === 'served') {
+
+    // If order is cancelled, reverse the stock deduction
+    if (updated && orderStatus === 'cancelled') {
       try {
         const orderItems = Array.isArray(updated.items) ? updated.items : [];
-        const stockResult = await this.deductStock(orderItems.map((item: any) => ({
-          itemId: item.itemId,
-          quantity: item.quantity
-        })));
-        
-        console.log('Stock deduction result:', stockResult);
+        if (orderItems.length > 0) {
+          await this.restoreStock(orderItems.map((item: any) => ({
+            itemId: item.itemId,
+            quantity: item.quantity
+          })));
+        }
       } catch (error) {
-        console.error('Failed to deduct stock for completed order:', error);
-        // Don't fail the order completion if stock deduction fails
+        console.error('Failed to restore stock for cancelled order:', error);
       }
     }
-    
+
     return updated || undefined;
   }
 
@@ -732,6 +744,19 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(orders.id, id))
       .returning();
+
+    // Deduct inventory for the new items added to open bill
+    if (updated && newItems.length > 0) {
+      try {
+        await this.deductStock(newItems.map((item: any) => ({
+          itemId: item.itemId,
+          quantity: item.quantity
+        })));
+      } catch (error) {
+        console.error('Failed to deduct stock for open bill item addition:', error);
+      }
+    }
+
     return updated || undefined;
   }
 
@@ -908,6 +933,19 @@ export class DatabaseStorage implements IStorage {
       success: true,
       deductions
     };
+  }
+
+  async restoreStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
+    for (const orderItem of orderItems) {
+      const ingredients = await this.getMenuItemIngredients(orderItem.itemId);
+      for (const ingredient of ingredients) {
+        const restoreQuantity = ingredient.quantityNeeded * orderItem.quantity;
+        await db
+          .update(inventoryItems)
+          .set({ currentStock: sql`${inventoryItems.currentStock} + ${restoreQuantity}` })
+          .where(eq(inventoryItems.id, ingredient.inventoryItemId));
+      }
+    }
   }
 
   async getLowStockItems(): Promise<InventoryItem[]> {
@@ -2202,6 +2240,7 @@ class MemStorage implements IStorage {
   // Stock Management methods (stub implementations)
   async validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return { success: true, deductions: [] }; }
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return { success: true, deductions: [] }; }
+  async restoreStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return; }
   async getLowStockItems(): Promise<any[]> { return []; }
   async deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
     for (const { itemId, quantity } of orderItems) {
@@ -2731,6 +2770,7 @@ class FallbackStorage implements IStorage {
   // Stock Management methods (stub)
   async validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.validateStockAvailability(orderItems) : this.dbStorage.validateStockAvailability(orderItems)); }
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deductStock(orderItems) : this.dbStorage.deductStock(orderItems)); }
+  async restoreStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.restoreStock(orderItems) : this.dbStorage.restoreStock(orderItems)); }
   async getLowStockItems(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getLowStockItems() : this.dbStorage.getLowStockItems()); }
   async deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deductMenuItemStock(orderItems) : this.dbStorage.deductMenuItemStock(orderItems)); }
   async restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.restoreMenuItemStock(orderItems) : this.dbStorage.restoreMenuItemStock(orderItems)); }

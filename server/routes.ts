@@ -1442,6 +1442,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Shift recap — items sold during shift grouped by category (Makanan/Minuman/Open Bill)
+  app.get("/api/shifts/:id/recap", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shift = await storage.getShift(id);
+      if (!shift) return sendErrorResponse(res, 404, "Shift not found");
+
+      const shiftStart = new Date(shift.startTime);
+      const shiftEnd = shift.endTime ? new Date(shift.endTime) : new Date();
+
+      // Get all orders and menu items/categories
+      const allOrders = await storage.getOrders();
+      const allMenuItems = await storage.getMenuItems();
+      const allCategories = await storage.getCategories();
+
+      // Filter orders created during this shift (all payment statuses)
+      const shiftOrders = allOrders.filter((o: any) => {
+        const t = new Date(o.createdAt);
+        return t >= shiftStart && t <= shiftEnd && o.orderStatus !== 'cancelled';
+      });
+
+      // Build menu item → category map
+      const menuMap = new Map(allMenuItems.map((m: any) => [m.id, m]));
+      const categoryMap = new Map(allCategories.map((c: any) => [c.id, c]));
+
+      interface ItemSummary { name: string; qty: number; total: number; }
+
+      const makananItems: Record<string, ItemSummary> = {};
+      const minumanItems: Record<string, ItemSummary> = {};
+      const openBillItems: Record<string, ItemSummary> = {};
+
+      let totalPaid = 0;
+      let totalOpenBillPending = 0;
+
+      for (const order of shiftOrders) {
+        const isPaid = order.paymentStatus === 'paid';
+        const isOpenBill = order.payLater && order.paymentStatus !== 'paid';
+
+        if (isPaid) totalPaid += order.total;
+        if (isOpenBill) totalOpenBillPending += order.total;
+
+        const items = Array.isArray(order.items) ? order.items : [];
+        for (const item of items) {
+          const menuItem = menuMap.get(item.itemId);
+          const category = menuItem ? categoryMap.get(menuItem.categoryId) : null;
+          const catName = category?.name?.toLowerCase() ?? '';
+          const name = menuItem?.name ?? item.name ?? 'Item';
+          const price = menuItem?.price ?? item.price ?? 0;
+          const qty = item.quantity ?? 1;
+          const subtotal = price * qty;
+
+          if (isOpenBill) {
+            if (!openBillItems[name]) openBillItems[name] = { name, qty: 0, total: 0 };
+            openBillItems[name].qty += qty;
+            openBillItems[name].total += subtotal;
+          } else if (catName.includes('minum') || catName.includes('drink') || catName.includes('beverage')) {
+            if (!minumanItems[name]) minumanItems[name] = { name, qty: 0, total: 0 };
+            minumanItems[name].qty += qty;
+            minumanItems[name].total += subtotal;
+          } else {
+            if (!makananItems[name]) makananItems[name] = { name, qty: 0, total: 0 };
+            makananItems[name].qty += qty;
+            makananItems[name].total += subtotal;
+          }
+        }
+      }
+
+      const totalMakanan = Object.values(makananItems).reduce((s, i) => s + i.total, 0);
+      const totalMinuman = Object.values(minumanItems).reduce((s, i) => s + i.total, 0);
+
+      res.json({
+        shift,
+        makanan: Object.values(makananItems).sort((a, b) => b.qty - a.qty),
+        minuman: Object.values(minumanItems).sort((a, b) => b.qty - a.qty),
+        openBill: Object.values(openBillItems).sort((a, b) => b.qty - a.qty),
+        summary: {
+          totalOrders: shiftOrders.length,
+          totalPaid,
+          totalMakanan,
+          totalMinuman,
+          totalOpenBillPending,
+          totalItems: shiftOrders.reduce((s: number, o: any) => s + (Array.isArray(o.items) ? o.items.reduce((ss: number, i: any) => ss + (i.quantity ?? 1), 0) : 0), 0)
+        }
+      });
+    } catch (error) {
+      return handleApiError(res, error, "Failed to get shift recap");
+    }
+  });
+
   // Cash Movement Management
   app.get("/api/cash-movements", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {
