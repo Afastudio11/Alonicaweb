@@ -2764,6 +2764,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Track orders by phone (public access for customers)
+  app.get("/api/orders/track", async (req, res) => {
+    try {
+      const { phone } = req.query;
+      if (!phone || typeof phone !== 'string' || phone.trim().length < 5) {
+        return res.status(400).json({ error: "Nomor telepon tidak valid" });
+      }
+      const normalizedPhone = phone.trim().replace(/\D/g, '');
+      const foundOrders = await storage.getOrdersByPhone(normalizedPhone);
+      const altOrders = normalizedPhone !== phone.trim() ? await storage.getOrdersByPhone(phone.trim()) : [];
+      const combined = [...foundOrders, ...altOrders];
+      const unique = combined.filter((o, i) => combined.findIndex(x => x.id === o.id) === i);
+      const sorted = unique.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const safe = sorted.map(o => ({
+        id: o.id,
+        customerName: o.customerName,
+        tableNumber: o.tableNumber,
+        orderType: o.orderType,
+        orderStatus: o.orderStatus,
+        paymentStatus: o.paymentStatus,
+        paymentMethod: o.paymentMethod,
+        total: o.total,
+        items: o.items,
+        createdAt: o.createdAt,
+        updatedAt: o.updatedAt,
+      }));
+      res.json(safe);
+    } catch (error) {
+      console.error("Track orders error:", error);
+      res.status(500).json({ error: "Gagal mengambil data pesanan" });
+    }
+  });
+
   // Payment status check endpoint (public access for customers)
   app.get("/api/orders/:id/payment-status", async (req, res) => {
     try {

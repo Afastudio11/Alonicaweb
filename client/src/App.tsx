@@ -16,6 +16,7 @@ const LoginPage = lazy(() => import("@/pages/login"));
 const AdminDashboard = lazy(() => import("@/pages/admin/dashboard"));
 const KasirDashboard = lazy(() => import("@/pages/kasir/dashboard"));
 const ReservasiPage = lazy(() => import("@/pages/reservasi"));
+const LacakPage = lazy(() => import("@/pages/lacak"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Loading component shown while chunks load
@@ -42,6 +43,7 @@ function Router() {
         <Route path="/success" component={SuccessPage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/reservasi" component={ReservasiPage} />
+        <Route path="/lacak" component={LacakPage} />
         <Route path="/admin/:section?" component={AdminDashboard} />
         <Route path="/kasir/:section?" component={KasirDashboard} />
         <Route component={NotFound} />

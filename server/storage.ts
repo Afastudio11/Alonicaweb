@@ -34,6 +34,7 @@ export interface IStorage {
   getPaginatedOrders(params: { limit?: number; offset?: number; status?: string; paymentStatus?: string }): Promise<{ orders: Order[]; total: number }>;
   getOrder(id: string): Promise<Order | undefined>;
   getOrderByMidtransOrderId(midtransOrderId: string): Promise<Order | undefined>;
+  getOrdersByPhone(phone: string): Promise<Order[]>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrderStatus(id: string, status: string): Promise<Order | undefined>;
   updateOrderPayment(id: string, paymentData: {
@@ -671,6 +672,19 @@ export class DatabaseStorage implements IStorage {
   async getOrderByMidtransOrderId(midtransOrderId: string): Promise<Order | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.midtransOrderId, midtransOrderId));
     return order || undefined;
+  }
+
+  async getOrdersByPhone(phone: string): Promise<Order[]> {
+    const normalizedPhone = phone.replace(/\D/g, '');
+    const result = await db.select().from(orders)
+      .where(eq(orders.customerPhone, normalizedPhone))
+      .orderBy(orders.createdAt);
+    const altResult = normalizedPhone !== phone
+      ? await db.select().from(orders).where(eq(orders.customerPhone, phone)).orderBy(orders.createdAt)
+      : [];
+    const combined = [...result, ...altResult];
+    const unique = combined.filter((o, i) => combined.findIndex(x => x.id === o.id) === i);
+    return unique.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async updateOrderPayment(id: string, paymentData: {
@@ -2162,6 +2176,7 @@ class MemStorage implements IStorage {
   async getPaginatedOrders(params: any): Promise<{ orders: any[]; total: number }> { return { orders: [], total: 0 }; }
   async getOrder(id: string): Promise<any | undefined> { return undefined; }
   async getOrderByMidtransOrderId(midtransOrderId: string): Promise<any | undefined> { return undefined; }
+  async getOrdersByPhone(phone: string): Promise<any[]> { return []; }
   async createOrder(order: any): Promise<any> { const id = randomUUID(); const newOrder = { ...order, id }; this.orders.set(id, newOrder); return newOrder; }
   async updateOrderStatus(id: string, status: string): Promise<any | undefined> { return undefined; }
   async updateOrderPayment(id: string, paymentData: any): Promise<any | undefined> { return undefined; }
@@ -2690,6 +2705,7 @@ class FallbackStorage implements IStorage {
   async getPaginatedOrders(params: any): Promise<{ orders: any[]; total: number }> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getPaginatedOrders(params) : this.dbStorage.getPaginatedOrders(params)); }
   async getOrder(id: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrder(id) : this.dbStorage.getOrder(id)); }
   async getOrderByMidtransOrderId(midtransOrderId: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrderByMidtransOrderId(midtransOrderId) : this.dbStorage.getOrderByMidtransOrderId(midtransOrderId)); }
+  async getOrdersByPhone(phone: string): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getOrdersByPhone(phone) : this.dbStorage.getOrdersByPhone(phone)); }
   async createOrder(order: any): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.createOrder(order) : this.dbStorage.createOrder(order)); }
   async updateOrderStatus(id: string, status: string): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.updateOrderStatus(id, status) : this.dbStorage.updateOrderStatus(id, status)); }
   async updateOrderPayment(id: string, paymentData: any): Promise<any | undefined> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.updateOrderPayment(id, paymentData) : this.dbStorage.updateOrderPayment(id, paymentData)); }
