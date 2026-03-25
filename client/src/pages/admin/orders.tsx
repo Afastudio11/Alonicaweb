@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, ShoppingBag, CheckCircle, Clock, DollarSign, Eye, Receipt, Printer, Search, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ import { ORDER_STATUSES } from "@/lib/constants";
 import { smartPrintReceipt } from "@/utils/thermal-print";
 import type { Order, OrderItem } from "@shared/schema";
 
+// Helper: invalidate semua query yang berkaitan dengan orders
+const invalidateOrders = (qc: ReturnType<typeof useQueryClient>) => {
+  qc.invalidateQueries({ predicate: (q) => (q.queryKey[0] as string)?.toString().startsWith('/api/orders') });
+};
+
 export default function OrdersSection() {
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [viewingReceipt, setViewingReceipt] = useState<Order | null>(null);
@@ -24,6 +29,8 @@ export default function OrdersSection() {
   const [pageSize, setPageSize] = useState(50);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  // Track already-accepted order IDs to prevent re-triggering auto-accept
+  const acceptedOrderIds = useRef<Set<string>>(new Set());
 
   const hasActiveFilters = searchQuery !== "" || dateFilter !== "all" || statusFilter !== "all";
 
@@ -52,33 +59,45 @@ export default function OrdersSection() {
       const response = await apiRequest('PATCH', `/api/orders/${orderId}/status`, { status });
       return response.json();
     },
+    onMutate: async ({ orderId, status }) => {
+      // Optimistic update: ubah status di cache langsung tanpa tunggu server
+      await queryClient.cancelQueries({ predicate: (q) => (q.queryKey[0] as string)?.toString().startsWith('/api/orders') });
+      queryClient.setQueriesData(
+        { predicate: (q) => (q.queryKey[0] as string)?.toString().startsWith('/api/orders') },
+        (old: any) => {
+          if (!old) return old;
+          const updateFn = (o: any) => o.id === orderId ? { ...o, orderStatus: status } : o;
+          if (Array.isArray(old)) return old.map(updateFn);
+          if (old?.orders) return { ...old, orders: old.orders.map(updateFn) };
+          return old;
+        }
+      );
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      toast({
-        title: "Status berhasil diupdate",
-        description: "Status pesanan telah diperbarui",
-      });
+      invalidateOrders(queryClient);
+      toast({ title: "Status berhasil diupdate", description: "Status pesanan telah diperbarui" });
     },
     onError: () => {
-      toast({
-        title: "Gagal update status",
-        description: "Silakan coba lagi",
-        variant: "destructive",
-      });
+      invalidateOrders(queryClient); // Refetch untuk kembalikan ke state sebenarnya
+      toast({ title: "Gagal update status", description: "Silakan coba lagi", variant: "destructive" });
     }
   });
 
-  // Auto-accept all queued paid orders — no manual Terima needed
+  // Auto-accept semua queued paid orders — track agar tidak loop
   useEffect(() => {
     const needsAccept = orders.filter(
-      (o: any) => o.orderStatus === 'queued' && (o.paymentStatus === 'paid' || o.paymentMethod === 'cash')
+      (o: any) => o.orderStatus === 'queued' &&
+        (o.paymentStatus === 'paid' || o.paymentMethod === 'cash') &&
+        !acceptedOrderIds.current.has(o.id)
     );
+    if (needsAccept.length === 0) return;
     needsAccept.forEach((o: any) => {
+      acceptedOrderIds.current.add(o.id);
       apiRequest('PATCH', `/api/orders/${o.id}/status`, { status: 'preparing' })
-        .then(() => queryClient.invalidateQueries({ queryKey: ['/api/orders'] }))
-        .catch(() => {});
+        .then(() => invalidateOrders(queryClient))
+        .catch(() => { acceptedOrderIds.current.delete(o.id); });
     });
-  }, [orders]);
+  }, [orders.map((o: any) => `${o.id}:${o.orderStatus}`).join(',')]);
 
 
   // Calculate stats

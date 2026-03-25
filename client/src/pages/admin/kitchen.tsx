@@ -164,11 +164,21 @@ export default function KitchenSection() {
       const res = await apiRequest("PUT", `/api/drink-queue/${id}`, { status });
       return res.json();
     },
+    onMutate: async ({ id, status }) => {
+      // Optimistic update: langsung ubah status di cache tanpa tunggu server
+      await queryClient.cancelQueries({ queryKey: ["/api/drink-queue"] });
+      const prev = queryClient.getQueryData<QueueItem[]>(["/api/drink-queue"]);
+      queryClient.setQueryData(["/api/drink-queue"], (old: QueueItem[] | undefined) =>
+        old ? old.map((item) => item.id === id ? { ...item, status } : item) : old
+      );
+      return { prev };
+    },
     onSuccess: () => {
-      // Invalidate both pages — Antrian Pesanan will update automatically
       queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
     },
-    onError: (error: any) => {
+    onError: (error: any, _vars, context) => {
+      // Kembalikan ke state sebelumnya jika error
+      if (context?.prev) queryClient.setQueryData(["/api/drink-queue"], context.prev);
       const msg = error?.message || "";
       toast({
         title: msg.includes("429") ? "Terlalu banyak request" : "Gagal update status",

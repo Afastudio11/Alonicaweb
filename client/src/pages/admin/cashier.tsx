@@ -16,6 +16,10 @@ import { smartPrintReceipt } from "@/utils/thermal-print";
 import { useAuth } from "@/hooks/use-auth";
 import type { MenuItem, Category, InsertOrder, Order, Discount, StoreProfile } from "@shared/schema";
 
+// Helper: invalidate semua query orders (termasuk open-bills dan query dinamis)
+const invalidateOrders = (qc: ReturnType<typeof useQueryClient>) =>
+  qc.invalidateQueries({ predicate: (q) => (q.queryKey[0] as string)?.toString().startsWith('/api/orders') });
+
 interface CartItem {
   id: string;
   name: string;
@@ -157,7 +161,7 @@ export default function CashierSection() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      invalidateOrders(queryClient);
       toast({
         title: "Pesanan berhasil dibuat",
         description: "Pesanan telah disimpan ke sistem",
@@ -184,9 +188,7 @@ export default function CashierSection() {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/open-bills'] });
-      
+      invalidateOrders(queryClient);
       // Show different messages based on whether it was created or updated
       toast({
         title: data.action === 'updated' ? "Open Bill berhasil diperbarui" : "Open Bill berhasil dibuat",
@@ -215,8 +217,7 @@ export default function CashierSection() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/orders/open-bills'] });
+      invalidateOrders(queryClient);
       toast({
         title: "Bill berhasil disubmit",
         description: "Bill telah dikirim ke dapur untuk diproses",
@@ -318,8 +319,7 @@ export default function CashierSection() {
         });
         
         // Invalidate queries
-        queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/orders/open-bills'] });
+        invalidateOrders(queryClient);
         queryClient.invalidateQueries({ queryKey: ['/api/deletion-logs'] });
       }
       setShowDeletionVerification(false);
@@ -600,8 +600,8 @@ export default function CashierSection() {
         });
         result = await response.json();
         
-        // Invalidate open bills query
-        queryClient.invalidateQueries({ queryKey: ['/api/orders/open-bills'] });
+        // Invalidate orders queries
+        invalidateOrders(queryClient);
         
         toast({
           title: "Open bill berhasil dibayar",
@@ -641,7 +641,7 @@ export default function CashierSection() {
         order: createdOrder
       });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      invalidateOrders(queryClient);
 
       // Handle split payment success
       if (paymentContext.mode === 'split' && (paymentContext as any).splitId) {
