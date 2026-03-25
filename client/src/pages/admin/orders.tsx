@@ -33,7 +33,7 @@ export default function OrdersSection() {
 
   const { data, isLoading, refetch } = useQuery<{ orders: Order[]; total: number } | Order[]>({
     queryKey: [ordersUrl],
-    refetchInterval: 30000,
+    refetchInterval: 8000,
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
@@ -339,12 +339,15 @@ export default function OrdersSection() {
               order.paymentStatus === 'failed' || order.paymentStatus === 'expired' ? { bg: '#FEF2F2', text: '#B91C1C' } :
               { bg: '#F5F5F7', text: '#6E6E73' };
             const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+            const isOnlineOrder = order.paymentMethod === 'qris';
+            const isPendingPayment = isOnlineOrder && order.paymentStatus === 'pending';
+            const rowBg = isPendingPayment ? "#FFFBEB" : "transparent";
 
             return (
               <div
                 key={order.id}
                 data-testid={`row-order-${order.id}`}
-                style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}
+                style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: rowBg, borderLeft: isPendingPayment ? "3px solid #FF9500" : isOnlineOrder ? "3px solid #34C759" : "3px solid transparent" }}
               >
                 {/* Left: ID + waktu */}
                 <div style={{ minWidth: 90, flexShrink: 0 }}>
@@ -358,11 +361,20 @@ export default function OrdersSection() {
 
                 {/* Center: info utama */}
                 <div style={{ flex: 1, minWidth: 160 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F" }}>
-                    {order.customerName}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F" }}>
+                      {order.customerName}
+                    </div>
+                    {isOnlineOrder && (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: isPendingPayment ? "#FEF3C7" : "#DCFCE7", color: isPendingPayment ? "#92400E" : "#15803D" }}>
+                        {isPendingPayment ? "Menunggu Bayar" : "Online"}
+                      </span>
+                    )}
                   </div>
-                  <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, color: "#6E6E73" }}>Meja {order.tableNumber}</span>
+                  <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ fontSize: 12, color: "#6E6E73" }}>
+                      {order.orderType === 'take_away' ? 'Bawa Pulang' : `Meja ${order.tableNumber}`}
+                    </span>
                     <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
                     <button
                       onClick={() => setViewingOrder(order)}
@@ -371,6 +383,14 @@ export default function OrdersSection() {
                     >
                       {itemCount} item
                     </button>
+                    {(order as any).scheduledTime && (
+                      <>
+                        <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
+                        <span style={{ fontSize: 12, color: "#FF2D55", fontWeight: 600 }}>
+                          Ambil: {new Date((order as any).scheduledTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 

@@ -2878,6 +2878,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       await storage.updateOrderStatus(id, 'preparing');
 
+      // Auto-create drink queue entries so order appears in Antrian Pesanan & Dapur
+      await autoCreateDrinkQueue({
+        id: order.id,
+        customerName: order.customerName,
+        tableNumber: order.tableNumber,
+        orderType: (order as any).orderType || 'take_away',
+        branchId: (order as any).branchId ?? null,
+        items: Array.isArray(order.items) ? order.items : [],
+      }).catch(() => {});
+
       // Register member after payment confirmed
       if (order.customerPhone && order.customerName) {
         storage.upsertMember(order.customerPhone, order.customerName, order.total).catch(() => {});
