@@ -459,7 +459,7 @@ export default function CustomerSection() {
           <div className="space-y-4">
             {filteredCustomers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                {customers.length === 0 ? "No customers found" : "No customers match your search"}
+                {customers.length === 0 ? "Tidak ada pelanggan" : "Tidak ada pelanggan yang cocok"}
               </div>
             ) : (
               filteredCustomers.map((customer, index) => (

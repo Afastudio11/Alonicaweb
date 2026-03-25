@@ -123,10 +123,10 @@ export default function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end" data-testid="popover-notifications">
         <div className="p-4 border-b">
-          <h3 className="font-semibold text-lg">Notifications</h3>
+          <h3 className="font-semibold text-lg">Notifikasi</h3>
           {pendingCount > 0 && (
             <p className="text-sm text-muted-foreground">
-              {pendingCount} pending request{pendingCount !== 1 ? 's' : ''}
+              {pendingCount} permintaan tertunda
             </p>
           )}
         </div>
@@ -138,7 +138,7 @@ export default function NotificationBell() {
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              No pending notifications
+              Tidak ada notifikasi tertunda
             </div>
           ) : (
             <div className="divide-y">
@@ -168,8 +168,8 @@ export default function NotificationBell() {
                           {notification.relatedData.item && (
                             <>
                               <p><strong>Item:</strong> {notification.relatedData.item.name}</p>
-                              <p><strong>Quantity:</strong> {notification.relatedData.item.quantity}x</p>
-                              <p><strong>Price:</strong> Rp {notification.relatedData.item.price?.toLocaleString('id-ID')}</p>
+                              <p><strong>Jumlah:</strong> {notification.relatedData.item.quantity}x</p>
+                              <p><strong>Harga:</strong> Rp {notification.relatedData.item.price?.toLocaleString('id-ID')}</p>
                             </>
                           )}
                           {notification.relatedData.reason && (
@@ -193,7 +193,7 @@ export default function NotificationBell() {
                             data-testid={`button-approve-${notification.id}`}
                           >
                             <Check className="h-4 w-4 mr-1" />
-                            Approve
+                            Setujui
                           </Button>
                           <Button
                             size="sm"
@@ -204,7 +204,7 @@ export default function NotificationBell() {
                             data-testid={`button-reject-${notification.id}`}
                           >
                             <X className="h-4 w-4 mr-1" />
-                            Reject
+                            Tolak
                           </Button>
                         </div>
                       )}

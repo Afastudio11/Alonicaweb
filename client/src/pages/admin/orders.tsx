@@ -513,11 +513,11 @@ export default function OrdersSection() {
               {/* Customer & Order Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Customer</h3>
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Pelanggan</h3>
                   <p className="text-lg font-medium" data-testid="order-detail-customer">{viewingOrder.customerName}</p>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Table</h3>
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Meja</h3>
                   <p className="text-lg font-medium" data-testid="order-detail-table">{viewingOrder.tableNumber}</p>
                 </div>
                 <div>
@@ -527,22 +527,24 @@ export default function OrdersSection() {
                   </Badge>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Payment</h3>
-                  <p className="text-lg font-medium" data-testid="order-detail-payment">{viewingOrder.paymentMethod.toUpperCase()}</p>
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase">Pembayaran</h3>
+                  <p className="text-lg font-medium" data-testid="order-detail-payment">
+                    {viewingOrder.paymentMethod === 'qris' ? 'QRIS' : viewingOrder.paymentMethod === 'cash' ? 'Tunai' : viewingOrder.paymentMethod.toUpperCase()}
+                  </p>
                 </div>
               </div>
 
               {/* Order Items */}
               <div>
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase mb-3">Items Ordered</h3>
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase mb-3">Item Dipesan</h3>
                 <div className="space-y-3">
                   {Array.isArray(viewingOrder.items) ? viewingOrder.items.map((item: any, index: number) => (
                     <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-lg" data-testid={`order-item-${index}`}>
                       <div>
                         <h4 className="font-medium">{item.name}</h4>
-                        <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
+                        <p className="text-sm text-muted-foreground">Jumlah: {item.quantity}</p>
                         {item.notes && (
-                          <p className="text-sm text-muted-foreground italic">Notes: {item.notes}</p>
+                          <p className="text-sm text-muted-foreground italic">Catatan: {item.notes}</p>
                         )}
                       </div>
                       <div className="text-right">
@@ -551,7 +553,7 @@ export default function OrdersSection() {
                       </div>
                     </div>
                   )) : (
-                    <p className="text-muted-foreground">No items found</p>
+                    <p className="text-muted-foreground">Tidak ada item</p>
                   )}
                 </div>
               </div>
@@ -564,7 +566,7 @@ export default function OrdersSection() {
                     <span data-testid="order-detail-subtotal">{formatCurrency(viewingOrder.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Discount:</span>
+                    <span>Diskon:</span>
                     <span data-testid="order-detail-discount">{formatCurrency(viewingOrder.discount)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold border-t pt-2">
@@ -576,8 +578,8 @@ export default function OrdersSection() {
 
               {/* Timestamps */}
               <div className="text-sm text-muted-foreground border-t pt-4">
-                <p>Ordered: {formatDate(new Date(viewingOrder.createdAt))}</p>
-                <p>Last Updated: {formatDate(new Date(viewingOrder.updatedAt))}</p>
+                <p>Dipesan: {formatDate(new Date(viewingOrder.createdAt))}</p>
+                <p>Diperbarui: {formatDate(new Date(viewingOrder.updatedAt))}</p>
               </div>
             </div>
           )}
@@ -590,10 +592,10 @@ export default function OrdersSection() {
           <DialogHeader className="print-hide">
             <DialogTitle className="flex items-center space-x-2">
               <Receipt className="h-5 w-5" />
-              <span>Receipt - #{viewingReceipt?.id.slice(-6).toUpperCase()}</span>
+              <span>Struk - #{viewingReceipt?.id.slice(-6).toUpperCase()}</span>
             </DialogTitle>
             <DialogDescription>
-              Receipt pesanan yang bisa dicetak dengan thermal printer.
+              Struk pesanan yang bisa dicetak dengan thermal printer.
             </DialogDescription>
           </DialogHeader>
           
@@ -619,7 +621,7 @@ export default function OrdersSection() {
                   <span>{new Date(viewingReceipt.createdAt).toLocaleTimeString('id-ID')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Customer:</span>
+                  <span>Pelanggan:</span>
                   <span>{viewingReceipt.customerName}</span>
                 </div>
                 <div className="flex justify-between">
@@ -627,7 +629,7 @@ export default function OrdersSection() {
                   <span>{viewingReceipt.tableNumber}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Order ID:</span>
+                  <span>No. Pesanan:</span>
                   <span className="text-xs">#{viewingReceipt.id.slice(-8).toUpperCase()}</span>
                 </div>
               </div>
@@ -680,7 +682,7 @@ export default function OrdersSection() {
                 <div>
                   <p className="text-muted-foreground text-sm">Metode Pembayaran</p>
                   <p className="font-medium capitalize">
-                    {viewingReceipt.paymentMethod === 'qris' ? 'QRIS' : 'Cash'}
+                    {viewingReceipt.paymentMethod === 'qris' ? 'QRIS' : 'Tunai'}
                   </p>
                 </div>
                 <div>
@@ -710,7 +712,7 @@ export default function OrdersSection() {
               className="w-full flex items-center gap-2"
             >
               <Printer className="h-4 w-4" />
-              Print Receipt
+              Cetak Struk
             </Button>
           </div>
         </DialogContent>

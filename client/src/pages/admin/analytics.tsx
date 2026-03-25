@@ -524,7 +524,7 @@ export default function AnalyticsSection() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-foreground">Cash</span>
+                <span className="text-sm text-foreground">Tunai</span>
                 <span className="text-sm font-medium text-primary">{analytics.paymentMethods.cash}%</span>
               </div>
               <div className="flex justify-between items-center">

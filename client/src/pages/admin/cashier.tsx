@@ -1186,9 +1186,9 @@ export default function CashierSection() {
                   cancelled: 'bg-red-50 text-red-700 border-red-200'
                 };
                 const status = bill.orderStatus || 'pending';
-                const statusText = status === 'pending' || status === 'ready' ? 'Ready to serve' : 
-                                  status === 'preparing' ? 'On Cooking' : 
-                                  status === 'cancelled' ? 'Cancelled' : 'Served';
+                const statusText = status === 'pending' || status === 'ready' ? 'Siap Disajikan' : 
+                                  status === 'preparing' ? 'Sedang Dimasak' : 
+                                  status === 'cancelled' ? 'Dibatalkan' : 'Selesai';
                 
                 return (
                   <Card key={bill.id} className="border hover:shadow-md transition-all cursor-pointer bg-white" onClick={() => handlePayOpenBill(bill)}>
@@ -1578,7 +1578,7 @@ export default function CashierSection() {
               {cart.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-sm text-muted-foreground" data-testid="empty-cart-message">
-                    No items in cart yet
+                    Belum ada item di keranjang
                   </p>
                 </div>
               ) : (
@@ -1777,7 +1777,7 @@ export default function CashierSection() {
             </DialogTitle>
             {paymentContext && paymentContext.mode === 'split' && (
               <p className="text-sm text-muted-foreground">
-                Customer: {paymentContext.customerName}
+                Pelanggan: {paymentContext.customerName}
               </p>
             )}
           </DialogHeader>
@@ -1785,7 +1785,7 @@ export default function CashierSection() {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between text-sm mb-2">
-                <span>Customer:</span>
+                <span>Pelanggan:</span>
                 <span className="font-medium">{paymentContext?.customerName || customerName}</span>
               </div>
               <div className="flex justify-between text-sm mb-2">
@@ -1808,7 +1808,7 @@ export default function CashierSection() {
                   <SelectItem value="cash">
                     <div className="flex items-center gap-2">
                       <Banknote className="h-4 w-4" />
-                      <span>Cash</span>
+                      <span>Tunai</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="qris">
@@ -1886,7 +1886,7 @@ export default function CashierSection() {
               disabled={paymentMethod === "cash" && cashAmountNumber < currentPaymentTotal}
               data-testid="button-confirm-payment"
             >
-              Konfirmasi Pembayaran {paymentMethod === "qris" ? "QRIS" : "Cash"}
+              Konfirmasi Pembayaran {paymentMethod === "qris" ? "QRIS" : "Tunai"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1924,7 +1924,7 @@ export default function CashierSection() {
                   <span>{new Date().toLocaleTimeString('id-ID')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Customer:</span>
+                  <span>Pelanggan:</span>
                   <span>{paymentData.order?.customerName || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
@@ -1932,7 +1932,7 @@ export default function CashierSection() {
                   <span>{paymentData.order?.tableNumber || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Order ID:</span>
+                  <span>No. Pesanan:</span>
                   <span className="text-xs">#{paymentData.order?.id?.slice(-8).toUpperCase() || 'N/A'}</span>
                 </div>
               </div>
@@ -2048,7 +2048,7 @@ export default function CashierSection() {
               {/* Customer Info */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between text-sm mb-2">
-                  <span>Customer:</span>
+                  <span>Pelanggan:</span>
                   <span className="font-medium">{viewingBill.customerName}</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">

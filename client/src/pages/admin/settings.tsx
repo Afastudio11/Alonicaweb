@@ -313,7 +313,7 @@ export default function SettingsSection() {
           <div className="border-t border-dashed my-2" />
           <div className="text-left space-y-0.5">
             <div className="flex justify-between"><span>Tanggal:</span><span>24/03/2026 21:00</span></div>
-            <div className="flex justify-between"><span>Customer:</span><span>Budi</span></div>
+            <div className="flex justify-between"><span>Pelanggan:</span><span>Budi</span></div>
             <div className="flex justify-between"><span>Meja:</span><span>T-01</span></div>
             {(formData as any).showCashierName && <div className="flex justify-between"><span>Kasir:</span><span>Admin</span></div>}
           </div>
