@@ -1,33 +1,40 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Phone, Users, Clock, ChevronLeft, ChevronRight, Search, Settings, User, X, CheckCircle2, Circle, XCircle, List } from "lucide-react";
+import {
+  Calendar, Phone, Users, Clock, ChevronLeft, ChevronRight,
+  Search, User, CheckCircle2, Circle, XCircle, CalendarDays, List,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { format, addDays, addWeeks, addMonths, eachDayOfInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, isSameDay, isBefore, startOfDay, isAfter } from "date-fns";
-import { id } from "date-fns/locale";
+import {
+  format, addMonths, eachDayOfInterval, startOfMonth, endOfMonth,
+  isSameDay, isSameMonth, isAfter, startOfDay,
+} from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 import type { Reservation } from "@shared/schema";
 
-// Time slots from 9 AM to 9 PM
-const TIME_SLOTS = [
-  "09:00", "10:00", "11:00", "12:00", "13:00", 
-  "14:00", "15:00", "16:00", "17:00", "18:00", 
-  "19:00", "20:00", "21:00"
-];
+const STATUS_CONFIG: Record<string, { label: string; border: string; bg: string; text: string; dot: string }> = {
+  pending:   { label: "Menunggu",     border: "#3B82F6", bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6" },
+  confirmed: { label: "Dikonfirmasi", border: "#22C55E", bg: "#F0FFF4", text: "#15803D", dot: "#22C55E" },
+  completed: { label: "Selesai",      border: "#A855F7", bg: "#FAF5FF", text: "#7E22CE", dot: "#A855F7" },
+  cancelled: { label: "Dibatalkan",   border: "#EF4444", bg: "#FEF2F2", text: "#B91C1C", dot: "#EF4444" },
+};
+
+const DAY_LABELS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 export default function ReservationsSection() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"calendar" | "log">("calendar");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRangeMode, setDateRangeMode] = useState<"day" | "week" | "month">("day");
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [calendarDayFilter, setCalendarDayFilter] = useState<Date | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -35,876 +42,638 @@ export default function ReservationsSection() {
     queryKey: ["/api/reservations"],
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
-    select: (data) => data.map(reservation => ({
-      ...reservation,
-      reservationDate: new Date(reservation.reservationDate),
-      createdAt: new Date(reservation.createdAt)
-    }))
+    select: (data) => data.map(r => ({
+      ...r,
+      reservationDate: new Date(r.reservationDate),
+      createdAt: new Date(r.createdAt),
+    })),
   });
 
-  const updateReservationMutation = useMutation({
-    mutationFn: async ({ reservationId, status }: { reservationId: string; status: string }) => {
-      const response = await apiRequest('PATCH', `/api/reservations/${reservationId}`, { status });
-      return response.json();
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const r = await apiRequest("PATCH", `/api/reservations/${id}`, { status });
+      return r.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reservations'] });
-      toast({
-        title: "Status reservasi diperbarui",
-        description: "Status reservasi telah berhasil diperbarui",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      toast({ title: "Status reservasi diperbarui" });
     },
-    onError: () => {
-      toast({
-        title: "Gagal memperbarui status",
-        description: "Silakan coba lagi",
-        variant: "destructive",
-      });
-    },
+    onError: () => toast({ title: "Gagal memperbarui status", variant: "destructive" }),
   });
 
-  // Filter reservations for selected date range
-  const filteredReservations = useMemo(() => {
-    const filtered = reservations.filter(reservation => {
-      // Date range filter based on mode
-      let dateMatch = false;
-      const reservationDate = reservation.reservationDate;
-      
-      if (dateRangeMode === "day") {
-        dateMatch = isSameDay(reservationDate, selectedDate);
-      } else if (dateRangeMode === "week") {
-        const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-        const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
-        dateMatch = isWithinInterval(reservationDate, { start: weekStart, end: weekEnd });
-      } else if (dateRangeMode === "month") {
-        const monthStart = startOfMonth(selectedDate);
-        const monthEnd = endOfMonth(selectedDate);
-        dateMatch = isWithinInterval(reservationDate, { start: monthStart, end: monthEnd });
-      }
-      
-      if (!dateMatch) return false;
-      
-      // Status filter
-      const statusMatch = statusFilter === "all" || reservation.status === statusFilter;
-      if (!statusMatch) return false;
-      
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return (
-          reservation.customerName.toLowerCase().includes(query) ||
-          reservation.phoneNumber.includes(query)
-        );
-      }
-      
-      return true;
-    });
-    
-    return filtered;
-  }, [reservations, selectedDate, dateRangeMode, statusFilter, searchQuery]);
-
-  // Get upcoming reservations (future reservations, sorted by date)
-  const upcomingReservations = useMemo(() => {
-    const now = new Date();
-    return reservations
-      .filter(r => 
-        (isAfter(r.reservationDate, startOfDay(now)) || isSameDay(r.reservationDate, now)) &&
-        r.status !== 'cancelled' &&
-        r.status !== 'completed'
-      )
-      .sort((a, b) => a.reservationDate.getTime() - b.reservationDate.getTime())
-      .slice(0, 10); // Show only 10 upcoming
-  }, [reservations]);
-
-  const handleReservationUpdate = (reservationId: string, status: string) => {
-    updateReservationMutation.mutate({ reservationId, status });
-    if (selectedReservation?.id === reservationId) {
+  const handleUpdate = (id: string, status: string) => {
+    updateMutation.mutate({ id, status });
+    if (selectedReservation?.id === id) {
       setSelectedReservation(prev => prev ? { ...prev, status: status as any } : null);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: "border-blue-500",
-      confirmed: "border-green-500", 
-      completed: "border-purple-500",
-      cancelled: "border-red-500"
-    };
-    return colors[status as keyof typeof colors] || "border-gray-300";
-  };
+  // Filter
+  const filteredList = useMemo(() => {
+    return reservations
+      .filter(r => {
+        if (calendarDayFilter && viewMode === "calendar") {
+          if (!isSameDay(r.reservationDate, calendarDayFilter)) return false;
+        }
+        if (statusFilter !== "all" && r.status !== statusFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return r.customerName.toLowerCase().includes(q) || r.phoneNumber.includes(q);
+        }
+        return true;
+      })
+      .sort((a, b) => a.reservationDate.getTime() - b.reservationDate.getTime());
+  }, [reservations, statusFilter, searchQuery, calendarDayFilter, viewMode]);
 
-  const getStatusBgColor = (status: string) => {
-    const colors = {
-      pending: "bg-blue-100 text-blue-700",
-      confirmed: "bg-green-100 text-green-700", 
-      completed: "bg-purple-100 text-purple-700",
-      cancelled: "bg-red-100 text-red-700"
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-700";
-  };
+  // Kalender bulan
+  const monthDays = useMemo(() => {
+    const start = startOfMonth(calendarMonth);
+    const end = endOfMonth(calendarMonth);
+    return eachDayOfInterval({ start, end });
+  }, [calendarMonth]);
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      pending: "Menunggu",
-      confirmed: "Dikonfirmasi",
-      completed: "Selesai", 
-      cancelled: "Dibatalkan"
-    };
-    return labels[status as keyof typeof labels] || status;
-  };
-
-  const previousPeriod = () => {
-    if (dateRangeMode === "day") setSelectedDate(prev => addDays(prev, -1));
-    else if (dateRangeMode === "week") setSelectedDate(prev => addWeeks(prev, -1));
-    else if (dateRangeMode === "month") setSelectedDate(prev => addMonths(prev, -1));
-  };
-  
-  const nextPeriod = () => {
-    if (dateRangeMode === "day") setSelectedDate(prev => addDays(prev, 1));
-    else if (dateRangeMode === "week") setSelectedDate(prev => addWeeks(prev, 1));
-    else if (dateRangeMode === "month") setSelectedDate(prev => addMonths(prev, 1));
-  };
-  
-  const goToToday = () => {
-    setSelectedDate(new Date());
-  };
-
-  // Get days to display based on mode
-  const displayDays = useMemo(() => {
-    if (dateRangeMode === "day") {
-      return [selectedDate];
-    } else if (dateRangeMode === "week") {
-      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
-      return eachDayOfInterval({ start: weekStart, end: weekEnd });
-    } else {
-      const monthStart = startOfMonth(selectedDate);
-      const monthEnd = endOfMonth(selectedDate);
-      return eachDayOfInterval({ start: monthStart, end: monthEnd });
-    }
-  }, [selectedDate, dateRangeMode]);
-
-  // Group reservations by date and time
-  const reservationsByDateAndTime = useMemo(() => {
-    const grouped: Record<string, Record<string, Reservation[]>> = {};
-    
-    filteredReservations.forEach(reservation => {
-      const dateKey = format(reservation.reservationDate, 'yyyy-MM-dd');
-      const time = reservation.reservationTime 
-        ? reservation.reservationTime.substring(0, 5)
-        : format(reservation.reservationDate, 'HH:mm');
-      
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = {};
-      }
-      if (!grouped[dateKey][time]) {
-        grouped[dateKey][time] = [];
-      }
-      grouped[dateKey][time].push(reservation);
+  const reservationsByDay = useMemo(() => {
+    const map: Record<string, Reservation[]> = {};
+    reservations.forEach(r => {
+      const key = format(r.reservationDate, "yyyy-MM-dd");
+      if (!map[key]) map[key] = [];
+      map[key].push(r);
     });
-    
-    return grouped;
-  }, [filteredReservations]);
+    return map;
+  }, [reservations]);
 
-  // Mini calendar for sidebar
-  const currentMonth = useMemo(() => {
-    const monthStart = startOfMonth(selectedDate);
-    const monthEnd = endOfMonth(selectedDate);
-    return eachDayOfInterval({ start: monthStart, end: monthEnd });
-  }, [selectedDate]);
+  // Grid padding at start of month
+  const startPad = useMemo(() => {
+    const dow = monthDays[0]?.getDay() ?? 1;
+    return dow === 0 ? 6 : dow - 1;
+  }, [monthDays]);
 
-  const getDaysInWeeks = (days: Date[]) => {
-    const weeks: Date[][] = [];
-    let week: Date[] = [];
-    
-    // Add empty days at the start
-    const firstDay = days[0];
-    const dayOfWeek = firstDay.getDay();
-    const startPadding = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    
-    for (let i = 0; i < startPadding; i++) {
-      week.push(new Date(0)); // Placeholder
-    }
-    
-    days.forEach(day => {
-      week.push(day);
-      if (week.length === 7) {
-        weeks.push(week);
-        week = [];
-      }
-    });
-    
-    // Add empty days at the end
-    if (week.length > 0) {
-      while (week.length < 7) {
-        week.push(new Date(0)); // Placeholder
-      }
-      weeks.push(week);
-    }
-    
-    return weeks;
-  };
-
-  const weekRows = getDaysInWeeks(currentMonth);
+  // Stats summary
+  const stats = useMemo(() => {
+    const today = reservations.filter(r => isSameDay(r.reservationDate, new Date()));
+    return {
+      total: reservations.length,
+      pending: reservations.filter(r => r.status === "pending").length,
+      confirmed: reservations.filter(r => r.status === "confirmed").length,
+      todayCount: today.length,
+    };
+  }, [reservations]);
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-muted-foreground">Memuat reservasi...</div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            border: "3px solid #FF9500", borderTopColor: "transparent",
+            animation: "spin 0.8s linear infinite", margin: "0 auto 12px",
+          }} />
+          <p style={{ color: "#6E6E73", fontSize: 14 }}>Memuat reservasi...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex bg-background">
-      {/* Left Sidebar */}
-      <div className="hidden md:flex w-80 border-r border-border bg-background flex-col">
-        {/* Appointment Calendar Header */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Appointment Calendar</h2>
-            <div className="flex items-center space-x-1">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-8 w-8 rounded-full bg-primary text-primary-foreground"
-                onClick={goToToday}
-                data-testid="button-today"
-              >
-                <Calendar className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setSelectedDate(addMonths(selectedDate, -1))}
-                className="h-10 w-10"
-                data-testid="button-prev-month"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
-                className="h-10 w-10"
-                data-testid="button-next-month"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          {/* Mini Calendar */}
-          <div className="space-y-2">
-            <div className="text-center text-sm font-medium text-foreground mb-2">
-              {format(selectedDate, 'MMMM yyyy')}
-            </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground mb-1">
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
-              <div>Sun</div>
-            </div>
-            {weekRows.map((week, weekIndex) => (
-              <div key={weekIndex} className="grid grid-cols-7 gap-1">
-                {week.map((day, dayIndex) => {
-                  const isPlaceholder = day.getTime() === 0;
-                  const isToday = !isPlaceholder && isSameDay(day, new Date());
-                  const isSelected = !isPlaceholder && isSameDay(day, selectedDate);
-                  const hasReservations = !isPlaceholder && reservations.some(r => isSameDay(r.reservationDate, day));
-                  
-                  return (
-                    <button
-                      key={dayIndex}
-                      onClick={() => !isPlaceholder && setSelectedDate(day)}
-                      disabled={isPlaceholder}
-                      className={`
-                        h-8 w-8 rounded-full text-xs font-medium transition-colors relative
-                        ${isPlaceholder ? 'invisible' : ''}
-                        ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                        ${isToday && !isSelected ? 'border-2 border-primary text-primary' : ''}
-                        ${!isSelected && !isToday ? 'hover:bg-muted text-foreground' : ''}
-                      `}
-                      data-testid={`calendar-day-${!isPlaceholder ? format(day, 'yyyy-MM-dd') : ''}`}
-                    >
-                      {!isPlaceholder && format(day, 'd')}
-                      {hasReservations && !isSelected && (
-                        <span className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
+    <div style={{ maxWidth: 900, margin: "0 auto" }} className="space-y-5 pb-10">
 
-        {/* Upcoming Reservations List */}
-        <div className="flex-1 overflow-auto p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Upcoming Reservations</h3>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="h-6 w-6"
-              data-testid="button-more-options"
-            >
-              <Settings className="h-3 w-3" />
-            </Button>
-          </div>
-          
-          <div className="space-y-3">
-            {upcomingReservations.length > 0 ? (
-              upcomingReservations.map((reservation) => (
-                <Card
-                  key={reservation.id}
-                  className="p-3 cursor-pointer hover:shadow-md transition-shadow border-l-4"
-                  style={{ borderLeftColor: reservation.status === 'pending' ? '#3b82f6' : '#22c55e' }}
-                  onClick={() => setSelectedReservation(reservation)}
-                  data-testid={`upcoming-reservation-${reservation.id}`}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <User className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-semibold text-foreground truncate">
-                        {reservation.customerName}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">
-                        {reservation.guestCount} {reservation.guestCount === 1 ? 'guest' : 'guests'}
-                      </p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-xs font-medium text-foreground">
-                        {reservation.reservationTime?.substring(0, 5)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {format(reservation.reservationDate, 'MMM dd')}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                No upcoming reservations
-              </div>
-            )}
-          </div>
-          
-          {upcomingReservations.length > 0 && (
-            <Button 
-              variant="default" 
-              className="w-full mt-4"
-              data-testid="button-see-all"
-            >
-              See All
-            </Button>
-          )}
+      {/* ── Header ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1D1D1F" }}>Reservasi</h1>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[
+            { label: "Hari Ini", value: stats.todayCount, color: "#FF9500" },
+            { label: "Menunggu", value: stats.pending, color: "#3B82F6" },
+            { label: "Dikonfirmasi", value: stats.confirmed, color: "#22C55E" },
+          ].map(s => (
+            <div key={s.label} style={{
+              padding: "6px 14px", borderRadius: 20,
+              background: "#F5F5F7", display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
+              <span style={{ fontSize: 13, color: "#6E6E73" }}>{s.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F" }}>{s.value}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-background">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 bg-background rounded-lg border border-border px-2">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={previousPeriod}
-                className="h-11 w-11"
-                data-testid="button-previous-period"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              
-              <div className="px-3 py-1 min-w-[200px] text-center">
-                <span className="text-sm font-semibold text-foreground" data-testid="text-selected-date">
-                  {format(selectedDate, 'MMMM yyyy')}
-                </span>
-              </div>
-              
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={nextPeriod}
-                className="h-11 w-11"
-                data-testid="button-next-period"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
-            </div>
+      {/* ── View Tabs ── */}
+      <div style={{ display: "flex", gap: 4, background: "#F5F5F7", borderRadius: 14, padding: 4, width: "fit-content" }}>
+        {[
+          { key: "list", label: "Daftar", icon: List },
+          { key: "calendar", label: "Kalender Bulan", icon: CalendarDays },
+        ].map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            onClick={() => { setViewMode(key as any); setCalendarDayFilter(null); }}
+            data-testid={`tab-${key}`}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "8px 18px", borderRadius: 10, border: "none",
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
+              transition: "all 0.15s",
+              background: viewMode === key ? "#fff" : "transparent",
+              color: viewMode === key ? "#1D1D1F" : "#6E6E73",
+              boxShadow: viewMode === key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+            }}
+          >
+            <Icon size={15} />
+            {label}
+          </button>
+        ))}
+      </div>
 
-            <Button 
-              variant="outline"
-              onClick={goToToday}
-              className="h-11 text-sm"
-              data-testid="button-today-main"
+      {/* ── Filter Bar ── */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ position: "relative", flex: "1 1 200px", minWidth: 160 }}>
+          <Search size={15} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#8E8E93" }} />
+          <Input
+            placeholder="Cari nama / telepon..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ paddingLeft: 32, height: 40 }}
+            data-testid="input-search"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger style={{ width: 160, height: 40 }} data-testid="select-status">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            <SelectItem value="pending">Menunggu</SelectItem>
+            <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
+            <SelectItem value="completed">Selesai</SelectItem>
+            <SelectItem value="cancelled">Dibatalkan</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* ══════════ CALENDAR VIEW ══════════ */}
+      {viewMode === "calendar" && (
+        <div className="space-y-4">
+          {/* Month Navigation */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => { setCalendarMonth(m => addMonths(m, -1)); setCalendarDayFilter(null); }}
+              style={{ padding: 6, borderRadius: 8, border: "1.5px solid #E5E5EA", background: "#fff", cursor: "pointer", display: "flex" }}
+              data-testid="button-prev-month"
+            >
+              <ChevronLeft size={18} color="#1D1D1F" />
+            </button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#1D1D1F", minWidth: 130, textAlign: "center" }}>
+              {format(calendarMonth, "MMMM yyyy", { locale: idLocale })}
+            </span>
+            <button
+              onClick={() => { setCalendarMonth(m => addMonths(m, 1)); setCalendarDayFilter(null); }}
+              style={{ padding: 6, borderRadius: 8, border: "1.5px solid #E5E5EA", background: "#fff", cursor: "pointer", display: "flex" }}
+              data-testid="button-next-month"
+            >
+              <ChevronRight size={18} color="#1D1D1F" />
+            </button>
+            <button
+              onClick={() => { setCalendarMonth(new Date()); setCalendarDayFilter(null); }}
+              style={{
+                padding: "6px 14px", borderRadius: 8, border: "1.5px solid #E5E5EA",
+                background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#1D1D1F",
+              }}
+              data-testid="button-today-calendar"
             >
               Hari Ini
-            </Button>
+            </button>
+            {calendarDayFilter && (
+              <button
+                onClick={() => setCalendarDayFilter(null)}
+                style={{
+                  padding: "6px 14px", borderRadius: 8, border: "1.5px solid #FF9500",
+                  background: "#FFF5E6", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#FF9500",
+                }}
+              >
+                {format(calendarDayFilter, "d MMM", { locale: idLocale })} ✕
+              </button>
+            )}
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "calendar" | "log")} className="w-auto">
-              <TabsList className="h-11">
-                <TabsTrigger value="calendar" className="text-sm px-4" data-testid="tab-calendar-view">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Kalender
-                </TabsTrigger>
-                <TabsTrigger value="log" className="text-sm px-4" data-testid="tab-log-view">
-                  <List className="h-4 w-4 mr-1" />
-                  Log
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="flex items-center gap-2">
-              {[
-                { value: "day", label: "Harian", testid: "button-daily" },
-                { value: "week", label: "Mingguan", testid: "button-weekly" },
-                { value: "month", label: "Bulanan", testid: "button-monthly" },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setDateRangeMode(opt.value as typeof dateRangeMode)}
-                  className="h-11 px-4 rounded-full text-sm font-medium transition-all"
-                  style={dateRangeMode === opt.value
-                    ? { background: "#FF9500", color: "#fff", border: "none" }
-                    : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
-                  }
-                  data-testid={opt.testid}
-                >
-                  {opt.label}
-                </button>
+          {/* Calendar Grid */}
+          <div style={{
+            background: "#fff", borderRadius: 16,
+            border: "1px solid #E5E5EA", overflow: "hidden",
+          }}>
+            {/* Day headers */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", background: "#F5F5F7" }}>
+              {DAY_LABELS.map(d => (
+                <div key={d} style={{
+                  textAlign: "center", padding: "10px 0",
+                  fontSize: 12, fontWeight: 700, color: "#8E8E93", textTransform: "uppercase",
+                }}>
+                  {d}
+                </div>
               ))}
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-36 h-11 text-sm" data-testid="select-status-filter">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="pending">Menunggu</SelectItem>
-                <SelectItem value="confirmed">Dikonfirmasi</SelectItem>
-                <SelectItem value="completed">Selesai</SelectItem>
-                <SelectItem value="cancelled">Dibatalkan</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Day cells */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+              {/* Padding cells */}
+              {Array.from({ length: startPad }).map((_, i) => (
+                <div key={`pad-${i}`} style={{ minHeight: 72, borderTop: "1px solid #F0F0F0" }} />
+              ))}
+              {monthDays.map(day => {
+                const key = format(day, "yyyy-MM-dd");
+                const dayRes = reservationsByDay[key] ?? [];
+                const isToday = isSameDay(day, new Date());
+                const isSelected = calendarDayFilter && isSameDay(day, calendarDayFilter);
+                const pendingCount = dayRes.filter(r => r.status === "pending").length;
+                const confirmedCount = dayRes.filter(r => r.status === "confirmed").length;
 
-            <Button variant="ghost" size="icon" className="h-11 w-11" data-testid="button-settings">
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Calendar Grid / Log View */}
-        <div className="flex-1 overflow-auto bg-muted/10">
-          {viewMode === "log" ? (
-            /* Log View - List of all reservations */
-            <div className="p-6">
-              <div className="max-w-4xl mx-auto space-y-3">
-                {filteredReservations.length > 0 ? (
-                  filteredReservations
-                    .sort((a, b) => b.reservationDate.getTime() - a.reservationDate.getTime())
-                    .map((reservation) => (
-                      <Card
-                        key={reservation.id}
-                        className={`p-4 border-l-4 ${getStatusColor(reservation.status)} hover:shadow-md transition-shadow cursor-pointer`}
-                        onClick={() => setSelectedReservation(reservation)}
-                        data-testid={`log-reservation-${reservation.id}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-base font-semibold text-foreground">
-                                {reservation.customerName}
-                              </h3>
-                              <Badge className={`text-xs ${getStatusBgColor(reservation.status)}`}>
-                                {getStatusLabel(reservation.status)}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                              <span className="flex items-center">
-                                <Calendar className="h-4 w-4 mr-1.5" />
-                                {format(reservation.reservationDate, 'EEE, MMM dd, yyyy')}
-                              </span>
-                              <span className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1.5" />
-                                {reservation.reservationTime}
-                              </span>
-                              <span className="flex items-center">
-                                <Users className="h-4 w-4 mr-1.5" />
-                                {reservation.guestCount} {reservation.guestCount === 1 ? 'guest' : 'guests'}
-                              </span>
-                              <span className="flex items-center">
-                                <Phone className="h-4 w-4 mr-1.5" />
-                                {reservation.phoneNumber}
-                              </span>
-                            </div>
-                            {reservation.notes && (
-                              <p className="mt-2 text-sm text-muted-foreground italic">
-                                Note: {reservation.notes}
-                              </p>
-                            )}
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setCalendarDayFilter(isSelected ? null : day)}
+                    data-testid={`cal-day-${key}`}
+                    style={{
+                      minHeight: 72, borderTop: "1px solid #F0F0F0",
+                      padding: "8px 6px", textAlign: "left",
+                      cursor: dayRes.length > 0 || true ? "pointer" : "default",
+                      background: isSelected ? "#FFF5E6" : isToday ? "#FFFBF5" : "#fff",
+                      border: "none",
+                      outline: isSelected ? "2px solid #FF9500" : "none",
+                      transition: "background 0.1s",
+                    }}
+                  >
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      width: 26, height: 26, borderRadius: "50%", fontSize: 13, fontWeight: 600,
+                      background: isToday ? "#FF9500" : "transparent",
+                      color: isToday ? "#fff" : "#1D1D1F",
+                      marginBottom: 4,
+                    }}>
+                      {format(day, "d")}
+                    </span>
+                    {dayRes.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        {pendingCount > 0 && (
+                          <div style={{
+                            fontSize: 10, fontWeight: 600, padding: "1px 5px",
+                            borderRadius: 4, background: "#EFF6FF", color: "#1D4ED8",
+                          }}>
+                            {pendingCount} menunggu
                           </div>
-                        </div>
-                      </Card>
-                    ))
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No reservations found for the selected filters
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : dateRangeMode === "day" ? (
-            <div className="min-w-[800px] h-full">
-              {/* Time Grid Header */}
-              <div className="grid border-b border-border sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `100px repeat(${displayDays.length}, 1fr)` }}>
-                <div className="border-r border-border p-3">
-                  <span className="text-xs font-medium text-muted-foreground">GMT+8</span>
-                </div>
-                {displayDays.map((day) => (
-                  <div key={day.toISOString()} className="p-3 border-r border-border last:border-r-0">
-                    <div className="text-center">
-                      <div className="text-xs font-medium text-muted-foreground uppercase">
-                        {format(day, 'EEE')}
-                      </div>
-                      <div className="text-sm font-semibold text-foreground">
-                        {format(day, 'dd')}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Time Slots */}
-              <div className="grid" style={{ gridTemplateColumns: `80px repeat(${displayDays.length}, 1fr)` }}>
-                <div className="border-r border-border bg-background">
-                  {TIME_SLOTS.map((time) => (
-                    <div 
-                      key={time} 
-                      className="h-12 border-b border-border px-2 py-1 text-right flex items-center justify-end"
-                    >
-                      <span className="text-[11px] font-medium text-muted-foreground">{time}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Appointment Slots for each day */}
-                {displayDays.map((day) => {
-                  const dateKey = format(day, 'yyyy-MM-dd');
-                  return (
-                    <div key={dateKey} className="border-r border-border last:border-r-0">
-                      {TIME_SLOTS.map((time) => (
-                        <div 
-                          key={`${dateKey}-${time}`} 
-                          className="h-12 border-b border-border relative bg-background hover:bg-muted/20 transition-colors"
-                          data-testid={`slot-${dateKey}-${time}`}
-                        >
-                          {reservationsByDateAndTime[dateKey]?.[time]?.map((reservation, resIndex) => (
-                            <Card
-                              key={reservation.id}
-                              className={`absolute left-0.5 right-0.5 p-1.5 border-l-4 ${getStatusBgColor(reservation.status)} hover:shadow-md transition-shadow cursor-pointer ${getStatusColor(reservation.status)}`}
-                              style={{ 
-                                top: `${resIndex * 36 + 2}px`,
-                                zIndex: resIndex + 1
-                              }}
-                              onClick={() => setSelectedReservation(reservation)}
-                              data-testid={`card-reservation-${reservation.id}`}
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-[11px] font-semibold truncate leading-tight" data-testid={`text-customer-${reservation.id}`}>
-                                    {reservation.customerName}
-                                  </h4>
-                                  <div className="flex items-center space-x-1.5 text-[9px] mt-0.5">
-                                    <span className="flex items-center">
-                                      <Clock className="h-2 w-2 mr-0.5" />
-                                      {reservation.reservationTime?.substring(0, 5)}
-                                    </span>
-                                    <span className="flex items-center">
-                                      <Users className="h-2 w-2 mr-0.5" />
-                                      {reservation.guestCount}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="p-6">
-              <div className={`grid gap-4 ${dateRangeMode === 'week' ? 'grid-cols-7' : 'grid-cols-7'}`}>
-                {displayDays.map((day) => {
-                  const dateKey = format(day, 'yyyy-MM-dd');
-                  const dayReservations = Object.values(reservationsByDateAndTime[dateKey] || {}).flat();
-                  const isToday = isSameDay(day, new Date());
-                  
-                  return (
-                    <Card 
-                      key={dateKey} 
-                      className={`overflow-hidden ${isToday ? 'ring-2 ring-primary' : ''}`}
-                      data-testid={`date-card-${dateKey}`}
-                    >
-                      <div className={`p-3 text-center border-b ${isToday ? 'bg-primary text-primary-foreground' : 'bg-muted/50'}`}>
-                        <div className="text-xs font-medium uppercase tracking-wide mb-1">
-                          {format(day, 'EEE')}
-                        </div>
-                        <div className="text-2xl font-bold">
-                          {format(day, 'dd')}
-                        </div>
-                        <div className="text-xs opacity-80">
-                          {format(day, 'MMM')}
-                        </div>
-                      </div>
-                      <div className="p-2 min-h-[120px] max-h-[300px] overflow-y-auto">
-                        {dayReservations.length > 0 ? (
-                          <div className="space-y-2">
-                            {dayReservations.map((reservation) => (
-                              <Card
-                                key={reservation.id}
-                                className={`p-2 border-l-4 ${getStatusBgColor(reservation.status)} ${getStatusColor(reservation.status)} hover:shadow-md transition-shadow cursor-pointer`}
-                                onClick={() => setSelectedReservation(reservation)}
-                                data-testid={`card-reservation-${reservation.id}`}
-                              >
-                                <h4 className="text-xs font-semibold truncate" data-testid={`text-customer-${reservation.id}`}>
-                                  {reservation.customerName}
-                                </h4>
-                                <div className="flex items-center space-x-2 text-[10px] mt-1">
-                                  <span className="flex items-center">
-                                    <Clock className="h-2.5 w-2.5 mr-0.5" />
-                                    {reservation.reservationTime}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Users className="h-2.5 w-2.5 mr-0.5" />
-                                    {reservation.guestCount}
-                                  </span>
-                                </div>
-                              </Card>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center text-xs text-muted-foreground py-4">
-                            No reservations
+                        )}
+                        {confirmedCount > 0 && (
+                          <div style={{
+                            fontSize: 10, fontWeight: 600, padding: "1px 5px",
+                            borderRadius: 4, background: "#F0FFF4", color: "#15803D",
+                          }}>
+                            {confirmedCount} konfirmasi
                           </div>
                         )}
                       </div>
-                    </Card>
-                  );
-                })}
-              </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Reservasi untuk hari yang dipilih */}
+          {calendarDayFilter && (
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F", marginBottom: 10 }}>
+                Reservasi {format(calendarDayFilter, "EEEE, d MMMM yyyy", { locale: idLocale })}
+              </p>
+              <ReservationList
+                reservations={filteredList}
+                onSelect={setSelectedReservation}
+              />
             </div>
           )}
         </div>
-      </div>
+      )}
 
-      {/* Reservation Detail Dialog */}
-      <Dialog open={selectedReservation !== null} onOpenChange={(open) => !open && setSelectedReservation(null)}>
-        <DialogContent className="max-w-md">
+      {/* ══════════ LIST VIEW ══════════ */}
+      {viewMode === "list" && (
+        <ReservationList reservations={filteredList} onSelect={setSelectedReservation} />
+      )}
+
+      {/* ── Detail Dialog ── */}
+      <Dialog open={!!selectedReservation} onOpenChange={open => !open && setSelectedReservation(null)}>
+        <DialogContent style={{ maxWidth: 420 }}>
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Reservation Details</DialogTitle>
+            <DialogTitle>Detail Reservasi</DialogTitle>
           </DialogHeader>
-          
           {selectedReservation && (
             <div className="space-y-4">
-              {/* Customer Info */}
-              <div className="flex items-center space-x-3 pb-4 border-b border-border">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-6 w-6 text-primary" />
+              {/* Customer */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, borderBottom: "1px solid #E5E5EA" }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: "50%",
+                  background: "#FFF5E6", display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <User size={22} color="#FF9500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">{selectedReservation.customerName}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Phone className="h-3 w-3 mr-1" />
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "#1D1D1F" }}>{selectedReservation.customerName}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#6E6E73", marginTop: 2 }}>
+                    <Phone size={12} />
                     {selectedReservation.phoneNumber}
                   </div>
                 </div>
+                <div style={{ marginLeft: "auto" }}>
+                  <span style={{
+                    fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 20,
+                    background: STATUS_CONFIG[selectedReservation.status]?.bg,
+                    color: STATUS_CONFIG[selectedReservation.status]?.text,
+                  }}>
+                    {STATUS_CONFIG[selectedReservation.status]?.label ?? selectedReservation.status}
+                  </span>
+                </div>
               </div>
 
-              {/* Reservation Info */}
+              {/* Info */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Date</span>
-                  <span className="font-medium text-foreground">
-                    {format(selectedReservation.reservationDate, 'EEEE, MMM dd, yyyy')}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Time</span>
-                  <span className="font-medium text-foreground">
-                    {selectedReservation.reservationTime}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Guests</span>
-                  <span className="font-medium text-foreground flex items-center">
-                    <Users className="h-3 w-3 mr-1" />
-                    {selectedReservation.guestCount} {selectedReservation.guestCount === 1 ? 'guest' : 'guests'}
-                  </span>
-                </div>
+                {[
+                  {
+                    label: "Tanggal",
+                    value: format(selectedReservation.reservationDate, "EEEE, d MMMM yyyy", { locale: idLocale }),
+                    icon: Calendar,
+                  },
+                  {
+                    label: "Jam",
+                    value: selectedReservation.reservationTime,
+                    icon: Clock,
+                  },
+                  {
+                    label: "Jumlah Tamu",
+                    value: `${selectedReservation.guestCount} orang`,
+                    icon: Users,
+                  },
+                ].map(({ label, value, icon: Icon }) => (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14 }}>
+                    <span style={{ color: "#6E6E73", display: "flex", alignItems: "center", gap: 6 }}>
+                      <Icon size={14} />
+                      {label}
+                    </span>
+                    <span style={{ fontWeight: 600, color: "#1D1D1F" }}>{value}</span>
+                  </div>
+                ))}
                 {selectedReservation.notes && (
-                  <div className="text-sm">
-                    <span className="text-muted-foreground block mb-1">Notes</span>
-                    <p className="text-foreground bg-muted/50 p-2 rounded">{selectedReservation.notes}</p>
+                  <div style={{ background: "#F5F5F7", borderRadius: 10, padding: "10px 12px", fontSize: 13, color: "#6E6E73" }}>
+                    <span style={{ fontWeight: 600, color: "#1D1D1F" }}>Catatan: </span>
+                    {selectedReservation.notes}
                   </div>
                 )}
               </div>
 
-              {/* Progress Tracker */}
-              <div className="pt-4 border-t border-border">
-                <h4 className="text-sm font-semibold mb-4 text-foreground">Progress Status</h4>
-                <div className="relative pl-4">
-                  {/* Vertical connecting line */}
-                  <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-border" />
-                  
-                  <div className="space-y-6">
-                    {/* Pending */}
-                    <div className="flex items-start space-x-3 relative">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 ${
-                        selectedReservation.status === 'pending' ? 'bg-blue-500 text-white border-blue-500' :
-                        selectedReservation.status === 'cancelled' ? 'bg-gray-300 text-gray-500 border-gray-300' :
-                        'bg-green-500 text-white border-green-500'
-                      }`}>
-                        {selectedReservation.status === 'pending' ? (
-                          <Circle className="h-4 w-4 fill-current" />
-                        ) : selectedReservation.status === 'cancelled' ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : (
-                          <CheckCircle2 className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <div className="text-sm font-semibold text-foreground">Menunggu</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Reservasi diterima</div>
-                      </div>
-                    </div>
-
-                    {/* Confirmed */}
-                    <div className="flex items-start space-x-3 relative">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 ${
-                        selectedReservation.status === 'confirmed' ? 'bg-green-500 text-white border-green-500' :
-                        selectedReservation.status === 'completed' ? 'bg-green-500 text-white border-green-500' :
-                        selectedReservation.status === 'cancelled' ? 'bg-gray-300 text-gray-500 border-gray-300' :
-                        'bg-background text-gray-400 border-gray-200'
-                      }`}>
-                        {(selectedReservation.status === 'confirmed' || selectedReservation.status === 'completed') ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : selectedReservation.status === 'cancelled' ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : (
-                          <Circle className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <div className="text-sm font-semibold text-foreground">Dikonfirmasi</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">Reservasi dikonfirmasi</div>
-                      </div>
-                    </div>
-
-                    {/* Completed or Cancelled */}
-                    <div className="flex items-start space-x-3 relative">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 ${
-                        selectedReservation.status === 'completed' ? 'bg-purple-500 text-white border-purple-500' :
-                        selectedReservation.status === 'cancelled' ? 'bg-red-500 text-white border-red-500' :
-                        'bg-background text-gray-400 border-gray-200'
-                      }`}>
-                        {selectedReservation.status === 'completed' ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : selectedReservation.status === 'cancelled' ? (
-                          <XCircle className="h-4 w-4" />
-                        ) : (
-                          <Circle className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1 pt-1">
-                        <div className="text-sm font-semibold text-foreground">
-                          {selectedReservation.status === 'cancelled' ? 'Dibatalkan' : 'Selesai'}
+              {/* Status Timeline */}
+              <div style={{ paddingTop: 12, borderTop: "1px solid #E5E5EA" }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F", marginBottom: 12 }}>Progress</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 0, position: "relative", paddingLeft: 20 }}>
+                  <div style={{ position: "absolute", left: 11, top: 12, bottom: 12, width: 2, background: "#E5E5EA" }} />
+                  {[
+                    { key: "pending", label: "Menunggu", desc: "Reservasi diterima" },
+                    { key: "confirmed", label: "Dikonfirmasi", desc: "Reservasi dikonfirmasi" },
+                    { key: "completed", label: "Selesai", desc: "Layanan selesai" },
+                  ].map((step, i) => {
+                    const statuses = ["pending", "confirmed", "completed", "cancelled"];
+                    const currentIdx = statuses.indexOf(selectedReservation.status);
+                    const stepIdx = statuses.indexOf(step.key);
+                    const isCancelled = selectedReservation.status === "cancelled";
+                    const isDone = !isCancelled && currentIdx >= stepIdx;
+                    const isCurrent = selectedReservation.status === step.key;
+                    return (
+                      <div key={step.key} style={{ display: "flex", alignItems: "flex-start", gap: 10, paddingBottom: i < 2 ? 16 : 0 }}>
+                        <div style={{
+                          width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          background: isCancelled ? "#F5F5F7" : isDone ? "#22C55E" : "#F5F5F7",
+                          zIndex: 1,
+                        }}>
+                          {isDone && !isCancelled
+                            ? <CheckCircle2 size={14} color="#fff" />
+                            : <Circle size={14} color={isCancelled ? "#C7C7CC" : "#C7C7CC"} />
+                          }
                         </div>
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {selectedReservation.status === 'cancelled' ? 'Reservasi dibatalkan' : 'Layanan selesai'}
+                        <div style={{ paddingTop: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: isCurrent ? 700 : 500, color: isDone && !isCancelled ? "#1D1D1F" : "#8E8E93" }}>
+                            {step.label}
+                          </div>
+                          <div style={{ fontSize: 11, color: "#8E8E93" }}>{step.desc}</div>
                         </div>
                       </div>
+                    );
+                  })}
+                  {selectedReservation.status === "cancelled" && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{
+                        width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        background: "#FEF2F2", zIndex: 1,
+                      }}>
+                        <XCircle size={14} color="#EF4444" />
+                      </div>
+                      <div style={{ paddingTop: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#EF4444" }}>Dibatalkan</div>
+                        <div style={{ fontSize: 11, color: "#8E8E93" }}>Reservasi dibatalkan</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex space-x-2 pt-4 border-t border-border">
-                {selectedReservation.status === 'pending' && (
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 8, paddingTop: 4, borderTop: "1px solid #E5E5EA" }}>
+                {selectedReservation.status === "pending" && (
                   <>
-                    <Button 
-                      variant="outline"
-                      onClick={() => handleReservationUpdate(selectedReservation.id, 'confirmed')}
-                      disabled={updateReservationMutation.isPending}
-                      className="flex-1"
-                      data-testid="button-confirm-reservation"
+                    <button
+                      onClick={() => handleUpdate(selectedReservation.id, "confirmed")}
+                      disabled={updateMutation.isPending}
+                      data-testid="button-confirm"
+                      style={{
+                        flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+                        background: "#22C55E", color: "#fff", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                      }}
                     >
                       Konfirmasi
-                    </Button>
-                    <Button 
-                      variant="destructive"
-                      onClick={() => handleReservationUpdate(selectedReservation.id, 'cancelled')}
-                      disabled={updateReservationMutation.isPending}
-                      className="flex-1"
-                      data-testid="button-cancel-reservation"
+                    </button>
+                    <button
+                      onClick={() => handleUpdate(selectedReservation.id, "cancelled")}
+                      disabled={updateMutation.isPending}
+                      data-testid="button-cancel"
+                      style={{
+                        flex: 1, padding: "10px 0", borderRadius: 10, border: "1.5px solid #EF4444",
+                        background: "#fff", color: "#EF4444", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                      }}
                     >
                       Batalkan
-                    </Button>
+                    </button>
                   </>
                 )}
-                {selectedReservation.status === 'confirmed' && (
+                {selectedReservation.status === "confirmed" && (
                   <>
-                    <Button 
-                      variant="default"
-                      onClick={() => handleReservationUpdate(selectedReservation.id, 'completed')}
-                      disabled={updateReservationMutation.isPending}
-                      className="flex-1"
-                      data-testid="button-complete-reservation"
+                    <button
+                      onClick={() => handleUpdate(selectedReservation.id, "completed")}
+                      disabled={updateMutation.isPending}
+                      data-testid="button-complete"
+                      style={{
+                        flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+                        background: "#FF9500", color: "#fff", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                      }}
                     >
                       Selesaikan
-                    </Button>
-                    <Button 
-                      variant="destructive"
-                      onClick={() => handleReservationUpdate(selectedReservation.id, 'cancelled')}
-                      disabled={updateReservationMutation.isPending}
-                      className="flex-1"
-                      data-testid="button-cancel-reservation"
+                    </button>
+                    <button
+                      onClick={() => handleUpdate(selectedReservation.id, "cancelled")}
+                      disabled={updateMutation.isPending}
+                      data-testid="button-cancel-confirmed"
+                      style={{
+                        flex: 1, padding: "10px 0", borderRadius: 10, border: "1.5px solid #EF4444",
+                        background: "#fff", color: "#EF4444", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                      }}
                     >
                       Batalkan
-                    </Button>
+                    </button>
                   </>
                 )}
-                {(selectedReservation.status === 'completed' || selectedReservation.status === 'cancelled') && (
-                  <Button 
-                    variant="outline"
+                {(selectedReservation.status === "completed" || selectedReservation.status === "cancelled") && (
+                  <button
                     onClick={() => setSelectedReservation(null)}
-                    className="flex-1"
                     data-testid="button-close"
+                    style={{
+                      flex: 1, padding: "10px 0", borderRadius: 10, border: "1.5px solid #E5E5EA",
+                      background: "#fff", color: "#1D1D1F", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                    }}
                   >
-                    Close
-                  </Button>
+                    Tutup
+                  </button>
                 )}
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ── Komponen List Reservasi ──
+function ReservationList({
+  reservations,
+  onSelect,
+}: {
+  reservations: Reservation[];
+  onSelect: (r: Reservation) => void;
+}) {
+  if (reservations.length === 0) {
+    return (
+      <div style={{
+        textAlign: "center", padding: "48px 24px",
+        background: "#F5F5F7", borderRadius: 16,
+      }}>
+        <Calendar size={36} color="#C7C7CC" style={{ margin: "0 auto 12px" }} />
+        <p style={{ color: "#8E8E93", fontSize: 14 }}>Tidak ada reservasi ditemukan</p>
+      </div>
+    );
+  }
+
+  // Group by date
+  const groups: Record<string, Reservation[]> = {};
+  reservations.forEach(r => {
+    const key = format(r.reservationDate, "yyyy-MM-dd");
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  });
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(groups)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([dateKey, dayRes]) => {
+          const date = new Date(dateKey + "T00:00:00");
+          const isToday = isSameDay(date, new Date());
+          return (
+            <div key={dateKey}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, marginBottom: 8,
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: isToday ? "#FF9500" : "#F5F5F7",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: isToday ? "#fff" : "#1D1D1F", lineHeight: 1 }}>
+                    {format(date, "d")}
+                  </span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F" }}>
+                    {format(date, "EEEE", { locale: idLocale })}
+                    {isToday && <span style={{ marginLeft: 6, fontSize: 11, color: "#FF9500", fontWeight: 600 }}>Hari ini</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8E8E93" }}>
+                    {format(date, "d MMMM yyyy", { locale: idLocale })}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 ml-1">
+                {dayRes.map(r => {
+                  const cfg = STATUS_CONFIG[r.status] ?? STATUS_CONFIG.pending;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => onSelect(r)}
+                      data-testid={`card-reservation-${r.id}`}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "12px 14px", borderRadius: 12,
+                        background: "#fff", border: "1px solid #E5E5EA",
+                        borderLeft: `4px solid ${cfg.border}`,
+                        cursor: "pointer",
+                        transition: "box-shadow 0.15s",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.08)")}
+                      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+                    >
+                      {/* Time */}
+                      <div style={{
+                        minWidth: 44, textAlign: "center",
+                        fontSize: 14, fontWeight: 700, color: "#1D1D1F",
+                      }}>
+                        {r.reservationTime?.substring(0, 5) ?? "--"}
+                      </div>
+
+                      {/* Divider */}
+                      <div style={{ width: 1, height: 36, background: "#E5E5EA" }} />
+
+                      {/* Info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", marginBottom: 2 }}>
+                          {r.customerName}
+                        </div>
+                        <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#6E6E73" }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                            <Users size={11} /> {r.guestCount} tamu
+                          </span>
+                          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                            <Phone size={11} /> {r.phoneNumber}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status badge */}
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20,
+                        background: cfg.bg, color: cfg.text, whiteSpace: "nowrap",
+                      }}>
+                        {cfg.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
     </div>
   );
 }
