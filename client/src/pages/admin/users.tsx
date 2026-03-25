@@ -24,7 +24,6 @@ const ALL_MENU_GROUPS = [
     items: [
       { key: "cashier", label: "Kasir" },
       { key: "orders", label: "Pesanan" },
-      { key: "kitchen", label: "Dapur" },
       { key: "drink-queue", label: "Antrian Pesanan" },
       { key: "reservations", label: "Reservasi" },
     ],

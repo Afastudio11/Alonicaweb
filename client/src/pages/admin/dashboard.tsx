@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { LockKeyhole, ShieldOff, Ban } from "lucide-react";
 import AdminSidebar from "@/components/admin/sidebar";
 import OrdersSection from "./orders";
-import KitchenSection from "./kitchen";
 import CashierSection from "./cashier";
 import MenuSection from "./menu";
 import CategoriesSection from "./categories";
@@ -28,7 +27,6 @@ import ScheduledOrderReminder from "@/components/admin/scheduled-reminder";
 
 const SECTION_LABELS: Record<string, string> = {
   orders: "Pesanan",
-  kitchen: "Dapur",
   cashier: "Kasir",
   reservations: "Reservasi",
   members: "Data Member",
@@ -158,7 +156,6 @@ export default function AdminDashboard() {
 
     switch (section) {
       case "orders": return <OrdersSection />;
-      case "kitchen": return <KitchenSection />;
       case "cashier": return <CashierSection />;
       case "reservations": return <ReservationsSection />;
       case "members": return <MembersSection />;
