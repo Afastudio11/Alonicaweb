@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { GlassWater, ChefHat, LayoutGrid, Clock, RefreshCw, ChevronRight, Loader2 } from "lucide-react";
+import { GlassWater, ChefHat, Clock, RefreshCw, ChevronRight, Loader2 } from "lucide-react";
 import type { DrinkQueue } from "@shared/schema";
 
 // ──────────────────────────────────────────────
@@ -28,7 +28,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; bor
 };
 
 type QueueItem = DrinkQueue & { itemType?: string };
-type TabType = "all" | "food" | "drink";
+type TabType = "food" | "drink";
 
 // ──────────────────────────────────────────────
 // ItemCard — satu item satu kartu
@@ -150,7 +150,7 @@ function ItemCard({ item, onStatusChange, pendingId }: {
 export default function KitchenSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [activeTab, setActiveTab] = useState<TabType>("drink");
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const { data: queue = [], isLoading, refetch } = useQuery<QueueItem[]>({
@@ -185,7 +185,7 @@ export default function KitchenSection() {
   const activeQueue = queue.filter(q => q.status !== "taken");
   const foodItems  = activeQueue.filter(q => (q as any).itemType === "food");
   const drinkItems = activeQueue.filter(q => (q as any).itemType !== "food");
-  const displayQueue = activeTab === "food" ? foodItems : activeTab === "drink" ? drinkItems : activeQueue;
+  const displayQueue = activeTab === "food" ? foodItems : drinkItems;
 
   // Sort: waiting → making → ready (taken hidden from default view)
   const sortOrder = { waiting: 0, making: 1, ready: 2, taken: 3 };
@@ -198,7 +198,6 @@ export default function KitchenSection() {
   const ready   = activeQueue.filter(q => q.status === "ready").length;
 
   const TABS: { key: TabType; label: string; icon: any; count: number }[] = [
-    { key: "all",   label: "Semua",   icon: LayoutGrid, count: activeQueue.length },
     { key: "food",  label: "Makanan", icon: ChefHat,    count: foodItems.length },
     { key: "drink", label: "Minuman", icon: GlassWater, count: drinkItems.length },
   ];
@@ -314,7 +313,7 @@ export default function KitchenSection() {
           <div style={{ textAlign: "center", paddingBlock: 80, color: "#8E8E93" }}>
             <ChefHat size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
             <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
-              {activeTab === "food" ? "Tidak ada antrian makanan" : activeTab === "drink" ? "Tidak ada antrian minuman" : "Tidak ada antrian aktif"}
+              {activeTab === "food" ? "Tidak ada antrian makanan" : "Tidak ada antrian minuman"}
             </p>
             <p style={{ fontSize: 13, color: "#AEAEB2" }}>
               Item akan muncul otomatis saat pesanan masuk
