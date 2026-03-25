@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Minus, Trash2, ShoppingCart, ShoppingBag, User, Table, Receipt, Calculator, Printer, FileText, Send, Eye, Split, Search, Clock, QrCode, Banknote, CreditCard as CreditCardIcon, Wallet, Smartphone, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Minus, Trash2, ShoppingCart, ShoppingBag, User, Table, Receipt, Calculator, Printer, FileText, Send, Eye, Split, Search, Clock, QrCode, Banknote, CreditCard as CreditCardIcon, Wallet, Smartphone, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1837,14 +1837,57 @@ export default function CashierSection() {
             )}
             
             {paymentMethod === "qris" && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 space-y-4">
                 <div className="flex items-center space-x-2 text-blue-700">
                   <Smartphone className="h-6 w-6" />
                   <div>
                     <p className="font-semibold">Pembayaran QRIS</p>
-                    <p className="text-sm">Customer akan membayar dengan QRIS</p>
+                    <p className="text-sm">Arahkan kamera ke kode QR di bawah</p>
                   </div>
                 </div>
+                {/* QR Code Mockup */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="bg-white border-2 border-blue-300 rounded-xl p-4 w-44 h-44 flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-gray-800">
+                      {/* Corner squares */}
+                      <rect x="5" y="5" width="30" height="30" rx="3" fill="none" stroke="currentColor" strokeWidth="5"/>
+                      <rect x="12" y="12" width="16" height="16" rx="1" fill="currentColor"/>
+                      <rect x="65" y="5" width="30" height="30" rx="3" fill="none" stroke="currentColor" strokeWidth="5"/>
+                      <rect x="72" y="12" width="16" height="16" rx="1" fill="currentColor"/>
+                      <rect x="5" y="65" width="30" height="30" rx="3" fill="none" stroke="currentColor" strokeWidth="5"/>
+                      <rect x="12" y="72" width="16" height="16" rx="1" fill="currentColor"/>
+                      {/* Data dots */}
+                      <rect x="42" y="5" width="6" height="6" fill="currentColor"/>
+                      <rect x="52" y="5" width="6" height="6" fill="currentColor"/>
+                      <rect x="42" y="15" width="6" height="6" fill="currentColor"/>
+                      <rect x="52" y="25" width="6" height="6" fill="currentColor"/>
+                      <rect x="42" y="35" width="6" height="6" fill="currentColor"/>
+                      <rect x="52" y="45" width="6" height="6" fill="currentColor"/>
+                      <rect x="42" y="55" width="6" height="6" fill="currentColor"/>
+                      <rect x="65" y="42" width="6" height="6" fill="currentColor"/>
+                      <rect x="75" y="52" width="6" height="6" fill="currentColor"/>
+                      <rect x="85" y="42" width="6" height="6" fill="currentColor"/>
+                      <rect x="65" y="62" width="6" height="6" fill="currentColor"/>
+                      <rect x="75" y="72" width="6" height="6" fill="currentColor"/>
+                      <rect x="85" y="82" width="6" height="6" fill="currentColor"/>
+                      <rect x="5" y="42" width="6" height="6" fill="currentColor"/>
+                      <rect x="15" y="52" width="6" height="6" fill="currentColor"/>
+                      <rect x="25" y="42" width="6" height="6" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <p className="text-xs text-blue-600 font-medium text-center">
+                    Total: {formatCurrency(currentPaymentTotal)}
+                  </p>
+                </div>
+                {/* Tombol Sudah Bayar */}
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                  onClick={handlePaymentCalculation}
+                  data-testid="button-qris-paid"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Sudah Melakukan Pembayaran
+                </Button>
               </div>
             )}
             
