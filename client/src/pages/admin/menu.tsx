@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Copy, Trash2, Upload, Package } from "lucide-react";
+import { Plus, Edit, Copy, Trash2, Upload, Package, FlaskConical, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
-import type { MenuItem, InsertMenuItem, Category } from "@shared/schema";
+import type { MenuItem, InsertMenuItem, Category, InventoryItem, MenuItemIngredient } from "@shared/schema";
 
 export default function MenuSection() {
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -246,7 +246,7 @@ export default function MenuSection() {
                     data-testid={`switch-availability-${item.id}`}
                   />
                 </div>
-                <div className="flex space-x-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-4">
                   <Button
                     variant="outline"
                     onClick={() => setEditingItem(item)}
@@ -256,6 +256,7 @@ export default function MenuSection() {
                     <Edit className="h-4 w-4" />
                     Edit
                   </Button>
+                  <IngredientsDialog menuItem={item} />
                   <Button
                     variant="outline"
                     onClick={() => handleDuplicate(item)}
@@ -306,6 +307,179 @@ export default function MenuSection() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// Dialog untuk kelola bahan baku / resep per menu item
+function IngredientsDialog({ menuItem }: { menuItem: MenuItem }) {
+  const [open, setOpen] = useState(false);
+  const [selectedInventoryId, setSelectedInventoryId] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: ingredients = [], isLoading: ingLoading } = useQuery<(MenuItemIngredient & { inventoryName?: string; inventoryUnit?: string })[]>({
+    queryKey: ['/api/menu', menuItem.id, 'ingredients'],
+    queryFn: async () => {
+      const res = await fetch(`/api/menu/${menuItem.id}/ingredients`);
+      return res.json();
+    },
+    enabled: open,
+  });
+
+  const { data: inventoryData } = useQuery<{ items: InventoryItem[] } | InventoryItem[]>({
+    queryKey: ['/api/inventory?limit=500'],
+    enabled: open,
+  });
+  const inventoryItems: InventoryItem[] = Array.isArray(inventoryData)
+    ? inventoryData
+    : (inventoryData as any)?.items || [];
+
+  const getInventoryItem = (id: string) => inventoryItems.find(i => i.id === id);
+
+  const addMutation = useMutation({
+    mutationFn: async ({ inventoryItemId, quantityNeeded, unit }: { inventoryItemId: string; quantityNeeded: number; unit: string }) => {
+      const res = await apiRequest('POST', `/api/menu/${menuItem.id}/ingredients`, { inventoryItemId, quantityNeeded, unit });
+      if (!res.ok) throw new Error('Gagal menambahkan bahan');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/menu', menuItem.id, 'ingredients'] });
+      setSelectedInventoryId('');
+      setQuantity('');
+      toast({ title: 'Bahan baku ditambahkan' });
+    },
+    onError: () => toast({ title: 'Gagal menambahkan bahan', variant: 'destructive' }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (ingredientId: string) => {
+      const res = await apiRequest('DELETE', `/api/menu/ingredients/${ingredientId}`);
+      if (!res.ok) throw new Error('Gagal menghapus');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/menu', menuItem.id, 'ingredients'] });
+      toast({ title: 'Bahan baku dihapus' });
+    },
+    onError: () => toast({ title: 'Gagal menghapus bahan', variant: 'destructive' }),
+  });
+
+  const handleAdd = () => {
+    if (!selectedInventoryId || !quantity || Number(quantity) <= 0) {
+      toast({ title: 'Pilih bahan dan masukkan jumlah', variant: 'destructive' });
+      return;
+    }
+    const inv = getInventoryItem(selectedInventoryId);
+    if (!inv) return;
+    addMutation.mutate({ inventoryItemId: selectedInventoryId, quantityNeeded: Number(quantity), unit: inv.unit });
+  };
+
+  // Already added inventory IDs
+  const addedIds = new Set(ingredients.map(i => i.inventoryItemId));
+  const availableInventory = inventoryItems.filter(i => !addedIds.has(i.id));
+  const selectedInv = getInventoryItem(selectedInventoryId);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="flex items-center gap-1 h-10 text-xs px-3" data-testid={`button-ingredients-${menuItem.id}`}>
+          <FlaskConical className="h-4 w-4" />
+          Bahan Baku
+          {ingredients.length > 0 && (
+            <Badge variant="secondary" className="ml-1 h-4 text-[10px] px-1">{ingredients.length}</Badge>
+          )}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Bahan Baku — {menuItem.name}</DialogTitle>
+          <DialogDescription>
+            Stok bahan baku akan berkurang otomatis saat ada pesanan masuk.
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Daftar bahan saat ini */}
+        <div className="space-y-2 max-h-52 overflow-y-auto">
+          {ingLoading ? (
+            <div className="flex justify-center py-4"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          ) : ingredients.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Belum ada bahan baku. Tambahkan di bawah.</p>
+          ) : (
+            ingredients.map(ing => {
+              const inv = getInventoryItem(ing.inventoryItemId);
+              return (
+                <div key={ing.id} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium">{inv?.name ?? ing.inventoryItemId}</p>
+                    <p className="text-xs text-muted-foreground">{ing.quantityNeeded} {ing.unit}</p>
+                  </div>
+                  <button
+                    onClick={() => deleteMutation.mutate(ing.id)}
+                    disabled={deleteMutation.isPending}
+                    className="text-destructive hover:text-destructive/80 p-1"
+                    data-testid={`button-delete-ingredient-${ing.id}`}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Form tambah bahan baru */}
+        <div className="border-t pt-4 space-y-3">
+          <p className="text-sm font-semibold">Tambah Bahan Baku</p>
+          <div>
+            <Label className="text-xs mb-1 block">Pilih dari Stok</Label>
+            <Select value={selectedInventoryId} onValueChange={setSelectedInventoryId}>
+              <SelectTrigger data-testid="select-ingredient-item">
+                <SelectValue placeholder="Pilih bahan baku..." />
+              </SelectTrigger>
+              <SelectContent>
+                {availableInventory.length === 0 ? (
+                  <SelectItem value="_none" disabled>Semua stok sudah ditambahkan</SelectItem>
+                ) : (
+                  availableInventory.map(inv => (
+                    <SelectItem key={inv.id} value={inv.id}>
+                      {inv.name} ({inv.unit}) — sisa {inv.quantity} {inv.unit}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Label className="text-xs mb-1 block">
+                Jumlah per Porsi {selectedInv ? `(${selectedInv.unit})` : ''}
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={e => setQuantity(e.target.value)}
+                placeholder="Contoh: 200"
+                data-testid="input-ingredient-quantity"
+              />
+            </div>
+            <Button
+              onClick={handleAdd}
+              disabled={addMutation.isPending || !selectedInventoryId || !quantity}
+              className="h-10"
+              data-testid="button-add-ingredient"
+            >
+              {addMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Tambah'}
+            </Button>
+          </div>
+          {selectedInv && (
+            <p className="text-xs text-muted-foreground">
+              Stok tersedia: {selectedInv.quantity} {selectedInv.unit}
+            </p>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

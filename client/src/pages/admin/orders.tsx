@@ -68,12 +68,12 @@ export default function OrdersSection() {
     }
   });
 
-  // Auto-accept QRIS orders that are paid but still queued — no manual action needed
+  // Auto-accept all queued paid orders — no manual Terima needed
   useEffect(() => {
-    const paidQrisQueued = orders.filter(
-      (o: any) => o.paymentMethod === 'qris' && o.paymentStatus === 'paid' && o.orderStatus === 'queued'
+    const needsAccept = orders.filter(
+      (o: any) => o.orderStatus === 'queued' && (o.paymentStatus === 'paid' || o.paymentMethod === 'cash')
     );
-    paidQrisQueued.forEach((o: any) => {
+    needsAccept.forEach((o: any) => {
       apiRequest('PATCH', `/api/orders/${o.id}/status`, { status: 'preparing' })
         .then(() => queryClient.invalidateQueries({ queryKey: ['/api/orders'] }))
         .catch(() => {});
