@@ -395,14 +395,22 @@ export default function OrdersSection() {
                     >
                       {itemCount} item
                     </button>
-                    {(order as any).scheduledTime && (
-                      <>
-                        <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
-                        <span style={{ fontSize: 12, color: "#FF2D55", fontWeight: 600 }}>
-                          Ambil: {new Date((order as any).scheduledTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </>
-                    )}
+                    {(order as any).scheduledTime && (() => {
+                      const st = new Date((order as any).scheduledTime);
+                      const now = new Date();
+                      const isToday = st.toDateString() === now.toDateString();
+                      const isTomorrow = st.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+                      const dateLabel = isToday ? 'Hari ini' : isTomorrow ? 'Besok' : st.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+                      const timeLabel = st.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                      return (
+                        <>
+                          <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
+                          <span style={{ fontSize: 12, color: "#FF2D55", fontWeight: 600 }}>
+                            Ambil: {dateLabel}, {timeLabel}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 
