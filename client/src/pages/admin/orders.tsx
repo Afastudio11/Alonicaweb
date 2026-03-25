@@ -322,146 +322,129 @@ export default function OrdersSection() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  ID Pesanan
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Pelanggan
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Meja
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider w-1/4">
-                  Item
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Total
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Pembayaran
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Waktu
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-background divide-y divide-border">
-              {filteredAndSortedOrders.map((order) => (
-                <tr key={order.id} data-testid={`row-order-${order.id}`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-mono">
+        {/* Order Cards */}
+        <div className="divide-y divide-border">
+          {filteredAndSortedOrders.map((order) => {
+            const paymentLabel =
+              order.paymentStatus === 'paid' ? 'Lunas' :
+              order.paymentStatus === 'pending' ? 'Menunggu' :
+              order.paymentStatus === 'failed' ? 'Gagal' :
+              order.paymentStatus === 'expired' ? 'Kedaluwarsa' :
+              order.paymentStatus === 'unpaid' ? 'Belum Bayar' :
+              order.paymentStatus === 'refunded' ? 'Dikembalikan' :
+              order.paymentStatus;
+            const paymentColor =
+              order.paymentStatus === 'paid' ? { bg: '#F0FFF4', text: '#15803D' } :
+              order.paymentStatus === 'pending' ? { bg: '#FFFBEB', text: '#92400E' } :
+              order.paymentStatus === 'failed' || order.paymentStatus === 'expired' ? { bg: '#FEF2F2', text: '#B91C1C' } :
+              { bg: '#F5F5F7', text: '#6E6E73' };
+            const itemCount = Array.isArray(order.items) ? order.items.length : 0;
+
+            return (
+              <div
+                key={order.id}
+                data-testid={`row-order-${order.id}`}
+                style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}
+              >
+                {/* Left: ID + waktu */}
+                <div style={{ minWidth: 90, flexShrink: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F", fontFamily: "monospace" }}>
                     #{order.id.slice(-6).toUpperCase()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                  </div>
+                  <div style={{ fontSize: 11, color: "#8E8E93", marginTop: 2 }}>
+                    {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+
+                {/* Center: info utama */}
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F" }}>
                     {order.customerName}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    {order.tableNumber}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-foreground">
+                  </div>
+                  <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, color: "#6E6E73" }}>Meja {order.tableNumber}</span>
+                    <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
                     <button
                       onClick={() => setViewingOrder(order)}
-                      className="text-primary hover:text-primary/80 font-medium transition-colors"
+                      style={{ fontSize: 12, color: "#FF9500", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
                       data-testid={`button-view-items-${order.id}`}
                     >
-                      {Array.isArray(order.items) ? order.items.length : 0} item
+                      {itemCount} item
                     </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-semibold">
-                    {formatCurrency(order.total)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge 
-                      className={
-                        order.paymentStatus === 'paid' 
-                          ? 'bg-green-100 text-green-700 hover:bg-green-100' 
-                          : order.paymentStatus === 'pending' 
-                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
-                          : order.paymentStatus === 'failed' || order.paymentStatus === 'expired'
-                          ? 'bg-red-100 text-red-700 hover:bg-red-100'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-100'
-                      }
-                      data-testid={`payment-status-${order.id}`}
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1D1D1F", flexShrink: 0, minWidth: 80, textAlign: "right" }}>
+                  {formatCurrency(order.total)}
+                </div>
+
+                {/* Badges */}
+                <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap", alignItems: "center" }}>
+                  <span
+                    style={{
+                      fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 20,
+                      background: paymentColor.bg, color: paymentColor.text,
+                    }}
+                    data-testid={`payment-status-${order.id}`}
+                  >
+                    {paymentLabel}
+                  </span>
+                  <Badge className={getOrderStatusColor(order.orderStatus)} data-testid={`status-${order.id}`}>
+                    {ORDER_STATUSES[order.orderStatus as keyof typeof ORDER_STATUSES] || order.orderStatus}
+                  </Badge>
+                </div>
+
+                {/* Aksi */}
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {order.orderStatus === 'queued' && (
+                    <Button
+                      onClick={() => handleStatusUpdate(order.id, 'preparing')}
+                      className="bg-blue-500 hover:bg-blue-600 h-9 text-xs px-3"
+                      data-testid={`button-accept-${order.id}`}
                     >
-                      {order.paymentStatus === 'paid' ? 'Lunas' : 
-                       order.paymentStatus === 'pending' ? 'Menunggu' :
-                       order.paymentStatus === 'failed' ? 'Gagal' :
-                       order.paymentStatus === 'expired' ? 'Kedaluwarsa' :
-                       order.paymentStatus === 'unpaid' ? 'Belum Bayar' :
-                       order.paymentStatus === 'refunded' ? 'Dikembalikan' : 
-                       order.paymentStatus}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge 
-                      className={getOrderStatusColor(order.orderStatus)}
-                      data-testid={`status-${order.id}`}
+                      Terima
+                    </Button>
+                  )}
+                  {order.orderStatus === 'preparing' && (
+                    <Button
+                      onClick={() => handleStatusUpdate(order.id, 'ready')}
+                      className="bg-green-500 hover:bg-green-600 h-9 text-xs px-3"
+                      data-testid={`button-ready-${order.id}`}
                     >
-                      {ORDER_STATUSES[order.orderStatus as keyof typeof ORDER_STATUSES] || order.orderStatus}
-                    </Badge>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {formatDate(new Date(order.createdAt))}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-1">
-                    {order.orderStatus === 'queued' && (
-                      <Button
-                        onClick={() => handleStatusUpdate(order.id, 'preparing')}
-                        className="bg-blue-500 hover:bg-blue-600 h-10 text-xs px-3"
-                        data-testid={`button-accept-${order.id}`}
-                      >
-                        Terima
-                      </Button>
-                    )}
-                    {order.orderStatus === 'preparing' && (
-                      <Button
-                        onClick={() => handleStatusUpdate(order.id, 'ready')}
-                        className="bg-green-500 hover:bg-green-600 h-10 text-xs px-3"
-                        data-testid={`button-ready-${order.id}`}
-                      >
-                        Siap
-                      </Button>
-                    )}
-                    {order.orderStatus === 'ready' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => handleStatusUpdate(order.id, 'served')}
-                        className="h-10 text-xs px-3"
-                        data-testid={`button-complete-${order.id}`}
-                      >
-                        Selesai
-                      </Button>
-                    )}
+                      Siap
+                    </Button>
+                  )}
+                  {order.orderStatus === 'ready' && (
                     <Button
                       variant="outline"
-                      onClick={() => setViewingOrder(order)}
-                      className="h-10 w-10 p-0"
-                      data-testid={`button-view-${order.id}`}
+                      onClick={() => handleStatusUpdate(order.id, 'served')}
+                      className="h-9 text-xs px-3"
+                      data-testid={`button-complete-${order.id}`}
                     >
-                      <Eye className="h-4 w-4" />
+                      Selesai
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handlePrintReceipt(order)}
-                      className="bg-green-50 hover:bg-green-100 text-green-700 h-10 w-10 p-0"
-                      data-testid={`button-receipt-${order.id}`}
-                    >
-                      <Receipt className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewingOrder(order)}
+                    className="h-9 w-9 p-0"
+                    data-testid={`button-view-${order.id}`}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handlePrintReceipt(order)}
+                    className="bg-green-50 hover:bg-green-100 text-green-700 h-9 w-9 p-0"
+                    data-testid={`button-receipt-${order.id}`}
+                  >
+                    <Receipt className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {filteredAndSortedOrders.length === 0 && (
