@@ -14,7 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 import { smartPrintReceipt } from "@/utils/thermal-print";
 import { useAuth } from "@/hooks/use-auth";
-import type { MenuItem, Category, InsertOrder, Order, Discount } from "@shared/schema";
+import type { MenuItem, Category, InsertOrder, Order, Discount, StoreProfile } from "@shared/schema";
 
 interface CartItem {
   id: string;
@@ -96,6 +96,11 @@ export default function CashierSection() {
     items: CartItem[],
     customerName?: string
   } | null>(null);
+
+  // Store profile
+  const { data: storeProfile } = useQuery<StoreProfile>({
+    queryKey: ["/api/store-profile"],
+  });
 
   // Load menu items and categories
   const { data: menuItems = [] } = useQuery<MenuItem[]>({
@@ -1949,10 +1954,10 @@ export default function CashierSection() {
             <div className="customer-receipt space-y-4 print:text-black print:bg-white" data-testid="receipt-content">
               {/* Restaurant Header */}
               <div className="text-center border-b pb-4">
-                <h2 className="font-playfair text-xl font-bold">Alonica Restaurant</h2>
+                <h2 className="font-playfair text-xl font-bold">{storeProfile?.restaurantName || "ngehnoom"}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Jl. Ratulangi No.14, Bantaeng<br />
-                  Telp: 0515-4545
+                  {storeProfile?.address && <>{storeProfile.address}<br /></>}
+                  {storeProfile?.phone && <>Telp: {storeProfile.phone}</>}
                 </p>
               </div>
               
@@ -2051,7 +2056,8 @@ export default function CashierSection() {
                   Terima kasih telah berkunjung!
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Alonica Restaurant - Cita Rasa Nusantara
+                  {storeProfile?.restaurantName || "ngehnoom"}
+                  {storeProfile?.tagline ? ` - ${storeProfile.tagline}` : " - Yang Nyaman Jadi Sayang"}
                 </p>
               </div>
             </div>
