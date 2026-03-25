@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ShoppingCart, Search, X, Plus, Minus, ChevronRight, Clock, MapPin, Star, Coffee, CalendarDays } from "lucide-react";
+import { ShoppingCart, Search, X, Plus, Minus, ChevronRight, Clock, MapPin, Star, Coffee, CalendarDays, PackageSearch } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
@@ -341,6 +341,14 @@ export default function WelcomePage() {
               title="Reservasi Meja"
             >
               <CalendarDays size={18} style={{ color: "#1D1D1F" }} />
+            </button>
+            <button
+              onClick={() => setLocation("/lacak")}
+              className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
+              data-testid="button-lacak"
+              title="Lacak Pesanan"
+            >
+              <PackageSearch size={18} style={{ color: "#1D1D1F" }} />
             </button>
             <button
               onClick={() => setLocation("/cart")}
