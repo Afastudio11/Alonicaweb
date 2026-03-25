@@ -4,11 +4,11 @@ export const MENU_CATEGORIES = {
 } as const;
 
 export const ORDER_STATUSES = {
-  queued: 'Queued',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  served: 'Served',
-  cancelled: 'Cancelled'
+  queued: 'Antrian',
+  preparing: 'Diproses',
+  ready: 'Siap',
+  served: 'Selesai',
+  cancelled: 'Dibatalkan'
 } as const;
 
 export const PAYMENT_METHODS = {
