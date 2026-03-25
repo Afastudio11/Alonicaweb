@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, CreditCard, Check, Clock, CheckCircle, XCircle, RefreshCw, Smartphone } from "lucide-react";
+import { ArrowLeft, CreditCard, Check, Clock, CheckCircle, XCircle, RefreshCw, Smartphone, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
@@ -75,6 +75,24 @@ export default function PaymentPage() {
         variant: "destructive",
       });
       setPaymentStatus('failed');
+    }
+  });
+
+  // Simulate payment (for development/testing)
+  const simulatePaymentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('POST', `/api/orders/${id}/simulate-payment`);
+      if (!response.ok) throw new Error('Gagal mensimulasikan pembayaran');
+      return response.json();
+    },
+    onSuccess: () => {
+      setPaymentStatus('paid');
+      clearCart();
+      toast({ title: "Pembayaran berhasil!", description: "Terima kasih, pesanan Anda sedang diproses" });
+      setTimeout(() => setLocation("/success"), 2000);
+    },
+    onError: () => {
+      toast({ title: "Gagal", description: "Tidak dapat menyelesaikan pembayaran", variant: "destructive" });
     }
   });
 
@@ -300,6 +318,22 @@ export default function PaymentPage() {
               <p className="text-xs" style={{ color: "#6E6E73" }}>Status diperbarui otomatis setelah pembayaran berhasil</p>
             </div>
           </div>
+
+          {/* Tombol konfirmasi manual (untuk development) */}
+          <button
+            onClick={() => orderId && simulatePaymentMutation.mutate(orderId)}
+            disabled={simulatePaymentMutation.isPending}
+            className="ng-tap w-full h-14 rounded-2xl font-bold text-white disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{ background: "linear-gradient(135deg, #30D158, #25A244)", fontSize: 15, letterSpacing: "-0.02em" }}
+            data-testid="button-simulate-paid"
+          >
+            {simulatePaymentMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <BadgeCheck className="h-5 w-5" />
+            )}
+            {simulatePaymentMutation.isPending ? "Memproses…" : "Sudah Melakukan Pembayaran"}
+          </button>
         </div>
       );
     }

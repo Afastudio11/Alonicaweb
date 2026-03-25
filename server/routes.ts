@@ -2864,6 +2864,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Simulate payment success (for development/testing only)
+  app.post("/api/orders/:id/simulate-payment", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.getOrder(id);
+      if (!order) return res.status(404).json({ message: "Order not found" });
+
+      await storage.updateOrderPayment(id, {
+        paymentStatus: 'paid',
+        midtransTransactionStatus: 'settlement',
+        paidAt: new Date()
+      });
+      await storage.updateOrderStatus(id, 'preparing');
+
+      res.json({ success: true, paymentStatus: 'paid', orderId: id });
+    } catch (error) {
+      console.error('Simulate payment error:', error);
+      res.status(500).json({ message: "Gagal mensimulasikan pembayaran" });
+    }
+  });
+
   // Get Midtrans client configuration for frontend
   app.get("/api/payments/config", async (req, res) => {
     try {
