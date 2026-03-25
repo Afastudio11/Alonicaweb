@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Clock, DollarSign, TrendingUp, TrendingDown, User, AlertCircle, BarChart2, Utensils, Coffee, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, DollarSign, TrendingUp, TrendingDown, User, AlertCircle, BarChart2, Utensils, Coffee, FileText, ChevronDown, ChevronUp, Send, Download, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/lib/utils";
+import { generateShiftPDF } from "@/utils/shift-pdf";
 import type { Shift } from "@shared/schema";
 
 interface ItemSummary { name: string; qty: number; total: number; }
@@ -42,6 +43,9 @@ export default function ShiftManagementSection() {
   const [cashDescription, setCashDescription] = useState("");
   const [showRecap, setShowRecap] = useState(false);
   const [recapSection, setRecapSection] = useState<'makanan' | 'minuman' | 'openBill' | null>(null);
+  // State untuk laporan setelah shift ditutup
+  const [closedShiftData, setClosedShiftData] = useState<{ shift: Shift; recap: ShiftRecap | null } | null>(null);
+  const [reportSent, setReportSent] = useState(false);
 
   const { data: activeShift, isLoading: loadingShift } = useQuery<Shift | null>({
     queryKey: ['/api/shifts/active'],
@@ -74,15 +78,59 @@ export default function ShiftManagementSection() {
       const response = await apiRequest('PUT', `/api/shifts/${activeShift.id}/close`, { finalCash: data.finalCash, notes: data.notes });
       return response.json();
     },
-    onSuccess: () => {
-      toast({ title: "Shift Ditutup", description: "Shift berhasil ditutup. Laporan shift telah disimpan." });
+    onSuccess: async (closedShift: Shift) => {
       queryClient.invalidateQueries({ queryKey: ['/api/shifts/active'] });
       setFinalCash(0);
       setNotes("");
       setShowRecap(false);
+      setReportSent(false);
+      // Fetch recap otomatis untuk laporan
+      try {
+        const res = await fetch(`/api/shifts/${closedShift.id}/recap`, { credentials: "include" });
+        const recapData: ShiftRecap = res.ok ? await res.json() : null;
+        setClosedShiftData({ shift: closedShift, recap: recapData });
+      } catch {
+        setClosedShiftData({ shift: closedShift, recap: null });
+      }
+      toast({ title: "Shift Ditutup", description: "Laporan shift siap untuk diunduh dan dikirim ke super admin." });
     },
     onError: (error: any) => {
       toast({ title: "Gagal Menutup Shift", description: error.message || "Terjadi kesalahan saat menutup shift", variant: "destructive" });
+    }
+  });
+
+  const sendReportMutation = useMutation({
+    mutationFn: async () => {
+      if (!closedShiftData) throw new Error("Tidak ada data shift");
+      const { shift, recap } = closedShiftData;
+      const reportDate = new Date(shift.startTime).toISOString().split("T")[0];
+      const payload = {
+        shiftId: shift.id,
+        branchName: "", // akan diisi dari backend berdasarkan branchId user
+        reportDate,
+        shiftStart: shift.startTime,
+        shiftEnd: shift.endTime ?? new Date(),
+        totalOrders: recap?.summary.totalOrders ?? shift.totalOrders ?? 0,
+        totalPaid: recap?.summary.totalPaid ?? shift.totalRevenue ?? 0,
+        totalMakanan: recap?.summary.totalMakanan ?? 0,
+        totalMinuman: recap?.summary.totalMinuman ?? 0,
+        totalOpenBillPending: recap?.summary.totalOpenBillPending ?? 0,
+        initialCash: shift.initialCash ?? 0,
+        finalCash: shift.finalCash ?? 0,
+        systemCash: shift.systemCash ?? 0,
+        cashDifference: shift.cashDifference ?? 0,
+        notes: shift.notes || null,
+        recapData: recap ? { makanan: recap.makanan, minuman: recap.minuman, openBill: recap.openBill } : null,
+      };
+      const res = await apiRequest('POST', '/api/shift-reports', payload);
+      return res.json();
+    },
+    onSuccess: () => {
+      setReportSent(true);
+      toast({ title: "Laporan Terkirim", description: "Laporan shift berhasil dikirim ke super admin." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Gagal Mengirim", description: error.message || "Terjadi kesalahan saat mengirim laporan", variant: "destructive" });
     }
   });
 
@@ -176,24 +224,121 @@ export default function ShiftManagementSection() {
       </div>
 
       {!activeShift ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Buka Shift Baru
-            </CardTitle>
-            <CardDescription>Mulai sesi kerja baru dengan mencatat kas awal</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="initial-cash">Kas Awal (Rp)</Label>
-              <CurrencyInput id="initial-cash" value={initialCash} onValueChange={setInitialCash} data-testid="input-initial-cash" />
-            </div>
-            <Button onClick={handleOpenShift} disabled={openShiftMutation.isPending} className="w-full" data-testid="button-open-shift">
-              {openShiftMutation.isPending ? "Membuka..." : "Buka Shift"}
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="space-y-4">
+          {/* Laporan shift tersedia setelah close */}
+          {closedShiftData && (
+            <Card className={`border-2 ${reportSent ? 'border-green-400 bg-green-50 dark:bg-green-950/20' : 'border-orange-300 bg-orange-50 dark:bg-orange-950/20'}`}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {reportSent ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <FileText className="h-5 w-5 text-orange-600" />
+                  )}
+                  {reportSent ? "Laporan Sudah Terkirim" : "Laporan Shift Siap Dikirim"}
+                </CardTitle>
+                <CardDescription>
+                  {reportSent
+                    ? "Laporan shift berhasil dikirim ke super admin."
+                    : "Shift sudah ditutup. Unduh PDF atau kirim laporan ke super admin sekarang."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Summary recap */}
+                {closedShiftData.recap && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-white dark:bg-card rounded-lg p-3 text-center border">
+                      <p className="text-xs text-muted-foreground">Terbayar</p>
+                      <p className="font-semibold text-green-600">{formatCurrency(closedShiftData.recap.summary.totalPaid)}</p>
+                    </div>
+                    <div className="bg-white dark:bg-card rounded-lg p-3 text-center border">
+                      <p className="text-xs text-muted-foreground">Makanan</p>
+                      <p className="font-semibold text-orange-600">{formatCurrency(closedShiftData.recap.summary.totalMakanan)}</p>
+                    </div>
+                    <div className="bg-white dark:bg-card rounded-lg p-3 text-center border">
+                      <p className="text-xs text-muted-foreground">Minuman</p>
+                      <p className="font-semibold text-blue-600">{formatCurrency(closedShiftData.recap.summary.totalMinuman)}</p>
+                    </div>
+                    <div className="bg-white dark:bg-card rounded-lg p-3 text-center border">
+                      <p className="text-xs text-muted-foreground">Transaksi</p>
+                      <p className="font-semibold">{closedShiftData.recap.summary.totalOrders}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      const { shift, recap } = closedShiftData;
+                      const reportDate = new Date(shift.startTime).toISOString().split("T")[0];
+                      generateShiftPDF(
+                        {
+                          kasirName: user?.username ?? "Kasir",
+                          branchName: "",
+                          reportDate,
+                          shiftStart: shift.startTime,
+                          shiftEnd: shift.endTime ?? new Date(),
+                          totalOrders: recap?.summary.totalOrders ?? shift.totalOrders ?? 0,
+                          totalPaid: recap?.summary.totalPaid ?? shift.totalRevenue ?? 0,
+                          totalMakanan: recap?.summary.totalMakanan ?? 0,
+                          totalMinuman: recap?.summary.totalMinuman ?? 0,
+                          totalOpenBillPending: recap?.summary.totalOpenBillPending ?? 0,
+                          initialCash: shift.initialCash ?? 0,
+                          finalCash: shift.finalCash ?? 0,
+                          systemCash: shift.systemCash ?? 0,
+                          cashDifference: shift.cashDifference ?? 0,
+                          notes: shift.notes,
+                        },
+                        recap ? { makanan: recap.makanan, minuman: recap.minuman, openBill: recap.openBill } : null
+                      );
+                    }}
+                    data-testid="button-download-pdf"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Unduh PDF
+                  </Button>
+                  {!reportSent && (
+                    <Button
+                      className="flex-1"
+                      onClick={() => sendReportMutation.mutate()}
+                      disabled={sendReportMutation.isPending}
+                      data-testid="button-send-report"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      {sendReportMutation.isPending ? "Mengirim..." : "Kirim ke Super Admin"}
+                    </Button>
+                  )}
+                </div>
+                {reportSent && (
+                  <p className="text-xs text-green-700 dark:text-green-400 text-center">
+                    Super admin dapat melihat laporan ini di halaman Laporan Shift Kasir.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Buka shift baru */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Buka Shift Baru
+              </CardTitle>
+              <CardDescription>Mulai sesi kerja baru dengan mencatat kas awal</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="initial-cash">Kas Awal (Rp)</Label>
+                <CurrencyInput id="initial-cash" value={initialCash} onValueChange={setInitialCash} data-testid="input-initial-cash" />
+              </div>
+              <Button onClick={handleOpenShift} disabled={openShiftMutation.isPending} className="w-full" data-testid="button-open-shift">
+                {openShiftMutation.isPending ? "Membuka..." : "Buka Shift"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {/* Current Shift Info */}

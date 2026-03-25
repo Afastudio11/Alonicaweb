@@ -710,6 +710,40 @@ export type InsertPrintSetting = z.infer<typeof insertPrintSettingSchema>;
 export type Shift = typeof shifts.$inferSelect;
 export type InsertShift = z.infer<typeof insertShiftSchema>;
 
+// Shift Reports — laporan harian yang dikirim kasir ke super admin
+export const shiftReports = pgTable("shift_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shiftId: varchar("shift_id").notNull().references(() => shifts.id),
+  branchId: varchar("branch_id").references(() => branches.id),
+  kasirId: varchar("kasir_id").notNull().references(() => users.id),
+  kasirName: text("kasir_name").notNull(),
+  branchName: text("branch_name").default(""),
+  reportDate: text("report_date").notNull(), // "2024-01-15"
+  shiftStart: timestamp("shift_start").notNull(),
+  shiftEnd: timestamp("shift_end").notNull(),
+  totalOrders: integer("total_orders").default(0),
+  totalPaid: integer("total_paid").default(0),
+  totalMakanan: integer("total_makanan").default(0),
+  totalMinuman: integer("total_minuman").default(0),
+  totalOpenBillPending: integer("total_open_bill_pending").default(0),
+  initialCash: integer("initial_cash").default(0),
+  finalCash: integer("final_cash").default(0),
+  systemCash: integer("system_cash").default(0),
+  cashDifference: integer("cash_difference").default(0),
+  notes: text("notes"),
+  recapData: jsonb("recap_data"), // full recap JSON for display
+  status: text("status").notNull().default("sent"), // 'sent'
+  sentAt: timestamp("sent_at").notNull().default(sql`now()`),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("shift_reports_kasir_id_idx").on(table.kasirId, table.sentAt),
+  index("shift_reports_branch_id_idx").on(table.branchId, table.sentAt),
+]);
+
+export const insertShiftReportSchema = createInsertSchema(shiftReports).omit({ id: true, createdAt: true });
+export type InsertShiftReport = z.infer<typeof insertShiftReportSchema>;
+export type ShiftReport = typeof shiftReports.$inferSelect;
+
 export type CashMovement = typeof cashMovements.$inferSelect;
 export type InsertCashMovement = z.infer<typeof insertCashMovementSchema>;
 

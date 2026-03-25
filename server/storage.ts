@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, type DrinkQueue, type InsertDrinkQueue, type StockMovement, type InsertStockMovement, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members, drinkQueue, stockMovements } from "@shared/schema";
+import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, type DrinkQueue, type InsertDrinkQueue, type StockMovement, type InsertStockMovement, type ShiftReport, type InsertShiftReport, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members, drinkQueue, stockMovements, shiftReports } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte, inArray, and, lt, isNull, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -138,6 +138,11 @@ export interface IStorage {
   createShift(shift: InsertShift): Promise<Shift>;
   updateShift(id: string, shift: Partial<InsertShift>): Promise<Shift | undefined>;
   closeShift(id: string, finalCash: number, notes?: string): Promise<Shift | undefined>;
+
+  // Shift Reports (laporan shift dikirim ke super admin)
+  createShiftReport(report: InsertShiftReport): Promise<ShiftReport>;
+  getShiftReports(params?: { branchId?: string; limit?: number; offset?: number }): Promise<{ reports: ShiftReport[]; total: number }>;
+  getShiftReport(id: string): Promise<ShiftReport | undefined>;
 
   // Cash Movements
   getCashMovements(): Promise<CashMovement[]>;
@@ -1612,6 +1617,28 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
+  // Shift Report methods
+  async createShiftReport(report: InsertShiftReport): Promise<ShiftReport> {
+    const [created] = await db.insert(shiftReports).values(report).returning();
+    return created;
+  }
+
+  async getShiftReports(params: { branchId?: string; limit?: number; offset?: number } = {}): Promise<{ reports: ShiftReport[]; total: number }> {
+    const { branchId, limit = 50, offset = 0 } = params;
+    const where = branchId ? eq(shiftReports.branchId, branchId) : undefined;
+    const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(shiftReports).where(where ?? sql`1=1`);
+    const reports = await db.select().from(shiftReports)
+      .where(where ?? sql`1=1`)
+      .orderBy(desc(shiftReports.sentAt))
+      .limit(limit).offset(offset);
+    return { reports, total: count };
+  }
+
+  async getShiftReport(id: string): Promise<ShiftReport | undefined> {
+    const [report] = await db.select().from(shiftReports).where(eq(shiftReports.id, id));
+    return report || undefined;
+  }
+
   // Cash Movement methods
   async getCashMovements(): Promise<CashMovement[]> {
     return await db.select().from(cashMovements).orderBy(desc(cashMovements.createdAt));
@@ -2457,6 +2484,9 @@ class MemStorage implements IStorage {
   async createShift(shift: any): Promise<any> { throw new Error('Shift management not supported in MemStorage fallback'); }
   async updateShift(id: string, shift: any): Promise<any | undefined> { throw new Error('Shift management not supported in MemStorage fallback'); }
   async closeShift(id: string, finalCash: number, notes?: string): Promise<any | undefined> { throw new Error('Shift management not supported in MemStorage fallback'); }
+  async createShiftReport(report: any): Promise<any> { throw new Error('Shift reports not supported in MemStorage'); }
+  async getShiftReports(_params?: any): Promise<{ reports: any[]; total: number }> { return { reports: [], total: 0 }; }
+  async getShiftReport(id: string): Promise<any | undefined> { return undefined; }
 
   async getCashMovements(): Promise<any[]> { return []; }
   async getCashMovementsByShift(shiftId: string): Promise<any[]> { return []; }
@@ -2926,6 +2956,25 @@ class FallbackStorage implements IStorage {
   async closeShift(id: string, finalCash: number, notes?: string): Promise<any | undefined> {
     return this.withFallback(async () => 
       this.usingMemStorage ? this.memStorage.closeShift(id, finalCash, notes) : this.dbStorage.closeShift(id, finalCash, notes)
+    );
+  }
+
+  // Shift Reports delegation
+  async createShiftReport(report: any): Promise<any> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.createShiftReport(report) : this.dbStorage.createShiftReport(report)
+    );
+  }
+
+  async getShiftReports(params?: any): Promise<{ reports: any[]; total: number }> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.getShiftReports(params) : this.dbStorage.getShiftReports(params)
+    );
+  }
+
+  async getShiftReport(id: string): Promise<any | undefined> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.getShiftReport(id) : this.dbStorage.getShiftReport(id)
     );
   }
 

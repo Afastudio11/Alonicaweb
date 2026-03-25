@@ -21,6 +21,7 @@ import BranchesSection from "./branches";
 import PrinterPage from "../printer";
 import DrinkQueueSection from "./drink-queue";
 import KitchenSection from "./kitchen";
+import ShiftReportsSection from "./shift-reports";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import NotificationBell from "@/components/admin/notification-bell";
@@ -46,6 +47,7 @@ const SECTION_LABELS: Record<string, string> = {
   branches: "Manajemen Cabang",
   "drink-queue": "Antrian Pesanan",
   kitchen: "Dapur & Bar",
+  "shift-reports": "Laporan Shift Kasir",
 };
 
 export default function AdminDashboard() {
@@ -176,6 +178,7 @@ export default function AdminDashboard() {
       case "drink-queue": return <DrinkQueueSection />;
       case "kitchen": return <KitchenSection />;
       case "branches": return user.branchId === null ? <BranchesSection /> : <OrdersSection />;
+      case "shift-reports": return user.branchId === null ? <ShiftReportsSection /> : <OrdersSection />;
       default: return <OrdersSection />;
     }
   };

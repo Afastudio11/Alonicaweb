@@ -23,6 +23,7 @@ import {
   GitBranch,
   GlassWater,
   ChefHat,
+  FileBarChart2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -85,6 +86,7 @@ const BASE_NAV_GROUPS = [
     superAdminOnly: true,
     items: [
       { key: "branches", label: "Manajemen Cabang", icon: GitBranch },
+      { key: "shift-reports", label: "Laporan Shift Kasir", icon: FileBarChart2 },
     ],
   },
 ];

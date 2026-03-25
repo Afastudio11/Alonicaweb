@@ -1531,6 +1531,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== Shift Reports — laporan shift kasir ke super admin =====
+
+  // POST /api/shift-reports — kasir kirim laporan
+  app.post("/api/shift-reports", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const body = req.body;
+      // Ambil nama cabang dari database
+      let branchName = body.branchName || "";
+      if (user.branchId && !branchName) {
+        try {
+          const branch = await storage.getBranch(user.branchId);
+          if (branch) branchName = branch.name;
+        } catch {}
+      }
+      const report = await storage.createShiftReport({
+        shiftId: body.shiftId,
+        branchId: user.branchId || null,
+        kasirId: user.id,
+        kasirName: user.username,
+        branchName,
+        reportDate: body.reportDate,
+        shiftStart: new Date(body.shiftStart),
+        shiftEnd: new Date(body.shiftEnd),
+        totalOrders: body.totalOrders || 0,
+        totalPaid: body.totalPaid || 0,
+        totalMakanan: body.totalMakanan || 0,
+        totalMinuman: body.totalMinuman || 0,
+        totalOpenBillPending: body.totalOpenBillPending || 0,
+        initialCash: body.initialCash || 0,
+        finalCash: body.finalCash || 0,
+        systemCash: body.systemCash || 0,
+        cashDifference: body.cashDifference || 0,
+        notes: body.notes || null,
+        recapData: body.recapData || null,
+        status: "sent",
+        sentAt: new Date(),
+      });
+      res.json(report);
+    } catch (error) {
+      return handleApiError(res, error, "Failed to create shift report");
+    }
+  });
+
+  // GET /api/shift-reports — super admin lihat semua laporan
+  app.get("/api/shift-reports", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const isSuperAdmin = user.role === "admin" && !user.branchId;
+      const { limit = "50", offset = "0", branchId } = req.query as any;
+      // Super admin bisa lihat semua, admin biasa hanya cabangnya
+      const filterBranchId = isSuperAdmin ? (branchId || undefined) : user.branchId;
+      const result = await storage.getShiftReports({
+        branchId: filterBranchId,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+      });
+      res.json(result);
+    } catch (error) {
+      return handleApiError(res, error, "Failed to get shift reports");
+    }
+  });
+
+  // GET /api/shift-reports/:id — detail laporan satu shift
+  app.get("/api/shift-reports/:id", requireAuth, async (req, res) => {
+    try {
+      const report = await storage.getShiftReport(req.params.id);
+      if (!report) return sendErrorResponse(res, 404, "Shift report not found");
+      res.json(report);
+    } catch (error) {
+      return handleApiError(res, error, "Failed to get shift report");
+    }
+  });
+
   // Cash Movement Management
   app.get("/api/cash-movements", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {
