@@ -200,6 +200,11 @@ async function updateDailyReportForOrder(orderId: string) {
 // Helper: auto-create item queue entries for ALL items (food + drink) in an order
 async function autoCreateDrinkQueue(order: { id: string; customerName: string; tableNumber: string; orderType: string; branchId?: string | null; items: any[] }) {
   try {
+    // Deduplication: skip if drink queue items already exist for this order
+    const existingQueue = await storage.getDrinkQueue(order.branchId ?? null);
+    const alreadyQueued = existingQueue.some((q: any) => q.orderId === order.id);
+    if (alreadyQueued) return;
+
     const categories = await storage.getCategories();
     const drinkCategoryIds = new Set(
       categories.filter(c => c.name.toLowerCase().includes('minuman')).map(c => c.id)
@@ -2483,6 +2488,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!order) {
         return sendErrorResponse(res, 404, "Order not found");
+      }
+
+      // Auto-create drink queue when order is accepted (queued → preparing)
+      if (status === 'preparing' && currentOrder.orderStatus === 'queued') {
+        autoCreateDrinkQueue({
+          id: currentOrder.id,
+          customerName: currentOrder.customerName,
+          tableNumber: currentOrder.tableNumber,
+          orderType: (currentOrder as any).orderType || 'dine_in',
+          branchId: (currentOrder as any).branchId ?? null,
+          items: Array.isArray(currentOrder.items) ? currentOrder.items : [],
+        }).catch(() => {});
       }
 
       // Restore stock when order is cancelled

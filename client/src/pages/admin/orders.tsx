@@ -68,6 +68,18 @@ export default function OrdersSection() {
     }
   });
 
+  // Auto-accept QRIS orders that are paid but still queued — no manual action needed
+  useEffect(() => {
+    const paidQrisQueued = orders.filter(
+      (o: any) => o.paymentMethod === 'qris' && o.paymentStatus === 'paid' && o.orderStatus === 'queued'
+    );
+    paidQrisQueued.forEach((o: any) => {
+      apiRequest('PATCH', `/api/orders/${o.id}/status`, { status: 'preparing' })
+        .then(() => queryClient.invalidateQueries({ queryKey: ['/api/orders'] }))
+        .catch(() => {});
+    });
+  }, [orders]);
+
 
   // Calculate stats
   const today = new Date().toDateString();
@@ -417,7 +429,7 @@ export default function OrdersSection() {
 
                 {/* Aksi */}
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                  {order.orderStatus === 'queued' && (
+                  {order.orderStatus === 'queued' && (order as any).paymentMethod !== 'qris' && (
                     <Button
                       onClick={() => handleStatusUpdate(order.id, 'preparing')}
                       className="bg-blue-500 hover:bg-blue-600 h-9 text-xs px-3"
