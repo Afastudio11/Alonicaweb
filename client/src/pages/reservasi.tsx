@@ -1,25 +1,20 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { CalendarDays, Clock, Users, User, Phone, MessageSquare, ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { ChevronLeft, CheckCircle2, Loader2, Calendar, Clock, Users, Minus, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
-function Field({ label, icon: Icon, children }: { label: string; icon: any; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
-        <Icon size={14} className="text-orange-500" />
-        {label}
-      </Label>
-      {children}
-    </div>
-  );
-}
+const TIME_SLOTS = [
+  "09:00", "10:00", "11:00", "12:00", "13:00", "14:00",
+  "15:00", "16:00", "17:00", "18:00", "19:00", "20:00",
+];
+
+const SectionLabel = ({ children }: { children: string }) => (
+  <p style={{ fontSize: 11, fontWeight: 700, color: "#8E8E93", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>
+    {children}
+  </p>
+);
 
 export default function ReservasiPage() {
   const { toast } = useToast();
@@ -29,159 +24,205 @@ export default function ReservasiPage() {
     phoneNumber: "",
     guestCount: 2,
     reservationDate: "",
-    reservationTime: "12:00",
+    reservationTime: "19:00",
     notes: "",
   });
 
+  const today = new Date().toISOString().split("T")[0];
+
   const mutation = useMutation({
     mutationFn: async (data: typeof form) => {
-      // Build ISO date from date + time
-      const [y, m, d] = data.reservationDate.split("-").map(Number);
-      const [h, min] = data.reservationTime.split(":").map(Number);
-      const dt = new Date(y, m - 1, d, h, min);
-
       const res = await apiRequest("POST", "/api/reservations", {
         customerName: data.customerName,
         phoneNumber: data.phoneNumber,
         guestCount: data.guestCount,
-        reservationDate: dt.toISOString(),
+        reservationDate: data.reservationDate,
         reservationTime: data.reservationTime,
         notes: data.notes || null,
       });
-
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || "Gagal membuat reservasi");
       }
       return res.json();
     },
-    onSuccess: () => {
-      setSubmitted(true);
-    },
-    onError: (error: Error) => {
-      toast({ title: "Gagal reservasi", description: error.message, variant: "destructive" });
-    },
+    onSuccess: () => setSubmitted(true),
+    onError: (error: Error) =>
+      toast({ title: "Gagal reservasi", description: error.message, variant: "destructive" }),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.customerName.trim()) return toast({ title: "Nama harus diisi", variant: "destructive" });
     if (!form.phoneNumber.trim()) return toast({ title: "Nomor telepon harus diisi", variant: "destructive" });
-    if (!form.reservationDate) return toast({ title: "Tanggal harus diisi", variant: "destructive" });
-    if (form.guestCount < 1) return toast({ title: "Jumlah tamu minimal 1", variant: "destructive" });
+    if (!form.reservationDate) return toast({ title: "Tanggal harus dipilih", variant: "destructive" });
     mutation.mutate(form);
   };
 
-  const today = new Date().toISOString().split("T")[0];
-
   if (submitted) {
     return (
-      <div style={{ minHeight: "100dvh", background: "linear-gradient(135deg, #FFF8F0, #FFF0F3)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ textAlign: "center", maxWidth: 360 }}>
-          <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #FF9500, #FF2D55)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-            <CheckCircle2 size={40} color="#fff" />
-          </div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: "#1D1D1F", marginBottom: 8 }}>Reservasi Diterima!</h2>
-          <p style={{ color: "#6E6E73", fontSize: 15, lineHeight: 1.5, marginBottom: 24 }}>
-            Terima kasih, <strong>{form.customerName}</strong>. Tim kami akan menghubungi Anda di <strong>{form.phoneNumber}</strong> untuk konfirmasi.
-          </p>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 20, marginBottom: 24, border: "1.5px solid #E5E5EA", textAlign: "left" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ color: "#6E6E73", fontSize: 13 }}>Tanggal</span>
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{new Date(form.reservationDate + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ color: "#6E6E73", fontSize: 13 }}>Jam</span>
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{form.reservationTime} WITA</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#6E6E73", fontSize: 13 }}>Tamu</span>
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{form.guestCount} orang</span>
-            </div>
-          </div>
-          <Link href="/">
-            <button style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #FF9500, #FF2D55)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-              Kembali ke Menu
-            </button>
-          </Link>
+      <div style={{ minHeight: "100dvh", background: "#F5F5F7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #FF9500, #FF2D55)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+          <CheckCircle2 size={36} color="#fff" />
         </div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1D1D1F", marginBottom: 6, textAlign: "center" }}>
+          Reservasi Terkirim!
+        </h2>
+        <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6, textAlign: "center", marginBottom: 24, maxWidth: 300 }}>
+          Halo <strong>{form.customerName}</strong>, tim kami akan menghubungi <strong>{form.phoneNumber}</strong> untuk konfirmasi.
+        </p>
+
+        <div style={{ background: "#fff", borderRadius: 18, padding: "20px 24px", width: "100%", maxWidth: 360, marginBottom: 20, border: "1px solid #E5E5EA" }}>
+          {[
+            { label: "Tanggal", value: new Date(form.reservationDate + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) },
+            { label: "Jam", value: form.reservationTime + " WITA" },
+            { label: "Jumlah Tamu", value: form.guestCount + " orang" },
+          ].map((item, i, arr) => (
+            <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBlock: 10, borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : "none" }}>
+              <span style={{ fontSize: 13, color: "#8E8E93" }}>{item.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F", textAlign: "right", maxWidth: "60%" }}>{item.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <Link href="/">
+          <button style={{ height: 50, paddingInline: 40, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #FF9500, #FF2D55)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+            Kembali ke Menu
+          </button>
+        </Link>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100dvh", background: "linear-gradient(135deg, #FFF8F0, #FFF0F3)" }}>
+    <div style={{ minHeight: "100dvh", background: "#F5F5F7" }}>
+
       {/* Header */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E5EA", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 10 }}>
+      <div style={{ background: "#fff", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 10, borderBottom: "1px solid #F0F0F0" }}>
         <Link href="/">
-          <button style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E5E5EA", background: "#F9F9F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          <button style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E5E5EA", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
             <ChevronLeft size={18} style={{ color: "#1D1D1F" }} />
           </button>
         </Link>
         <div>
-          <h1 style={{ fontSize: 17, fontWeight: 700, color: "#1D1D1F", margin: 0 }}>Reservasi Meja</h1>
-          <p style={{ fontSize: 12, color: "#6E6E73", margin: 0 }}>Pesan tempat sebelum datang</p>
+          <h1 style={{ fontSize: 16, fontWeight: 700, color: "#1D1D1F", margin: 0 }}>Reservasi Meja</h1>
+          <p style={{ fontSize: 12, color: "#8E8E93", margin: 0 }}>Pesan tempat sebelum datang</p>
         </div>
       </div>
 
-      {/* Form */}
-      <div style={{ padding: 20, maxWidth: 480, margin: "0 auto" }}>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} style={{ padding: "16px 16px 32px", maxWidth: 480, margin: "0 auto" }}>
 
-          <div style={{ background: "#fff", borderRadius: 20, padding: 20, border: "1.5px solid #E5E5EA" }} className="space-y-4">
-            <p style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", marginBottom: 4 }}>Informasi Tamu</p>
+        {/* INFORMASI TAMU */}
+        <div style={{ background: "#fff", borderRadius: 18, padding: "20px 18px", marginBottom: 12 }}>
+          <SectionLabel>Informasi Tamu</SectionLabel>
 
-            <Field label="Nama Lengkap" icon={User}>
-              <Input
-                value={form.customerName}
-                onChange={e => setForm(p => ({ ...p, customerName: e.target.value }))}
-                placeholder="Masukkan nama Anda"
-                data-testid="input-reservasi-name"
-              />
-            </Field>
-
-            <Field label="Nomor Telepon" icon={Phone}>
-              <Input
-                type="tel"
-                value={form.phoneNumber}
-                onChange={e => setForm(p => ({ ...p, phoneNumber: e.target.value }))}
-                placeholder="08xxxxxxxxxx"
-                data-testid="input-reservasi-phone"
-              />
-            </Field>
-
-            <Field label="Jumlah Tamu" icon={Users}>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setForm(p => ({ ...p, guestCount: Math.max(1, p.guestCount - 1) }))}
-                  style={{ width: 40, height: 40, borderRadius: 10, border: "1.5px solid #E5E5EA", background: "#F9F9F9", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  −
-                </button>
-                <span style={{ fontSize: 20, fontWeight: 700, color: "#1D1D1F", minWidth: 32, textAlign: "center" }}>{form.guestCount}</span>
-                <button type="button" onClick={() => setForm(p => ({ ...p, guestCount: Math.min(50, p.guestCount + 1) }))}
-                  style={{ width: 40, height: 40, borderRadius: 10, border: "1.5px solid #E5E5EA", background: "#F9F9F9", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  +
-                </button>
-                <span style={{ fontSize: 13, color: "#6E6E73" }}>orang</span>
-              </div>
-            </Field>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "block", marginBottom: 6 }}>
+              Nama Lengkap <span style={{ color: "#FF2D55" }}>*</span>
+            </label>
+            <input
+              value={form.customerName}
+              onChange={e => setForm(p => ({ ...p, customerName: e.target.value }))}
+              placeholder="Masukkan nama kamu"
+              data-testid="input-reservasi-name"
+              style={{
+                width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
+                borderColor: form.customerName ? "#FF9500" : "#E5E5EA",
+                padding: "0 14px", fontSize: 15, outline: "none",
+                background: form.customerName ? "#FFFBF5" : "#F9F9F9",
+                color: "#1D1D1F", boxSizing: "border-box",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+            />
           </div>
 
-          <div style={{ background: "#fff", borderRadius: 20, padding: 20, border: "1.5px solid #E5E5EA" }} className="space-y-4">
-            <p style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", marginBottom: 4 }}>Waktu Reservasi</p>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "block", marginBottom: 6 }}>
+              Nomor HP <span style={{ color: "#FF2D55" }}>*</span>
+            </label>
+            <input
+              type="tel"
+              value={form.phoneNumber}
+              onChange={e => setForm(p => ({ ...p, phoneNumber: e.target.value }))}
+              placeholder="08xxxxxxxxxx"
+              data-testid="input-reservasi-phone"
+              style={{
+                width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
+                borderColor: form.phoneNumber ? "#FF9500" : "#E5E5EA",
+                padding: "0 14px", fontSize: 15, outline: "none",
+                background: form.phoneNumber ? "#FFFBF5" : "#F9F9F9",
+                color: "#1D1D1F", boxSizing: "border-box",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+            />
+          </div>
 
-            <Field label="Tanggal" icon={CalendarDays}>
-              <Input
-                type="date"
-                min={today}
-                value={form.reservationDate}
-                onChange={e => setForm(p => ({ ...p, reservationDate: e.target.value }))}
-                data-testid="input-reservasi-date"
-              />
-            </Field>
+          {/* Guest stepper */}
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "block", marginBottom: 10 }}>
+              Jumlah Tamu
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: 0, background: "#F5F5F7", borderRadius: 14, padding: 4, width: "fit-content" }}>
+              <button
+                type="button"
+                onClick={() => setForm(p => ({ ...p, guestCount: Math.max(1, p.guestCount - 1) }))}
+                data-testid="button-guest-minus"
+                style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: form.guestCount > 1 ? "#fff" : "transparent", cursor: form.guestCount > 1 ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: form.guestCount > 1 ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}
+              >
+                <Minus size={16} color={form.guestCount > 1 ? "#1D1D1F" : "#C7C7CC"} />
+              </button>
+              <div style={{ minWidth: 64, textAlign: "center" }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: "#1D1D1F" }}>{form.guestCount}</span>
+                <span style={{ fontSize: 12, color: "#8E8E93", marginLeft: 4 }}>orang</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(p => ({ ...p, guestCount: Math.min(50, p.guestCount + 1) }))}
+                data-testid="button-guest-plus"
+                style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", transition: "all 0.15s" }}
+              >
+                <Plus size={16} color="#FF9500" />
+              </button>
+            </div>
+          </div>
+        </div>
 
-            <Field label="Jam Kedatangan" icon={Clock}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"].map(t => (
+        {/* WAKTU RESERVASI */}
+        <div style={{ background: "#fff", borderRadius: 18, padding: "20px 18px", marginBottom: 12 }}>
+          <SectionLabel>Waktu Reservasi</SectionLabel>
+
+          {/* Tanggal */}
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+              <Calendar size={14} color="#FF9500" />
+              Tanggal <span style={{ color: "#FF2D55" }}>*</span>
+            </label>
+            <input
+              type="date"
+              min={today}
+              value={form.reservationDate}
+              onChange={e => setForm(p => ({ ...p, reservationDate: e.target.value }))}
+              data-testid="input-reservasi-date"
+              style={{
+                width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
+                borderColor: form.reservationDate ? "#FF9500" : "#E5E5EA",
+                padding: "0 14px", fontSize: 15, outline: "none",
+                background: form.reservationDate ? "#FFFBF5" : "#F9F9F9",
+                color: "#1D1D1F", boxSizing: "border-box",
+              }}
+            />
+          </div>
+
+          {/* Jam */}
+          <div>
+            <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <Clock size={14} color="#FF9500" />
+              Jam Kedatangan
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
+              {TIME_SLOTS.map(t => {
+                const selected = form.reservationTime === t;
+                return (
                   <button
                     key={t}
                     type="button"
@@ -189,56 +230,65 @@ export default function ReservasiPage() {
                     data-testid={`button-time-${t}`}
                     style={{
                       height: 38, borderRadius: 10, border: "1.5px solid",
-                      borderColor: form.reservationTime === t ? "#FF9500" : "#E5E5EA",
-                      background: form.reservationTime === t ? "#FFF3E0" : "#F9F9F9",
-                      color: form.reservationTime === t ? "#FF9500" : "#3C3C43",
-                      fontSize: 13, fontWeight: form.reservationTime === t ? 700 : 500,
-                      cursor: "pointer",
+                      borderColor: selected ? "#FF9500" : "#EBEBEB",
+                      background: selected ? "#FF9500" : "#F9F9F9",
+                      color: selected ? "#fff" : "#3C3C43",
+                      fontSize: 13, fontWeight: selected ? 700 : 500,
+                      cursor: "pointer", transition: "all 0.15s",
                     }}
                   >
                     {t}
                   </button>
-                ))}
-              </div>
-            </Field>
+                );
+              })}
+            </div>
           </div>
+        </div>
 
-          <div style={{ background: "#fff", borderRadius: 20, padding: 20, border: "1.5px solid #E5E5EA" }}>
-            <Field label="Catatan Khusus (opsional)" icon={MessageSquare}>
-              <Textarea
-                value={form.notes}
-                onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
-                placeholder="Misal: ada anak kecil, alergi makanan, minta kursi dekat jendela..."
-                rows={3}
-                data-testid="input-reservasi-notes"
-              />
-            </Field>
-          </div>
-
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            data-testid="button-submit-reservasi"
+        {/* CATATAN */}
+        <div style={{ background: "#fff", borderRadius: 18, padding: "20px 18px", marginBottom: 20 }}>
+          <SectionLabel>Catatan (Opsional)</SectionLabel>
+          <textarea
+            value={form.notes}
+            onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
+            placeholder="Misal: ada anak kecil, alergi makanan, minta kursi dekat jendela..."
+            rows={3}
+            data-testid="input-reservasi-notes"
             style={{
-              width: "100%", height: 52, borderRadius: 16, border: "none",
-              background: mutation.isPending ? "#E5E5EA" : "linear-gradient(135deg, #FF9500, #FF2D55)",
-              color: mutation.isPending ? "#8E8E93" : "#fff",
-              fontSize: 16, fontWeight: 700, cursor: mutation.isPending ? "wait" : "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              width: "100%", borderRadius: 12, border: "1.5px solid #E5E5EA",
+              padding: "12px 14px", fontSize: 14, outline: "none",
+              background: "#F9F9F9", color: "#1D1D1F", resize: "none",
+              lineHeight: 1.5, boxSizing: "border-box", fontFamily: "inherit",
             }}
-          >
-            {mutation.isPending ? (
-              <><Loader2 size={18} className="animate-spin" />Mengirim...</>
-            ) : (
-              <><CalendarDays size={18} />Buat Reservasi</>
-            )}
-          </button>
+            onFocus={e => { e.target.style.borderColor = "#FF9500"; e.target.style.background = "#FFFBF5"; }}
+            onBlur={e => { e.target.style.borderColor = "#E5E5EA"; e.target.style.background = "#F9F9F9"; }}
+          />
+        </div>
 
-          <p style={{ textAlign: "center", fontSize: 12, color: "#8E8E93" }}>
-            Tim kami akan menghubungi Anda untuk konfirmasi
-          </p>
-        </form>
-      </div>
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={mutation.isPending}
+          data-testid="button-submit-reservasi"
+          style={{
+            width: "100%", height: 52, borderRadius: 16, border: "none",
+            background: mutation.isPending ? "#E5E5EA" : "linear-gradient(135deg, #FF9500, #FF2D55)",
+            color: mutation.isPending ? "#8E8E93" : "#fff",
+            fontSize: 16, fontWeight: 700, cursor: mutation.isPending ? "wait" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            transition: "opacity 0.15s",
+          }}
+        >
+          {mutation.isPending
+            ? <><Loader2 size={18} className="animate-spin" /> Mengirim...</>
+            : <><Calendar size={18} /> Buat Reservasi</>
+          }
+        </button>
+
+        <p style={{ textAlign: "center", fontSize: 12, color: "#AEAEB2", marginTop: 12 }}>
+          Tim kami akan menghubungi kamu untuk konfirmasi
+        </p>
+      </form>
     </div>
   );
 }
