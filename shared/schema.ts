@@ -51,6 +51,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("admin"),
   branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
   isActive: boolean("is_active").notNull().default(true),
+  allowedMenus: jsonb("allowed_menus").$type<string[] | null>().default(null), // null = semua akses, array = menu yang diizinkan
 }, (table) => [
   index("users_role_idx").on(table.role),
   index("users_is_active_idx").on(table.isActive),

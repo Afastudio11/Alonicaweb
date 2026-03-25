@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.json({ 
-        user: { id: user.id, username: user.username, role: user.role, branchId: user.branchId ?? null }
+        user: { id: user.id, username: user.username, role: user.role, branchId: user.branchId ?? null, allowedMenus: user.allowedMenus ?? null }
       });
     } catch (error) {
       console.error("❌ Login error:", error);
@@ -529,12 +529,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Session expired or invalid" });
     }
     
+    const currentUser = await storage.getUser(session.userId);
     res.json({ 
       user: { 
         id: session.userId, 
         username: session.username, 
         role: session.role,
         branchId: session.branchId ?? null,
+        allowedMenus: currentUser?.allowedMenus ?? null,
       } 
     });
   });

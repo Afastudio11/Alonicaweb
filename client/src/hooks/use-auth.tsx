@@ -7,6 +7,7 @@ interface User {
   username: string;
   role: string;
   branchId: string | null;
+  allowedMenus: string[] | null;
 }
 
 interface AuthContextType {

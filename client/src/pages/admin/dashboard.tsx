@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LockKeyhole, ShieldOff } from "lucide-react";
+import { LockKeyhole, ShieldOff, Ban } from "lucide-react";
 import AdminSidebar from "@/components/admin/sidebar";
 import OrdersSection from "./orders";
 import KitchenSection from "./kitchen";
@@ -21,7 +21,7 @@ import MembersSection from "./members";
 import BranchesSection from "./branches";
 import PrinterPage from "../printer";
 import DrinkQueueSection from "./drink-queue";
-import { Menu, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
 import NotificationBell from "@/components/admin/notification-bell";
 import ScheduledOrderReminder from "@/components/admin/scheduled-reminder";
@@ -109,7 +109,53 @@ export default function AdminDashboard() {
     );
   }
 
+  const isSuperAdmin = user.role === "admin" && user.branchId === null;
+  const allowedMenus: string[] | null = user.allowedMenus ?? null;
+
+  // Cek apakah user punya akses ke section ini
+  const canAccessSection = (sec: string) => {
+    if (isSuperAdmin) return true; // super admin selalu bisa akses
+    if (!allowedMenus || allowedMenus.length === 0) return true; // null = semua akses
+    // branches hanya untuk super admin
+    if (sec === "branches") return false;
+    return allowedMenus.includes(sec);
+  };
+
   const renderSection = () => {
+    // Guard: cek izin akses
+    if (!canAccessSection(section)) {
+      const label = SECTION_LABELS[section] || section;
+      return (
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          minHeight: "60vh",
+        }}>
+          <div style={{
+            textAlign: "center", padding: 40,
+            background: "#fff", borderRadius: 24,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+            maxWidth: 360,
+          }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: "50%",
+                background: "#FFF5E6", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Ban size={32} color="#FF9500" />
+              </div>
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>
+              Akses Tidak Diizinkan
+            </h2>
+            <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.5 }}>
+              Anda tidak memiliki izin untuk mengakses halaman <strong>{label}</strong>.
+              Hubungi super admin untuk mendapatkan akses.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     switch (section) {
       case "orders": return <OrdersSection />;
       case "kitchen": return <KitchenSection />;

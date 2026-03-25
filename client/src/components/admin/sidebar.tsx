@@ -91,7 +91,16 @@ const BASE_NAV_GROUPS = [
 
 function getNavGroups(user: any) {
   const isSuperAdmin = user?.role === "admin" && user?.branchId === null;
-  return BASE_NAV_GROUPS.filter(g => !g.superAdminOnly || isSuperAdmin);
+  const allowedMenus: string[] | null = user?.allowedMenus ?? null;
+  return BASE_NAV_GROUPS
+    .filter(g => !g.superAdminOnly || isSuperAdmin)
+    .map(group => ({
+      ...group,
+      items: group.items.filter(item =>
+        isSuperAdmin || allowedMenus === null || allowedMenus.includes(item.key)
+      ),
+    }))
+    .filter(group => group.items.length > 0);
 }
 
 function NgehnoomLogo() {
