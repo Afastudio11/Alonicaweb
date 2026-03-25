@@ -419,6 +419,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             items: fullOrder.items,
           });
         }
+        // Register member only after payment confirmed
+        if (order.customerPhone && order.customerName) {
+          storage.upsertMember(order.customerPhone, order.customerName, order.total).catch(() => {});
+        }
       }
 
       console.log(`Payment ${notificationData.paymentStatus} for order ${order.id}`);
@@ -2331,11 +2335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
-      // Auto-register phone as member (fire-and-forget, won't block response)
-      if (customerPhone && customerName) {
-        storage.upsertMember(customerPhone, customerName, total).catch(() => {});
-      }
-
+      // Member registration happens only after payment is confirmed (not here for QRIS)
       res.status(201).json(responsePayload);
     } catch (error) {
       if (error instanceof Error && error.name === 'ZodError') {
@@ -2877,6 +2877,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         paidAt: new Date()
       });
       await storage.updateOrderStatus(id, 'preparing');
+
+      // Register member after payment confirmed
+      if (order.customerPhone && order.customerName) {
+        storage.upsertMember(order.customerPhone, order.customerName, order.total).catch(() => {});
+      }
 
       res.json({ success: true, paymentStatus: 'paid', orderId: id });
     } catch (error) {

@@ -602,7 +602,13 @@ export class DatabaseStorage implements IStorage {
 
   // Order methods
   async getOrders(): Promise<Order[]> {
-    const ordersList = await db.select().from(orders).orderBy(desc(orders.createdAt));
+    const ordersList = await db
+      .select()
+      .from(orders)
+      .where(
+        sql`NOT (${orders.paymentMethod} = 'qris' AND ${orders.paymentStatus} = 'pending')`
+      )
+      .orderBy(desc(orders.createdAt));
     return ordersList;
   }
 
@@ -619,11 +625,13 @@ export class DatabaseStorage implements IStorage {
   async getPaginatedOrders(params: { limit?: number; offset?: number; status?: string; paymentStatus?: string }): Promise<{ orders: Order[]; total: number }> {
     const { limit = 50, offset = 0, status, paymentStatus } = params;
     
-    const conditions = [];
+    // Always exclude unpaid QRIS orders (customer hasn't paid yet)
+    const baseCondition = sql`NOT (${orders.paymentMethod} = 'qris' AND ${orders.paymentStatus} = 'pending')`;
+    const conditions = [baseCondition];
     if (status) conditions.push(eq(orders.orderStatus, status));
     if (paymentStatus) conditions.push(eq(orders.paymentStatus, paymentStatus));
     
-    const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+    const whereClause = sql`${sql.join(conditions, sql` AND `)}`;
     
     const [ordersList, [{ count }]] = await Promise.all([
       db.select().from(orders).where(whereClause).orderBy(desc(orders.createdAt)).limit(limit).offset(offset),
