@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, ShoppingBag, CheckCircle, Clock, DollarSign, Eye, X, Receipt, Printer, Search, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, ShoppingBag, CheckCircle, Clock, DollarSign, Eye, Receipt, Printer, Search, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -501,19 +501,11 @@ export default function OrdersSection() {
       <Dialog open={!!viewingOrder} onOpenChange={() => setViewingOrder(null)}>
         <DialogContent className="max-w-2xl" data-testid="modal-order-details">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Order Details - #{viewingOrder?.id.slice(-6).toUpperCase()}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setViewingOrder(null)}
-                data-testid="button-close-order-details"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <DialogTitle>
+              Detail Pesanan — #{viewingOrder?.id.slice(-6).toUpperCase()}
             </DialogTitle>
             <DialogDescription>
-              Lihat detail lengkap pesanan termasuk items, payment info dan timeline.
+              Lihat detail lengkap pesanan termasuk items, info pembayaran dan timeline.
             </DialogDescription>
           </DialogHeader>
           {viewingOrder && (

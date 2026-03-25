@@ -1176,7 +1176,7 @@ export default function CashierSection() {
                 <p className="text-muted-foreground text-sm">Tidak ada open bills</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
               {openBills.slice(0, 6).map((bill) => {
                 const statusColors = {
                   pending: 'bg-green-50 text-green-700 border-green-200',
@@ -1903,7 +1903,7 @@ export default function CashierSection() {
           </DialogHeader>
           
           {paymentData && (
-            <div className="receipt-content admin-receipt space-y-4 print:text-black print:bg-white" data-testid="receipt-content">
+            <div className="customer-receipt space-y-4 print:text-black print:bg-white" data-testid="receipt-content">
               {/* Restaurant Header */}
               <div className="text-center border-b pb-4">
                 <h2 className="font-playfair text-xl font-bold">Alonica Restaurant</h2>
@@ -1933,7 +1933,7 @@ export default function CashierSection() {
                 </div>
                 <div className="flex justify-between">
                   <span>Order ID:</span>
-                  <span className="text-xs">{paymentData.order?.id?.substring(0, 8) || 'N/A'}</span>
+                  <span className="text-xs">#{paymentData.order?.id?.slice(-8).toUpperCase() || 'N/A'}</span>
                 </div>
               </div>
               
@@ -1942,49 +1942,74 @@ export default function CashierSection() {
                 <h3 className="font-semibold mb-3">Detail Pesanan:</h3>
                 <div className="space-y-2">
                   {(paymentData.order?.items || []).map((item: any, index: number) => (
-                    <div key={index} className="text-sm">
-                      <div className="flex justify-between">
-                        <span>{item.name}</span>
-                        <span>{formatCurrency(item.price)}</span>
+                    <div key={index} className="receipt-item text-sm">
+                      <div className="receipt-item-name">
+                        <p className="font-medium">{item?.name || 'N/A'}</p>
+                        <p className="text-muted-foreground">
+                          {item.quantity}x {formatCurrency(item.price)}
+                        </p>
+                        {item.notes && (
+                          <p className="text-xs text-muted-foreground italic">
+                            Catatan: {item.notes}
+                          </p>
+                        )}
                       </div>
-                      <div className="flex justify-between text-muted-foreground text-xs">
-                        <span>  {item.quantity}x {formatCurrency(item.price)}</span>
-                        <span>{formatCurrency(item.price * item.quantity)}</span>
+                      <div className="receipt-item-price">
+                        {formatCurrency((item.price || 0) * (item.quantity || 1))}
                       </div>
-                      {item.notes && (
-                        <div className="text-xs text-muted-foreground">
-                          Catatan: {item.notes}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
               </div>
               
               {/* Payment Summary */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between font-semibold">
                   <span>Subtotal:</span>
                   <span>{formatCurrency(paymentData.order?.subtotal || 0)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                {(paymentData.order?.discount || 0) > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Diskon:</span>
+                    <span>-{formatCurrency(paymentData.order?.discount || 0)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-lg font-bold border-t pt-2">
                   <span>Total:</span>
                   <span>{formatCurrency(paymentData.order?.total || 0)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Uang Diterima:</span>
-                  <span>{formatCurrency(paymentData.cashAmount)}</span>
-                </div>
-                <div className="flex justify-between text-sm font-semibold">
-                  <span>Kembalian:</span>
-                  <span>{formatCurrency(paymentData.change)}</span>
+                {paymentData.cashAmount > 0 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span>Uang Diterima:</span>
+                      <span>{formatCurrency(paymentData.cashAmount)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Kembalian:</span>
+                      <span>{formatCurrency(paymentData.change)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Payment Info */}
+              <div className="text-center space-y-2">
+                <div>
+                  <p className="text-muted-foreground text-sm">Metode Pembayaran</p>
+                  <p className="font-medium capitalize">
+                    {paymentData.order?.paymentMethod === 'qris' ? 'QRIS' : 'Tunai'}
+                  </p>
                 </div>
               </div>
               
               {/* Footer */}
-              <div className="text-center text-xs text-muted-foreground border-t pt-4">
-                <p>Terima kasih atas kunjungan Anda!</p>
-                <p>Silakan kembali lagi</p>
+              <div className="text-center mt-6 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Terima kasih telah berkunjung!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Alonica Restaurant - Cita Rasa Nusantara
+                </p>
               </div>
             </div>
           )}
