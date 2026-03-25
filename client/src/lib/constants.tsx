@@ -21,7 +21,17 @@ export const INVENTORY_CATEGORIES = [
   'Protein',
   'Bumbu & Minyak',
   'Dairy',
-  'Minuman'
+  'Minuman',
+  'Kemasan',
 ] as const;
+
+export const INVENTORY_UNITS_BY_CATEGORY: Record<string, { units: string[]; default: string }> = {
+  'Bahan Pokok': { units: ['gram', 'kg', 'liter', 'ml', 'pcs'], default: 'gram' },
+  'Protein':     { units: ['gram', 'kg', 'pcs'], default: 'gram' },
+  'Bumbu & Minyak': { units: ['gram', 'ml', 'liter', 'sachet', 'pcs'], default: 'ml' },
+  'Dairy':       { units: ['ml', 'liter', 'gram', 'pcs'], default: 'ml' },
+  'Minuman':     { units: ['ml', 'liter', 'gram', 'sachet', 'pcs'], default: 'ml' },
+  'Kemasan':     { units: ['pcs', 'pack', 'roll', 'lembar'], default: 'pcs' },
+};
 
 export const SAMPLE_QRIS_CODE = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020101021226610014ID.CO.QRIS.WWW0215ID1234567890123450303UMI51440014ID.CO.QRIS.WWW0215ID1234567890123450303UMI520454995802ID5914Merchant%20Name6007Jakarta61051234562070703A0163040B1D";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, RefreshCw, ArrowUpCircle, ArrowDownCircle, SlidersHorizontal, Package, AlertTriangle, TrendingUp, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getStockStatus } from "@/lib/utils";
-import { INVENTORY_CATEGORIES } from "@/lib/constants";
+import { INVENTORY_CATEGORIES, INVENTORY_UNITS_BY_CATEGORY } from "@/lib/constants";
 import type { InventoryItem, InsertInventoryItem, StockMovement } from "@shared/schema";
 
 function formatRp(n: number) {
@@ -574,6 +574,26 @@ export default function InventorySection() {
   );
 }
 
+// Helper: number input that clears on focus if value is 0
+function NumInput({ value, onChange, testId, ...props }: {
+  value: number; onChange: (v: number) => void; testId: string; [k: string]: any
+}) {
+  const [raw, setRaw] = useState(value === 0 ? "" : String(value));
+  useEffect(() => { setRaw(value === 0 ? "" : String(value)); }, [value]);
+  return (
+    <Input
+      type="number"
+      value={raw}
+      placeholder="0"
+      onFocus={e => e.target.select()}
+      onChange={e => { setRaw(e.target.value); onChange(parseInt(e.target.value) || 0); }}
+      onBlur={() => { if (raw === "") setRaw(""); }}
+      data-testid={testId}
+      {...props}
+    />
+  );
+}
+
 function InventoryItemForm({
   initialData,
   onSubmit,
@@ -583,16 +603,27 @@ function InventoryItemForm({
   onSubmit: (item: InsertInventoryItem) => void;
   isLoading: boolean;
 }) {
+  const defaultCategory = initialData?.category || "Bahan Pokok";
+  const defaultUnit = initialData?.unit || INVENTORY_UNITS_BY_CATEGORY[defaultCategory]?.default || "gram";
+
   const [formData, setFormData] = useState<InsertInventoryItem>({
     name: initialData?.name || "",
-    category: initialData?.category || "Bahan Pokok",
+    category: defaultCategory,
     currentStock: initialData?.currentStock || 0,
     minStock: initialData?.minStock || 0,
     maxStock: initialData?.maxStock || 100,
-    unit: initialData?.unit || "kg",
+    unit: defaultUnit,
     pricePerUnit: initialData?.pricePerUnit || 0,
     supplier: initialData?.supplier || "",
   });
+
+  // Auto-update unit when category changes (only if not editing existing)
+  const handleCategoryChange = (cat: string) => {
+    const newDefault = INVENTORY_UNITS_BY_CATEGORY[cat]?.default || "pcs";
+    setFormData(p => ({ ...p, category: cat, unit: newDefault }));
+  };
+
+  const availableUnits = INVENTORY_UNITS_BY_CATEGORY[formData.category]?.units || ['pcs', 'gram', 'ml', 'kg', 'liter'];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -610,58 +641,62 @@ function InventoryItemForm({
           data-testid="input-inventory-name"
         />
       </div>
-      <div>
-        <Label>Kategori</Label>
-        <Select value={formData.category} onValueChange={v => setFormData(p => ({ ...p, category: v }))}>
-          <SelectTrigger data-testid="select-inventory-category">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {INVENTORY_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label>Stok Awal</Label>
-          <Input type="number" value={formData.currentStock}
-            onChange={e => setFormData(p => ({ ...p, currentStock: parseInt(e.target.value) || 0 }))}
-            required data-testid="input-current-stock" />
+          <Label>Kategori</Label>
+          <Select value={formData.category} onValueChange={handleCategoryChange}>
+            <SelectTrigger data-testid="select-inventory-category">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {INVENTORY_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
         <div>
-          <Label>Satuan (unit)</Label>
-          <Input value={formData.unit}
-            onChange={e => setFormData(p => ({ ...p, unit: e.target.value }))}
-            required data-testid="input-unit" />
+          <Label>Satuan</Label>
+          <Select value={formData.unit} onValueChange={v => setFormData(p => ({ ...p, unit: v }))}>
+            <SelectTrigger data-testid="select-inventory-unit">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableUnits.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Stok Awal ({formData.unit})</Label>
+          <NumInput value={formData.currentStock} onChange={v => setFormData(p => ({ ...p, currentStock: v }))} testId="input-current-stock" required />
+        </div>
+        <div>
+          <Label>Harga per {formData.unit} (Rp)</Label>
+          <NumInput value={formData.pricePerUnit} onChange={v => setFormData(p => ({ ...p, pricePerUnit: v }))} testId="input-price-per-unit" required />
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>Stok Minimum</Label>
-          <Input type="number" value={formData.minStock}
-            onChange={e => setFormData(p => ({ ...p, minStock: parseInt(e.target.value) || 0 }))}
-            required data-testid="input-min-stock" />
+          <NumInput value={formData.minStock} onChange={v => setFormData(p => ({ ...p, minStock: v }))} testId="input-min-stock" required />
         </div>
         <div>
           <Label>Stok Maksimum</Label>
-          <Input type="number" value={formData.maxStock}
-            onChange={e => setFormData(p => ({ ...p, maxStock: parseInt(e.target.value) || 0 }))}
-            required data-testid="input-max-stock" />
+          <NumInput value={formData.maxStock} onChange={v => setFormData(p => ({ ...p, maxStock: v }))} testId="input-max-stock" required />
         </div>
       </div>
-      <div>
-        <Label>Harga per Satuan (Rp)</Label>
-        <Input type="number" value={formData.pricePerUnit}
-          onChange={e => setFormData(p => ({ ...p, pricePerUnit: parseInt(e.target.value) || 0 }))}
-          required data-testid="input-price-per-unit" />
-      </div>
+
       <div>
         <Label>Supplier</Label>
         <Input value={formData.supplier || ""}
           onChange={e => setFormData(p => ({ ...p, supplier: e.target.value }))}
           placeholder="Nama supplier..." data-testid="input-supplier" />
       </div>
-      <Button type="submit" disabled={isLoading} className="w-full" data-testid="button-save-inventory">
+
+      <Button type="submit" disabled={isLoading} className="w-full h-11" data-testid="button-save-inventory">
         {isLoading ? "Menyimpan..." : "Simpan"}
       </Button>
     </form>
