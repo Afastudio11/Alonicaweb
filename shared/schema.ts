@@ -133,6 +133,7 @@ export const menuItems = pgTable("menu_items", {
   description: text("description"),
   image: text("image"),
   isAvailable: boolean("is_available").notNull().default(true),
+  stock: integer("stock"), // null = unlimited/no tracking, number = tracked stock
   branchId: varchar("branch_id").references(() => branches.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 }, (table) => [

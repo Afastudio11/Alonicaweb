@@ -237,6 +237,18 @@ async function autoCreateDrinkQueue(order: { id: string; customerName: string; t
   }
 }
 
+// Helper to deduct menu item stock after order creation (fire-and-forget safe)
+async function deductMenuItemStockForOrder(items: any[]): Promise<void> {
+  try {
+    const stockItems = (items || [])
+      .map((i: any) => ({ itemId: i.itemId || i.id, quantity: Number(i.quantity) || 1 }))
+      .filter((i) => !!i.itemId);
+    if (stockItems.length > 0) await storage.deductMenuItemStock(stockItems);
+  } catch (err) {
+    console.error('Failed to deduct menu item stock:', err);
+  }
+}
+
 // Auth middleware to protect admin routes
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   // Read session token from httpOnly cookie (secure against XSS)
@@ -2229,6 +2241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const order = await storage.createOrder(orderData);
+          deductMenuItemStockForOrder(items);
           
           responsePayload = {
             order,
@@ -2265,6 +2278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const order = await storage.createOrder(orderData);
+          deductMenuItemStockForOrder(items);
           
           responsePayload = {
             order,
@@ -2300,6 +2314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         const order = await storage.createOrder(orderData);
+        deductMenuItemStockForOrder(items);
         
         responsePayload = {
           order,
@@ -2378,6 +2393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const order = await storage.createOrder(orderData);
+      deductMenuItemStockForOrder(items);
       
       // Update daily report for this paid order
       await updateDailyReportForOrder(order.id);
@@ -2467,6 +2483,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return sendErrorResponse(res, 404, "Order not found");
       }
 
+      // Restore stock when order is cancelled
+      if (status === 'cancelled' && currentOrder?.items) {
+        storage.restoreMenuItemStock(
+          (currentOrder.items as any[]).map((i: any) => ({ itemId: i.itemId || i.id, quantity: Number(i.quantity) || 1 })).filter((i) => !!i.itemId)
+        ).catch((err) => console.error('Failed to restore stock on cancellation:', err));
+      }
+
       // Auto-create notification for kasir when order becomes ready
       if (status === 'ready') {
         try {
@@ -2542,6 +2565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const newOrder = await storage.createOrder(orderData);
+      deductMenuItemStockForOrder(Array.isArray(req.body.items) ? req.body.items : []);
       res.json({ success: true, order: newOrder });
     } catch (error) {
       console.error('Open bill creation error:', error);
@@ -2653,6 +2677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         const newOrder = await storage.createOrder(orderData);
+        deductMenuItemStockForOrder(itemDetails);
         res.json({ 
           success: true, 
           order: newOrder,

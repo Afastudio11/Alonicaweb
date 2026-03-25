@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Edit, Copy, Trash2, Upload } from "lucide-react";
+import { Plus, Edit, Copy, Trash2, Upload, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -129,7 +129,8 @@ export default function MenuSection() {
       categoryId: item.categoryId,
       description: item.description,
       image: item.image,
-      isAvailable: item.isAvailable
+      isAvailable: item.isAvailable,
+      stock: item.stock ?? null,
     };
     createItemMutation.mutate(duplicateItem);
   };
@@ -230,6 +231,14 @@ export default function MenuSection() {
                     <p className="text-lg font-bold text-primary mt-2" data-testid={`text-menu-price-${item.id}`}>
                       {formatCurrency(item.price)}
                     </p>
+                    {item.stock !== null && item.stock !== undefined && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Package size={11} style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} />
+                        <span className="text-xs font-medium" style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} data-testid={`text-stock-${item.id}`}>
+                          {item.stock === 0 ? "Habis" : `Stok: ${item.stock}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <Switch
                     checked={item.isAvailable}
@@ -317,8 +326,10 @@ function MenuItemForm({
     categoryId: initialData?.categoryId || categories[0]?.id || '',
     description: initialData?.description || '',
     image: initialData?.image || '',
-    isAvailable: initialData?.isAvailable ?? true
+    isAvailable: initialData?.isAvailable ?? true,
+    stock: initialData?.stock ?? null,
   });
+  const [trackStock, setTrackStock] = useState<boolean>(initialData?.stock !== null && initialData?.stock !== undefined);
 
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
@@ -483,6 +494,35 @@ function MenuItemForm({
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           data-testid="textarea-menu-description"
         />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>Lacak Stok</Label>
+          <Switch
+            checked={trackStock}
+            onCheckedChange={(checked) => {
+              setTrackStock(checked);
+              setFormData(prev => ({ ...prev, stock: checked ? (prev.stock ?? 0) : null }));
+            }}
+            data-testid="switch-track-stock"
+          />
+        </div>
+        {trackStock && (
+          <div>
+            <Label htmlFor="stock">Jumlah Stok</Label>
+            <Input
+              id="stock"
+              type="number"
+              min="0"
+              value={formData.stock ?? 0}
+              onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+              placeholder="Masukkan jumlah stok"
+              data-testid="input-menu-stock"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Stok akan berkurang otomatis setiap ada pesanan masuk.</p>
+          </div>
+        )}
       </div>
 
       <div>

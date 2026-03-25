@@ -66,6 +66,8 @@ export interface IStorage {
   validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<StockDeductionResult>;
   deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<StockDeductionResult>;
   getLowStockItems(): Promise<InventoryItem[]>;
+  deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void>;
+  restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void>;
 
   // Branches
   getBranches(): Promise<import("@shared/schema").Branch[]>;
@@ -897,6 +899,28 @@ export class DatabaseStorage implements IStorage {
       .from(inventoryItems)
       .where(sql`${inventoryItems.currentStock} <= ${inventoryItems.minStock}`);
     return items;
+  }
+
+  async deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
+    for (const { itemId, quantity } of orderItems) {
+      const [item] = await db.select().from(menuItems).where(eq(menuItems.id, itemId));
+      if (!item || item.stock === null || item.stock === undefined) continue;
+      const newStock = Math.max(0, item.stock - quantity);
+      await db.update(menuItems)
+        .set({ stock: newStock, isAvailable: newStock > 0 ? item.isAvailable : false })
+        .where(eq(menuItems.id, itemId));
+    }
+  }
+
+  async restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
+    for (const { itemId, quantity } of orderItems) {
+      const [item] = await db.select().from(menuItems).where(eq(menuItems.id, itemId));
+      if (!item || item.stock === null || item.stock === undefined) continue;
+      const newStock = item.stock + quantity;
+      await db.update(menuItems)
+        .set({ stock: newStock, isAvailable: true })
+        .where(eq(menuItems.id, itemId));
+    }
   }
 
   // Seed initial data
@@ -2161,6 +2185,21 @@ class MemStorage implements IStorage {
   async validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return { success: true, deductions: [] }; }
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return { success: true, deductions: [] }; }
   async getLowStockItems(): Promise<any[]> { return []; }
+  async deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
+    for (const { itemId, quantity } of orderItems) {
+      const item = this.menuItems.get(itemId);
+      if (!item || item.stock === null || item.stock === undefined) continue;
+      const newStock = Math.max(0, item.stock - quantity);
+      this.menuItems.set(itemId, { ...item, stock: newStock, isAvailable: newStock > 0 ? item.isAvailable : false });
+    }
+  }
+  async restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> {
+    for (const { itemId, quantity } of orderItems) {
+      const item = this.menuItems.get(itemId);
+      if (!item || item.stock === null || item.stock === undefined) continue;
+      this.menuItems.set(itemId, { ...item, stock: item.stock + quantity, isAvailable: true });
+    }
+  }
 
   // Branches methods (stub implementations)
   async getBranches(): Promise<any[]> { return []; }
@@ -2674,6 +2713,8 @@ class FallbackStorage implements IStorage {
   async validateStockAvailability(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.validateStockAvailability(orderItems) : this.dbStorage.validateStockAvailability(orderItems)); }
   async deductStock(orderItems: { itemId: string; quantity: number }[]): Promise<any> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deductStock(orderItems) : this.dbStorage.deductStock(orderItems)); }
   async getLowStockItems(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getLowStockItems() : this.dbStorage.getLowStockItems()); }
+  async deductMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.deductMenuItemStock(orderItems) : this.dbStorage.deductMenuItemStock(orderItems)); }
+  async restoreMenuItemStock(orderItems: { itemId: string; quantity: number }[]): Promise<void> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.restoreMenuItemStock(orderItems) : this.dbStorage.restoreMenuItemStock(orderItems)); }
 
   // Branches methods (stub)
   async getBranches(): Promise<any[]> { return this.withFallback(async () => this.usingMemStorage ? this.memStorage.getBranches() : this.dbStorage.getBranches()); }

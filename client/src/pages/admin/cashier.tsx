@@ -1406,9 +1406,26 @@ export default function CashierSection() {
                                 <div className="text-xs text-muted-foreground">
                                   {categories.find(c => c.id === item.categoryId)?.name || 'Food'}
                                 </div>
+
+                                {/* Stock Badge */}
+                                {item.stock !== null && item.stock !== undefined && (
+                                  <div className="text-xs font-medium" style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} data-testid={`stock-${item.id}`}>
+                                    {item.stock === 0 ? "Habis" : `Sisa ${item.stock}`}
+                                  </div>
+                                )}
                                 
                                 {/* Add/Quantity Controls */}
-                                {quantity === 0 ? (
+                                {item.stock === 0 ? (
+                                  <Button
+                                    className="w-full h-11"
+                                    variant="outline"
+                                    disabled
+                                    data-testid={`button-add-${item.id}`}
+                                    style={{ color: "#FF2D55", borderColor: "#FF2D55", opacity: 0.6 }}
+                                  >
+                                    Habis
+                                  </Button>
+                                ) : quantity === 0 ? (
                                   <Button
                                     onClick={() => addToCart(item)}
                                     className="w-full h-11"
