@@ -53,9 +53,10 @@ export default function ExpensesSection() {
   });
 
   // Get expenses for this cashier
-  const { data: expenses = [], isLoading } = useQuery<Expense[]>({
+  const { data: expensesData, isLoading } = useQuery<{ expenses: Expense[]; total: number }>({
     queryKey: ["/api/expenses"],
   });
+  const expenses = expensesData?.expenses ?? [];
 
   // Create expense mutation
   const createExpenseMutation = useMutation({

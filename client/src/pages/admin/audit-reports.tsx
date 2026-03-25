@@ -72,11 +72,12 @@ export default function AuditReportsSection() {
     retry: 2,
   });
 
-  const { data: expenses = [], isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery<Expense[]>({
+  const { data: expensesData, isLoading: expensesLoading, error: expensesError, refetch: refetchExpenses } = useQuery<{ expenses: Expense[]; total: number }>({
     queryKey: ["/api/expenses"],
     staleTime: 30000,
     retry: 2,
   });
+  const expenses = expensesData?.expenses ?? [];
 
   const { data: cashMovements = [], isLoading: cashMovementsLoading, error: cashMovementsError, refetch: refetchCashMovements } = useQuery<CashMovement[]>({
     queryKey: ["/api/cash-movements"],
