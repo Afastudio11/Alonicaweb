@@ -2,11 +2,13 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar, Phone, Users, Clock, ChevronLeft, ChevronRight,
-  Search, User, CheckCircle2, Circle, XCircle, CalendarDays, List,
+  Search, User, CheckCircle2, Circle, XCircle, CalendarDays, List, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +37,12 @@ export default function ReservationsSection() {
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [calendarDayFilter, setCalendarDayFilter] = useState<Date | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState({
+    customerName: "", phoneNumber: "", guestCount: "2",
+    reservationDate: format(new Date(), "yyyy-MM-dd"),
+    reservationTime: "19:00", notes: "",
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -60,6 +68,32 @@ export default function ReservationsSection() {
     },
     onError: () => toast({ title: "Gagal memperbarui status", variant: "destructive" }),
   });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: typeof addForm) => {
+      const r = await apiRequest("POST", "/api/reservations", {
+        ...data,
+        guestCount: parseInt(data.guestCount, 10),
+      });
+      return r.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/reservations"] });
+      toast({ title: "Reservasi berhasil ditambahkan" });
+      setAddOpen(false);
+      setAddForm({ customerName: "", phoneNumber: "", guestCount: "2", reservationDate: format(new Date(), "yyyy-MM-dd"), reservationTime: "19:00", notes: "" });
+    },
+    onError: () => toast({ title: "Gagal menambahkan reservasi", variant: "destructive" }),
+  });
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addForm.customerName.trim() || !addForm.phoneNumber.trim()) {
+      toast({ title: "Nama dan nomor telepon wajib diisi", variant: "destructive" });
+      return;
+    }
+    createMutation.mutate(addForm);
+  };
 
   const handleUpdate = (id: string, status: string) => {
     updateMutation.mutate({ id, status });
@@ -140,7 +174,7 @@ export default function ReservationsSection() {
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1D1D1F" }}>Reservasi</h1>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {[
             { label: "Hari Ini", value: stats.todayCount, color: "#FF9500" },
             { label: "Menunggu", value: stats.pending, color: "#3B82F6" },
@@ -155,6 +189,14 @@ export default function ReservationsSection() {
               <span style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F" }}>{s.value}</span>
             </div>
           ))}
+          <Button
+            onClick={() => setAddOpen(true)}
+            style={{ background: "#FF9500", color: "#fff", height: 38, gap: 6, borderRadius: 10 }}
+            data-testid="button-add-reservation"
+          >
+            <Plus size={16} />
+            Tambah Reservasi
+          </Button>
         </div>
       </div>
 
@@ -550,6 +592,95 @@ export default function ReservationsSection() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Dialog Tambah Reservasi ── */}
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent style={{ maxWidth: 460 }}>
+          <DialogHeader>
+            <DialogTitle>Tambah Reservasi</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreate} className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="res-name">Nama Pelanggan *</Label>
+              <Input
+                id="res-name"
+                placeholder="Contoh: Budi Santoso"
+                value={addForm.customerName}
+                onChange={e => setAddForm(f => ({ ...f, customerName: e.target.value }))}
+                data-testid="input-res-name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="res-phone">Nomor Telepon *</Label>
+              <Input
+                id="res-phone"
+                placeholder="Contoh: 08123456789"
+                value={addForm.phoneNumber}
+                onChange={e => setAddForm(f => ({ ...f, phoneNumber: e.target.value }))}
+                data-testid="input-res-phone"
+              />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="space-y-1.5">
+                <Label htmlFor="res-date">Tanggal *</Label>
+                <Input
+                  id="res-date"
+                  type="date"
+                  value={addForm.reservationDate}
+                  onChange={e => setAddForm(f => ({ ...f, reservationDate: e.target.value }))}
+                  data-testid="input-res-date"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="res-time">Jam *</Label>
+                <Input
+                  id="res-time"
+                  type="time"
+                  value={addForm.reservationTime}
+                  onChange={e => setAddForm(f => ({ ...f, reservationTime: e.target.value }))}
+                  data-testid="input-res-time"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="res-guests">Jumlah Tamu *</Label>
+              <Input
+                id="res-guests"
+                type="number"
+                min="1"
+                max="50"
+                value={addForm.guestCount}
+                onChange={e => setAddForm(f => ({ ...f, guestCount: e.target.value }))}
+                data-testid="input-res-guests"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="res-notes">Catatan (opsional)</Label>
+              <Textarea
+                id="res-notes"
+                placeholder="Permintaan khusus, dekorasi, dll..."
+                rows={3}
+                value={addForm.notes}
+                onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))}
+                data-testid="input-res-notes"
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 4 }}>
+              <Button type="button" variant="outline" onClick={() => setAddOpen(false)} data-testid="button-cancel-reservation">
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                style={{ background: "#FF9500", color: "#fff" }}
+                data-testid="button-save-reservation"
+              >
+                {createMutation.isPending ? "Menyimpan..." : "Simpan Reservasi"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
