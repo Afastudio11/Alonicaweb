@@ -306,20 +306,36 @@ export default function DrinkQueueSection() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      setPendingId(id);
       const res = await apiRequest("PUT", `/api/drink-queue/${id}`, { status });
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
+    onMutate: async ({ id, status }) => {
+      setPendingId(id);
+      // Batalkan refetch yang sedang berjalan
+      await queryClient.cancelQueries({ queryKey: ["/api/drink-queue"] });
+      // Simpan snapshot sebelum optimistic update
+      const previous = queryClient.getQueryData<QueueItem[]>(["/api/drink-queue"]);
+      // Update cache secara langsung — respons instan
+      queryClient.setQueryData<QueueItem[]>(["/api/drink-queue"], (old = []) =>
+        old.map(item => item.id === id ? { ...item, status } : item)
+      );
+      return { previous };
     },
-    onError: (error: any) => {
+    onError: (error: any, _vars, context) => {
+      // Rollback kalau gagal
+      if (context?.previous) {
+        queryClient.setQueryData(["/api/drink-queue"], context.previous);
+      }
       const msg = error?.message || "";
       toast({
         title: msg.includes("429") ? "Terlalu banyak request" : "Gagal update status",
         description: msg.includes("429") ? "Tunggu sebentar lalu coba lagi" : msg,
         variant: "destructive",
       });
+    },
+    onSuccess: () => {
+      // Sinkronisasi dengan server setelah sukses
+      queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
     },
     onSettled: () => setPendingId(null),
     retry: (failureCount, error: any) => error?.message?.includes("429") && failureCount < 2,
