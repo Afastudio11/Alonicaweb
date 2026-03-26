@@ -1531,6 +1531,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/shifts/:id/orders — daftar pesanan selama shift (untuk review kasir)
+  app.get("/api/shifts/:id/orders", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shift = await storage.getShift(id);
+      if (!shift) return sendErrorResponse(res, 404, "Shift not found");
+
+      const shiftStart = new Date(shift.startTime);
+      const shiftEnd = shift.endTime ? new Date(shift.endTime) : new Date();
+
+      const allOrders = await storage.getOrders();
+      const shiftOrders = allOrders
+        .filter((o: any) => {
+          const t = new Date(o.createdAt);
+          return t >= shiftStart && t <= shiftEnd;
+        })
+        .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+      res.json({ orders: shiftOrders, total: shiftOrders.length });
+    } catch (error) {
+      return handleApiError(res, error, "Failed to get shift orders");
+    }
+  });
+
   // ===== Shift Reports — laporan shift kasir ke super admin =====
 
   // POST /api/shift-reports — kasir kirim laporan

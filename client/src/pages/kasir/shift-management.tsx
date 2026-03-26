@@ -46,6 +46,10 @@ export default function ShiftManagementSection() {
   // State untuk laporan setelah shift ditutup
   const [closedShiftData, setClosedShiftData] = useState<{ shift: Shift; recap: ShiftRecap | null } | null>(null);
   const [reportSent, setReportSent] = useState(false);
+  // Step review: 'review' = kasir cek pesanan, 'ready' = siap buat PDF/kirim
+  const [reviewStep, setReviewStep] = useState<'review' | 'ready'>('review');
+  const [reviewNotes, setReviewNotes] = useState("");
+  const [flaggedOrders, setFlaggedOrders] = useState<Set<string>>(new Set());
 
   const { data: activeShift, isLoading: loadingShift } = useQuery<Shift | null>({
     queryKey: ['/api/shifts/active'],
@@ -56,6 +60,18 @@ export default function ShiftManagementSection() {
     queryKey: ['/api/shifts', activeShift?.id, 'recap'],
     enabled: !!activeShift?.id && showRecap,
   });
+
+  // Fetch orders during the closed shift — hanya aktif saat review step
+  const { data: shiftOrdersData, isLoading: loadingShiftOrders } = useQuery<{ orders: any[]; total: number }>({
+    queryKey: ['/api/shifts', closedShiftData?.shift.id, 'orders'],
+    enabled: !!closedShiftData?.shift.id && reviewStep === 'review',
+    queryFn: async () => {
+      const res = await fetch(`/api/shifts/${closedShiftData!.shift.id}/orders`, { credentials: 'include' });
+      if (!res.ok) throw new Error("Gagal mengambil pesanan shift");
+      return res.json();
+    },
+  });
+  const shiftOrders = shiftOrdersData?.orders ?? [];
 
   const openShiftMutation = useMutation({
     mutationFn: async (data: { initialCash: number }) => {
@@ -84,6 +100,9 @@ export default function ShiftManagementSection() {
       setNotes("");
       setShowRecap(false);
       setReportSent(false);
+      setReviewStep('review');
+      setReviewNotes("");
+      setFlaggedOrders(new Set());
       // Fetch recap otomatis untuk laporan
       try {
         const res = await fetch(`/api/shifts/${closedShift.id}/recap`, { credentials: "include" });
@@ -225,25 +244,190 @@ export default function ShiftManagementSection() {
 
       {!activeShift ? (
         <div className="space-y-4">
-          {/* Laporan shift tersedia setelah close */}
-          {closedShiftData && (
-            <Card className={`border-2 ${reportSent ? 'border-green-400 bg-green-50 dark:bg-green-950/20' : 'border-orange-300 bg-orange-50 dark:bg-orange-950/20'}`}>
+          {/* ===== STEP 1: Review Pesanan ===== */}
+          {closedShiftData && reviewStep === 'review' && (
+            <Card className="border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/20">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {reportSent ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <FileText className="h-5 w-5 text-orange-600" />
-                  )}
-                  {reportSent ? "Laporan Sudah Terkirim" : "Laporan Shift Siap Dikirim"}
-                </CardTitle>
-                <CardDescription>
-                  {reportSent
-                    ? "Laporan shift berhasil dikirim ke super admin."
-                    : "Shift sudah ditutup. Unduh PDF atau kirim laporan ke super admin sekarang."}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart2 className="h-5 w-5 text-blue-600" />
+                      Langkah 1: Cek Pesanan Shift Ini
+                    </CardTitle>
+                    <CardDescription>
+                      Periksa semua pesanan di bawah ini. Tandai yang perlu diperhatikan, lalu lanjut buat laporan.
+                    </CardDescription>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-700 border-blue-200 shrink-0">
+                    {shiftOrders.length} pesanan
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {loadingShiftOrders ? (
+                  <div className="flex justify-center py-6">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
+                  </div>
+                ) : shiftOrders.length === 0 ? (
+                  <p className="text-center text-muted-foreground text-sm py-4">Tidak ada pesanan di shift ini.</p>
+                ) : (
+                  <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                    {shiftOrders.map((order: any) => {
+                      const isFlagged = flaggedOrders.has(order.id);
+                      const isCancelled = order.orderStatus === 'cancelled';
+                      const isUnpaid = order.paymentStatus === 'unpaid' || order.paymentStatus === 'pending';
+                      const items: any[] = Array.isArray(order.items) ? order.items : [];
+                      return (
+                        <div
+                          key={order.id}
+                          className={`rounded-lg border p-3 bg-white dark:bg-card transition-all cursor-pointer
+                            ${isFlagged ? 'border-red-400 bg-red-50 dark:bg-red-950/20' : ''}
+                            ${isCancelled ? 'opacity-60' : ''}
+                          `}
+                          onClick={() => {
+                            setFlaggedOrders(prev => {
+                              const next = new Set(prev);
+                              if (next.has(order.id)) next.delete(order.id);
+                              else next.add(order.id);
+                              return next;
+                            });
+                          }}
+                          data-testid={`order-review-row-${order.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                                <span className="text-xs font-mono text-muted-foreground">#{order.id.slice(-6).toUpperCase()}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(order.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {order.tableNumber && (
+                                  <Badge variant="outline" className="text-xs py-0 h-4">Meja {order.tableNumber}</Badge>
+                                )}
+                                {isCancelled && (
+                                  <Badge className="text-xs py-0 h-4 bg-red-100 text-red-700">Dibatalkan</Badge>
+                                )}
+                                {isUnpaid && !isCancelled && (
+                                  <Badge className="text-xs py-0 h-4 bg-yellow-100 text-yellow-700">Belum Bayar</Badge>
+                                )}
+                                {order.paymentStatus === 'paid' && (
+                                  <Badge className="text-xs py-0 h-4 bg-green-100 text-green-700">Lunas</Badge>
+                                )}
+                                {order.payLater && order.paymentStatus !== 'paid' && (
+                                  <Badge className="text-xs py-0 h-4 bg-orange-100 text-orange-700">Open Bill</Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {order.customerName || "Tanpa nama"} ·{" "}
+                                {items.slice(0, 3).map((i: any) => `${i.name || 'Item'} x${i.quantity ?? 1}`).join(", ")}
+                                {items.length > 3 && ` +${items.length - 3} lagi`}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-sm font-semibold">{formatCurrency(order.total ?? 0)}</span>
+                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0
+                                ${isFlagged ? 'border-red-500 bg-red-500' : 'border-muted-foreground/30'}`}>
+                                {isFlagged && <span className="text-white text-xs font-bold">!</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {flaggedOrders.size > 0 && (
+                  <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                    <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                      {flaggedOrders.size} pesanan ditandai — akan dicatat dalam laporan.
+                    </p>
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                      Klik pesanan lagi untuk hapus tanda.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="review-notes">Catatan Temuan (Opsional)</Label>
+                  <Textarea
+                    id="review-notes"
+                    placeholder="Tulis catatan jika ada pesanan yang mencurigakan, selisih kas, atau hal lain yang perlu dilaporkan..."
+                    value={reviewNotes}
+                    onChange={(e) => setReviewNotes(e.target.value)}
+                    rows={3}
+                    className="bg-white dark:bg-card"
+                    data-testid="input-review-notes"
+                  />
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (!closedShiftData) { setReviewStep('ready'); return; }
+                    // Gabungkan catatan review + daftar pesanan ditandai ke dalam shift notes
+                    const parts: string[] = [];
+                    if (closedShiftData.shift.notes) parts.push(closedShiftData.shift.notes);
+                    if (reviewNotes.trim()) parts.push(`[Catatan Review Kasir]: ${reviewNotes.trim()}`);
+                    if (flaggedOrders.size > 0) {
+                      const flagList = shiftOrders
+                        .filter((o: any) => flaggedOrders.has(o.id))
+                        .map((o: any) => `#${o.id.slice(-6).toUpperCase()} ${o.customerName || ''} ${formatCurrency(o.total ?? 0)}`)
+                        .join(", ");
+                      parts.push(`[${flaggedOrders.size} Pesanan Ditandai]: ${flagList}`);
+                    }
+                    const combined = parts.join("\n\n");
+                    setClosedShiftData(prev => prev ? {
+                      ...prev,
+                      shift: { ...prev.shift, notes: combined }
+                    } : prev);
+                    setReviewStep('ready');
+                  }}
+                  data-testid="button-finish-review"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Selesai Cek — Lanjut Buat Laporan
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ===== STEP 2: Buat PDF & Kirim ===== */}
+          {closedShiftData && reviewStep === 'ready' && (
+            <Card className={`border-2 ${reportSent ? 'border-green-400 bg-green-50 dark:bg-green-950/20' : 'border-orange-300 bg-orange-50 dark:bg-orange-950/20'}`}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {reportSent ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <FileText className="h-5 w-5 text-orange-600" />
+                      )}
+                      {reportSent ? "Laporan Sudah Terkirim" : "Langkah 2: Buat & Kirim Laporan"}
+                    </CardTitle>
+                    <CardDescription>
+                      {reportSent
+                        ? "Laporan shift berhasil dikirim ke super admin."
+                        : "Cek sudah selesai. Unduh PDF atau langsung kirim ke super admin."}
+                    </CardDescription>
+                  </div>
+                  {!reportSent && (
+                    <Button variant="ghost" size="sm" onClick={() => setReviewStep('review')} className="text-xs text-muted-foreground" data-testid="button-back-to-review">
+                      Kembali Cek
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Flagged orders warning */}
+                {flaggedOrders.size > 0 && (
+                  <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                    <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                      {flaggedOrders.size} pesanan ditandai dalam review ini.
+                    </p>
+                  </div>
+                )}
                 {/* Summary recap */}
                 {closedShiftData.recap && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
