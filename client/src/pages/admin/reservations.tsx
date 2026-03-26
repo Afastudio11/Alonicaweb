@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Calendar, Phone, Users, Clock, ChevronLeft, ChevronRight,
   Search, User, CheckCircle2, Circle, XCircle, CalendarDays, List, Plus,
+  Home, TreePine,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -459,6 +460,21 @@ export default function ReservationsSection() {
                     <span style={{ fontWeight: 600, color: "#1D1D1F" }}>{value}</span>
                   </div>
                 ))}
+                {(selectedReservation as any).roomPreference && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14 }}>
+                    <span style={{ color: "#6E6E73", display: "flex", alignItems: "center", gap: 6 }}>
+                      {(selectedReservation as any).roomPreference === "indoor" ? <Home size={14} /> : <TreePine size={14} />}
+                      Preferensi Ruangan
+                    </span>
+                    <span style={{
+                      fontWeight: 700, fontSize: 12, paddingInline: 10, paddingBlock: 4, borderRadius: 20,
+                      background: (selectedReservation as any).roomPreference === "indoor" ? "#FFF5E6" : "#F0FFF4",
+                      color: (selectedReservation as any).roomPreference === "indoor" ? "#FF9500" : "#34C759",
+                    }}>
+                      {(selectedReservation as any).roomPreference === "indoor" ? "Indoor" : "Outdoor"}
+                    </span>
+                  </div>
+                )}
                 {selectedReservation.notes && (
                   <div style={{ background: "#F5F5F7", borderRadius: 10, padding: "10px 12px", fontSize: 13, color: "#6E6E73" }}>
                     <span style={{ fontWeight: 600, color: "#1D1D1F" }}>Catatan: </span>
@@ -781,13 +797,23 @@ function ReservationList({
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", marginBottom: 2 }}>
                           {r.customerName}
                         </div>
-                        <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#6E6E73" }}>
+                        <div style={{ display: "flex", gap: 10, fontSize: 12, color: "#6E6E73", flexWrap: "wrap" }}>
                           <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
                             <Users size={11} /> {r.guestCount} tamu
                           </span>
                           <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
                             <Phone size={11} /> {r.phoneNumber}
                           </span>
+                          {(r as any).roomPreference && (
+                            <span style={{
+                              display: "flex", alignItems: "center", gap: 3,
+                              fontWeight: 600,
+                              color: (r as any).roomPreference === "indoor" ? "#FF9500" : "#34C759",
+                            }}>
+                              {(r as any).roomPreference === "indoor" ? <Home size={11} /> : <TreePine size={11} />}
+                              {(r as any).roomPreference === "indoor" ? "Indoor" : "Outdoor"}
+                            </span>
+                          )}
                         </div>
                       </div>
 

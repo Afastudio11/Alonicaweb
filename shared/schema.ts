@@ -235,7 +235,26 @@ export const storeProfile = pgTable("store_profile", {
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 });
 
-// Reservations table for customer booking feature
+// Tables (Meja) — per branch, with indoor/outdoor and capacity
+export const tables = pgTable("tables", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  branchId: varchar("branch_id"),
+  number: text("number").notNull(),
+  name: text("name"),
+  capacity: integer("capacity").notNull().default(4),
+  room: text("room").notNull().default("indoor"), // 'indoor' | 'outdoor'
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
+}, (table) => [
+  index("tables_branch_idx").on(table.branchId),
+  index("tables_room_idx").on(table.room),
+]);
+
+export const insertTableSchema = createInsertSchema(tables).omit({ id: true, createdAt: true });
+export type InsertTable = z.infer<typeof insertTableSchema>;
+export type Table = typeof tables.$inferSelect;
+
 export const reservations = pgTable("reservations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   customerName: text("customer_name").notNull(),
@@ -245,6 +264,7 @@ export const reservations = pgTable("reservations", {
   reservationTime: text("reservation_time").notNull(), // Format: "HH:mm"
   status: text("status").notNull().default("pending"), // 'pending', 'confirmed', 'completed', 'cancelled'
   notes: text("notes"),
+  roomPreference: text("room_preference"), // 'indoor' | 'outdoor' | null
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 }, (table) => [

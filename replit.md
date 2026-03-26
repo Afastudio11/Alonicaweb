@@ -146,6 +146,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Production Payment Safety**: Added production guard to require `MIDTRANS_SERVER_KEY` and `MIDTRANS_CLIENT_KEY` environment variables in production, preventing mock payments in live environment
 - ✅ **Integration Testing**: Comprehensive API testing completed - all endpoints working correctly (auth, menu, orders, categories, shifts)
 - ✅ **Error Diagnostics**: No LSP errors found, all TypeScript code is clean and valid
+- ✅ **Table Management (Meja)**: Added `tables` DB table with number, name, capacity, room (indoor/outdoor), isActive, sortOrder, branchId. Full CRUD API (`GET/POST/PUT/DELETE /api/tables`). Super-admin page "Manajemen Meja" under MULTI-CABANG sidebar group. Cashier dropdown now dynamically loads active tables from API (fallback to 1-10 if none set).
+- ✅ **Reservasi Room Preference**: Added `roomPreference` (indoor/outdoor) field to reservations schema. Reservasi page `/reservasi` now has "Preferensi Ruangan" section where customers can choose Indoor, Outdoor, or no preference. Admin reservations page shows room preference badge in list and detail panel.
 
 ### Project Status
 - ✅ Dependencies installed and up-to-date

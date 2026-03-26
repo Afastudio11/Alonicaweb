@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, type DrinkQueue, type InsertDrinkQueue, type StockMovement, type InsertStockMovement, type ShiftReport, type InsertShiftReport, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members, drinkQueue, stockMovements, shiftReports } from "@shared/schema";
+import { type User, type InsertUser, type Category, type InsertCategory, type MenuItem, type InsertMenuItem, type Order, type InsertOrder, type InventoryItem, type InsertInventoryItem, type MenuItemIngredient, type InsertMenuItemIngredient, type StoreProfile, type InsertStoreProfile, type Reservation, type InsertReservation, type Discount, type InsertDiscount, type Expense, type InsertExpense, type DailyReport, type InsertDailyReport, type PrintSetting, type InsertPrintSetting, type Shift, type InsertShift, type CashMovement, type InsertCashMovement, type Refund, type InsertRefund, type AuditLog, type InsertAuditLog, type Notification, type InsertNotification, type DeletionLog, type InsertDeletionLog, type DeletionPin, type InsertDeletionPin, type StockDeductionResult, type Banner, type InsertBanner, type Member, type InsertMember, type DrinkQueue, type InsertDrinkQueue, type StockMovement, type InsertStockMovement, type ShiftReport, type InsertShiftReport, type Table, type InsertTable, users, categories, menuItems, orders, inventoryItems, menuItemIngredients, storeProfile, reservations, discounts, expenses, dailyReports, printSettings, shifts, cashMovements, refunds, auditLogs, notifications, deletionLogs, deletionPins, banners, members, drinkQueue, stockMovements, shiftReports, tables } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, gte, lte, inArray, and, lt, isNull, or } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -143,6 +143,13 @@ export interface IStorage {
   createShiftReport(report: InsertShiftReport): Promise<ShiftReport>;
   getShiftReports(params?: { branchId?: string; limit?: number; offset?: number }): Promise<{ reports: ShiftReport[]; total: number }>;
   getShiftReport(id: string): Promise<ShiftReport | undefined>;
+
+  // Tables (Meja)
+  getTables(params?: { branchId?: string; room?: string; activeOnly?: boolean }): Promise<Table[]>;
+  getTable(id: string): Promise<Table | undefined>;
+  createTable(data: InsertTable): Promise<Table>;
+  updateTable(id: string, data: Partial<InsertTable>): Promise<Table | undefined>;
+  deleteTable(id: string): Promise<boolean>;
 
   // Cash Movements
   getCashMovements(): Promise<CashMovement[]>;
@@ -1644,6 +1651,37 @@ export class DatabaseStorage implements IStorage {
     return report || undefined;
   }
 
+  // Tables (Meja)
+  async getTables(params: { branchId?: string; room?: string; activeOnly?: boolean } = {}): Promise<Table[]> {
+    const { branchId, room, activeOnly } = params;
+    const conditions: any[] = [];
+    if (branchId) conditions.push(eq(tables.branchId, branchId));
+    if (room) conditions.push(eq(tables.room, room));
+    if (activeOnly) conditions.push(eq(tables.isActive, true));
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
+    return await db.select().from(tables).where(where ?? sql`1=1`).orderBy(tables.sortOrder, tables.number);
+  }
+
+  async getTable(id: string): Promise<Table | undefined> {
+    const [row] = await db.select().from(tables).where(eq(tables.id, id));
+    return row || undefined;
+  }
+
+  async createTable(data: InsertTable): Promise<Table> {
+    const [created] = await db.insert(tables).values(data).returning();
+    return created;
+  }
+
+  async updateTable(id: string, data: Partial<InsertTable>): Promise<Table | undefined> {
+    const [updated] = await db.update(tables).set(data).where(eq(tables.id, id)).returning();
+    return updated || undefined;
+  }
+
+  async deleteTable(id: string): Promise<boolean> {
+    const result = await db.delete(tables).where(eq(tables.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // Cash Movement methods
   async getCashMovements(): Promise<CashMovement[]> {
     return await db.select().from(cashMovements).orderBy(desc(cashMovements.createdAt));
@@ -2493,6 +2531,12 @@ class MemStorage implements IStorage {
   async getShiftReports(_params?: any): Promise<{ reports: any[]; total: number }> { return { reports: [], total: 0 }; }
   async getShiftReport(id: string): Promise<any | undefined> { return undefined; }
 
+  async getTables(_params?: any): Promise<any[]> { return []; }
+  async getTable(_id: string): Promise<any | undefined> { return undefined; }
+  async createTable(data: any): Promise<any> { throw new Error('Tables not supported in MemStorage'); }
+  async updateTable(_id: string, _data: any): Promise<any | undefined> { return undefined; }
+  async deleteTable(_id: string): Promise<boolean> { return false; }
+
   async getCashMovements(): Promise<any[]> { return []; }
   async getCashMovementsByShift(shiftId: string): Promise<any[]> { return []; }
   async getCashMovement(id: string): Promise<any | undefined> { return undefined; }
@@ -2980,6 +3024,33 @@ class FallbackStorage implements IStorage {
   async getShiftReport(id: string): Promise<any | undefined> {
     return this.withFallback(async () =>
       this.usingMemStorage ? this.memStorage.getShiftReport(id) : this.dbStorage.getShiftReport(id)
+    );
+  }
+
+  // Tables delegation methods
+  async getTables(params?: any): Promise<any[]> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.getTables(params) : this.dbStorage.getTables(params)
+    );
+  }
+  async getTable(id: string): Promise<any | undefined> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.getTable(id) : this.dbStorage.getTable(id)
+    );
+  }
+  async createTable(data: any): Promise<any> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.createTable(data) : this.dbStorage.createTable(data)
+    );
+  }
+  async updateTable(id: string, data: any): Promise<any | undefined> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.updateTable(id, data) : this.dbStorage.updateTable(id, data)
+    );
+  }
+  async deleteTable(id: string): Promise<boolean> {
+    return this.withFallback(async () =>
+      this.usingMemStorage ? this.memStorage.deleteTable(id) : this.dbStorage.deleteTable(id)
     );
   }
 

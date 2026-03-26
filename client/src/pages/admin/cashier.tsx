@@ -125,6 +125,11 @@ export default function CashierSection() {
     queryKey: ["/api/discounts/active"],
   });
 
+  // Load tables (meja) from API
+  const { data: apiTables = [] } = useQuery<{ id: string; number: string; name: string | null; room: string; capacity: number; isActive: boolean }[]>({
+    queryKey: ["/api/tables"],
+  });
+
   // Group menu items by category
   const menuByCategory = categories.reduce((acc, category) => {
     acc[category.id] = menuItems.filter(item => item.categoryId === category.id && item.isAvailable);
@@ -1553,15 +1558,23 @@ export default function CashierSection() {
               />
             </div>
             <div>
-              <Label htmlFor="tableNumber" className="text-xs text-muted-foreground mb-1.5 block">Table location</Label>
+              <Label htmlFor="tableNumber" className="text-xs text-muted-foreground mb-1.5 block">Nomor Meja</Label>
               <Select value={tableNumber} onValueChange={setTableNumber}>
                 <SelectTrigger className="h-9 text-sm" data-testid="select-table-number">
-                  <SelectValue placeholder="Select table" />
+                  <SelectValue placeholder="Pilih meja" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
-                    <SelectItem key={num} value={`${num}`}>Table {num}</SelectItem>
-                  ))}
+                  {apiTables.filter(t => t.isActive).length > 0 ? (
+                    apiTables.filter(t => t.isActive).map(t => (
+                      <SelectItem key={t.id} value={t.number}>
+                        Meja {t.number}{t.name ? ` — ${t.name}` : ""} ({t.room === "indoor" ? "Indoor" : "Outdoor"})
+                      </SelectItem>
+                    ))
+                  ) : (
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(num => (
+                      <SelectItem key={num} value={`${num}`}>Meja {num}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

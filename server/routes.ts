@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import rateLimit from 'express-rate-limit';
 import { ZodError } from 'zod';
 import { storage } from "./storage";
-import { insertOrderSchema, insertMenuItemSchema, insertInventoryItemSchema, insertMenuItemIngredientSchema, insertCategorySchema, insertStoreProfileSchema, insertReservationSchema, insertUserSchema, insertDiscountSchema, insertExpenseSchema, insertDailyReportSchema, insertPrintSettingSchema, insertShiftSchema, insertCashMovementSchema, insertRefundSchema, insertAuditLogSchema, insertBannerSchema, type InsertOrder, type AuditLog } from "@shared/schema";
+import { insertOrderSchema, insertMenuItemSchema, insertInventoryItemSchema, insertMenuItemIngredientSchema, insertCategorySchema, insertStoreProfileSchema, insertReservationSchema, insertUserSchema, insertDiscountSchema, insertExpenseSchema, insertDailyReportSchema, insertPrintSettingSchema, insertShiftSchema, insertCashMovementSchema, insertRefundSchema, insertAuditLogSchema, insertBannerSchema, insertTableSchema, type InsertOrder, type AuditLog } from "@shared/schema";
 import { z } from 'zod';
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission, canAccessObject } from "./objectAcl";
@@ -3385,6 +3385,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Reservation not found" });
       }
       
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Tables (Meja) Routes
+  app.get("/api/tables", async (req, res) => {
+    try {
+      const { branchId, room, activeOnly } = req.query as Record<string, string>;
+      const rows = await storage.getTables({
+        branchId: branchId || undefined,
+        room: room || undefined,
+        activeOnly: activeOnly === "true",
+      });
+      res.json(rows);
+    } catch (error) {
+      res.status(500).json({ message: "Gagal mengambil data meja" });
+    }
+  });
+
+  app.post("/api/tables", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const data = insertTableSchema.parse(req.body);
+      const row = await storage.createTable(data);
+      res.status(201).json(row);
+    } catch (error) {
+      res.status(400).json({ message: "Data meja tidak valid" });
+    }
+  });
+
+  app.put("/api/tables/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = insertTableSchema.partial().parse(req.body);
+      const updated = await storage.updateTable(id, data);
+      if (!updated) return res.status(404).json({ message: "Meja tidak ditemukan" });
+      res.json(updated);
+    } catch (error) {
+      res.status(400).json({ message: "Data meja tidak valid" });
+    }
+  });
+
+  app.delete("/api/tables/:id", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteTable(id);
+      if (!deleted) return res.status(404).json({ message: "Meja tidak ditemukan" });
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

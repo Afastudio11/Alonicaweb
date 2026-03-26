@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { ChevronLeft, CheckCircle2, Loader2, Calendar, Clock, Users, Minus, Plus } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ChevronLeft, CheckCircle2, Loader2, Calendar, Clock, Users, Minus, Plus, Home, TreePine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -16,6 +16,27 @@ const SectionLabel = ({ children }: { children: string }) => (
   </p>
 );
 
+const ROOM_OPTIONS = [
+  {
+    value: "indoor",
+    label: "Indoor",
+    desc: "Ruangan dalam, ber-AC",
+    icon: Home,
+    color: "#FF9500",
+    bg: "#FFF5E6",
+    border: "#FFDFA0",
+  },
+  {
+    value: "outdoor",
+    label: "Outdoor",
+    desc: "Area terbuka, segar",
+    icon: TreePine,
+    color: "#34C759",
+    bg: "#F0FFF4",
+    border: "#A8EDBD",
+  },
+];
+
 export default function ReservasiPage() {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
@@ -26,9 +47,20 @@ export default function ReservasiPage() {
     reservationDate: "",
     reservationTime: "19:00",
     notes: "",
+    roomPreference: "" as "" | "indoor" | "outdoor",
   });
 
   const today = new Date().toISOString().split("T")[0];
+
+  // Fetch available rooms from tables API (to know if indoor/outdoor options exist)
+  const { data: tables = [] } = useQuery<{ room: string; isActive: boolean }[]>({
+    queryKey: ["/api/tables"],
+    select: (data) => data.filter(t => t.isActive),
+  });
+
+  const hasIndoor = tables.some(t => t.room === "indoor");
+  const hasOutdoor = tables.some(t => t.room === "outdoor");
+  const showRoomChoice = hasIndoor || hasOutdoor || true; // always show for UX clarity
 
   const mutation = useMutation({
     mutationFn: async (data: typeof form) => {
@@ -39,6 +71,7 @@ export default function ReservasiPage() {
         reservationDate: data.reservationDate,
         reservationTime: data.reservationTime,
         notes: data.notes || null,
+        roomPreference: data.roomPreference || null,
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -60,6 +93,7 @@ export default function ReservasiPage() {
   };
 
   if (submitted) {
+    const roomLabel = ROOM_OPTIONS.find(r => r.value === form.roomPreference)?.label;
     return (
       <div style={{ minHeight: "100dvh", background: "#F5F5F7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #FF9500, #FF2D55)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
@@ -77,6 +111,7 @@ export default function ReservasiPage() {
             { label: "Tanggal", value: new Date(form.reservationDate + "T00:00:00").toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) },
             { label: "Jam", value: form.reservationTime + " WITA" },
             { label: "Jumlah Tamu", value: form.guestCount + " orang" },
+            ...(roomLabel ? [{ label: "Ruangan", value: roomLabel }] : []),
           ].map((item, i, arr) => (
             <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBlock: 10, borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : "none" }}>
               <span style={{ fontSize: 13, color: "#8E8E93" }}>{item.label}</span>
@@ -184,6 +219,61 @@ export default function ReservasiPage() {
                 <Plus size={16} color="#FF9500" />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* PILIH RUANGAN */}
+        <div style={{ background: "#fff", borderRadius: 18, padding: "20px 18px", marginBottom: 12 }}>
+          <SectionLabel>Preferensi Ruangan</SectionLabel>
+          <p style={{ fontSize: 13, color: "#8E8E93", marginBottom: 14, marginTop: -6, lineHeight: 1.5 }}>
+            Pilih ruangan yang kamu inginkan (opsional). Tim kami akan mengusahakan sesuai preferensimu.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {/* No preference option */}
+            <button
+              type="button"
+              onClick={() => setForm(p => ({ ...p, roomPreference: "" }))}
+              data-testid="button-room-none"
+              style={{
+                gridColumn: "1 / -1",
+                height: 44, borderRadius: 12, border: "1.5px solid",
+                borderColor: form.roomPreference === "" ? "#FF9500" : "#E5E5EA",
+                background: form.roomPreference === "" ? "#FFFBF5" : "#F9F9F9",
+                color: form.roomPreference === "" ? "#FF9500" : "#6E6E73",
+                fontSize: 13, fontWeight: 700, cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              Tidak ada preferensi
+            </button>
+            {ROOM_OPTIONS.map(opt => {
+              const Icon = opt.icon;
+              const selected = form.roomPreference === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, roomPreference: opt.value as "indoor" | "outdoor" }))}
+                  data-testid={`button-room-${opt.value}`}
+                  style={{
+                    height: 80, borderRadius: 14, border: "2px solid",
+                    borderColor: selected ? opt.color : "#E5E5EA",
+                    background: selected ? opt.bg : "#F9F9F9",
+                    cursor: "pointer", display: "flex", flexDirection: "column",
+                    alignItems: "center", justifyContent: "center", gap: 5,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <Icon size={22} color={selected ? opt.color : "#AEAEB2"} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: selected ? opt.color : "#3C3C43" }}>
+                    {opt.label}
+                  </span>
+                  <span style={{ fontSize: 11, color: selected ? opt.color : "#AEAEB2", fontWeight: 500 }}>
+                    {opt.desc}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
