@@ -14,7 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 import { smartPrintReceipt } from "@/utils/thermal-print";
 import { useAuth } from "@/hooks/use-auth";
-import type { MenuItem, Category, InsertOrder, Order, Discount, StoreProfile } from "@shared/schema";
+import type { MenuItem, Category, InsertOrder, Order, Discount, StoreProfile, Member } from "@shared/schema";
 
 // Helper: invalidate semua query orders (termasuk open-bills dan query dinamis)
 const invalidateOrders = (qc: ReturnType<typeof useQueryClient>) =>
@@ -49,6 +49,8 @@ export default function CashierSection() {
   
   // Customer & order state
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
   const [tableNumber, setTableNumber] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -129,6 +131,16 @@ export default function CashierSection() {
   const { data: apiTables = [] } = useQuery<{ id: string; number: string; name: string | null; room: string; capacity: number; isActive: boolean }[]>({
     queryKey: ["/api/tables"],
   });
+
+  // Load members for autocomplete
+  const { data: allMembers = [] } = useQuery<Member[]>({
+    queryKey: ["/api/members"],
+  });
+
+  // Filter members by typed name
+  const memberSuggestions = customerName.trim().length >= 1
+    ? allMembers.filter(m => m.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 6)
+    : [];
 
   // Group menu items by category
   const menuByCategory = categories.reduce((acc, category) => {
@@ -1546,17 +1558,71 @@ export default function CashierSection() {
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="customerName" className="text-xs text-muted-foreground mb-1.5 block">Customer name</Label>
+            {/* Customer name with member autocomplete */}
+            <div style={{ position: "relative" }}>
+              <Label htmlFor="customerName" className="text-xs text-muted-foreground mb-1.5 block">Nama Customer</Label>
               <Input
                 id="customerName"
                 value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Enter name"
+                onChange={(e) => {
+                  setCustomerName(e.target.value);
+                  setShowMemberDropdown(true);
+                  // Clear phone if user types a new name manually (not from member selection)
+                  const matched = allMembers.find(m => m.name === e.target.value);
+                  if (!matched) setCustomerPhone("");
+                }}
+                onFocus={() => setShowMemberDropdown(true)}
+                onBlur={() => setTimeout(() => setShowMemberDropdown(false), 150)}
+                placeholder="Ketik nama customer..."
                 className="h-9 text-sm"
                 data-testid="input-customer-name"
+                autoComplete="off"
               />
+              {/* Member suggestions dropdown */}
+              {showMemberDropdown && memberSuggestions.length > 0 && (
+                <div style={{
+                  position: "absolute", top: "100%", left: 0, right: 0, zIndex: 50,
+                  background: "#fff", border: "1.5px solid #E5E5EA", borderRadius: 10,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)", overflow: "hidden",
+                  marginTop: 2,
+                }}>
+                  {memberSuggestions.map((m) => (
+                    <button
+                      key={m.phone}
+                      type="button"
+                      onMouseDown={() => {
+                        setCustomerName(m.name);
+                        setCustomerPhone(m.phone);
+                        setShowMemberDropdown(false);
+                      }}
+                      data-testid={`member-suggestion-${m.phone}`}
+                      style={{
+                        width: "100%", padding: "9px 12px", border: "none", background: "none",
+                        textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between",
+                        alignItems: "center", borderBottom: "1px solid #F5F5F7",
+                        transition: "background 0.1s",
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = "#FFF5E6")}
+                      onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                    >
+                      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F" }}>{m.name}</span>
+                        <span style={{ fontSize: 11, color: "#8E8E93" }}>{m.phone}</span>
+                      </div>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
+                        background: m.isVip ? "#FFF5E6" : "#F5F5F7",
+                        color: m.isVip ? "#FF9500" : "#8E8E93",
+                      }}>
+                        {m.isVip ? "VIP" : "Member"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* Table number */}
             <div>
               <Label htmlFor="tableNumber" className="text-xs text-muted-foreground mb-1.5 block">Nomor Meja</Label>
               <Select value={tableNumber} onValueChange={setTableNumber}>
@@ -1577,6 +1643,42 @@ export default function CashierSection() {
                   )}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Phone number row — auto-fill dari member, bisa diisi manual */}
+          <div style={{ marginTop: 10 }}>
+            <Label htmlFor="customerPhone" className="text-xs text-muted-foreground mb-1.5 block">
+              Nomor HP
+              {customerPhone && allMembers.some(m => m.phone === customerPhone) && (
+                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#FF9500" }}>
+                  {allMembers.find(m => m.phone === customerPhone)?.isVip ? "VIP Member" : "Member"}
+                </span>
+              )}
+            </Label>
+            <div style={{ position: "relative" }}>
+              <Input
+                id="customerPhone"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="Nomor HP (opsional)"
+                className="h-9 text-sm"
+                type="tel"
+                data-testid="input-customer-phone"
+                style={{ paddingLeft: customerPhone ? 36 : 12 }}
+              />
+              {customerPhone && (
+                <div style={{
+                  position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+                  width: 18, height: 18, borderRadius: "50%",
+                  background: allMembers.some(m => m.phone === customerPhone) ? "#FF9500" : "#E5E5EA",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 9, color: "#fff", fontWeight: 800 }}>
+                    {allMembers.some(m => m.phone === customerPhone) ? "M" : "?"}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
