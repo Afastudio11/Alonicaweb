@@ -2742,7 +2742,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: menuItem.name,
           price: menuItem.price,
           quantity: orderItem.quantity,
-          notes: orderItem.notes || ""
+          notes: orderItem.notes || "",
+          addedAt: new Date().toISOString()
         });
       }
 
@@ -2824,7 +2825,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: menuItem.name,
           price: menuItem.price,
           quantity: orderItem.quantity,
-          notes: orderItem.notes || ""
+          notes: orderItem.notes || "",
+          addedAt: new Date().toISOString()
         });
       }
 

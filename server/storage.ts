@@ -735,7 +735,12 @@ export class DatabaseStorage implements IStorage {
     }
 
     const existingItems = Array.isArray(currentOrder.items) ? currentOrder.items : [];
-    const updatedItems = [...existingItems, ...newItems];
+    const now = new Date().toISOString();
+    const newItemsWithDate = newItems.map((item: any) => ({
+      ...item,
+      addedAt: item.addedAt || now,
+    }));
+    const updatedItems = [...existingItems, ...newItemsWithDate];
     const newSubtotal = currentOrder.subtotal + additionalSubtotal;
     const newTotal = newSubtotal; // No discount for now
 

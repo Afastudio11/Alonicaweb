@@ -2084,7 +2084,7 @@ export default function CashierSection() {
 
       {/* View Bill Dialog */}
       <Dialog open={!!viewingBill} onOpenChange={() => setViewingBill(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <FileText className="h-5 w-5" />
@@ -2092,62 +2092,115 @@ export default function CashierSection() {
             </DialogTitle>
           </DialogHeader>
           
-          {viewingBill && (
-            <div className="space-y-4">
-              {/* Customer Info */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Pelanggan:</span>
-                  <span className="font-medium">{viewingBill.customerName}</span>
+          {viewingBill && (() => {
+            const items: any[] = Array.isArray(viewingBill.items) ? viewingBill.items : [];
+            const fallbackDate = new Date(viewingBill.createdAt).toISOString().split("T")[0];
+
+            // Kelompokkan item per-hari berdasarkan field addedAt
+            const dayMap: Map<string, { items: { item: any; index: number }[]; dayTotal: number }> = new Map();
+            items.forEach((item, index) => {
+              const dateKey = item.addedAt
+                ? new Date(item.addedAt).toISOString().split("T")[0]
+                : fallbackDate;
+              if (!dayMap.has(dateKey)) dayMap.set(dateKey, { items: [], dayTotal: 0 });
+              const entry = dayMap.get(dateKey)!;
+              entry.items.push({ item, index });
+              entry.dayTotal += (item.price || 0) * (item.quantity || 0);
+            });
+
+            // Sort tanggal dari terlama ke terbaru
+            const sortedDays = Array.from(dayMap.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+            function fmtDay(dateStr: string) {
+              const [y, m, d] = dateStr.split("-");
+              const date = new Date(Number(y), Number(m) - 1, Number(d));
+              return date.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+            }
+
+            const totalDays = sortedDays.length;
+
+            return (
+              <div className="space-y-4">
+                {/* Customer Info */}
+                <div className="bg-muted/40 p-3 rounded-lg text-sm space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Pelanggan:</span>
+                    <span className="font-medium">{viewingBill.customerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Meja:</span>
+                    <span className="font-medium">{viewingBill.tableNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Periode:</span>
+                    <span className="font-medium">
+                      {totalDays === 1
+                        ? fmtDay(sortedDays[0][0])
+                        : `${totalDays} hari (${fmtDay(sortedDays[0][0]).split(",")[0]} – ${fmtDay(sortedDays[totalDays - 1][0]).split(",")[0]})`
+                      }
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Meja:</span>
-                  <span className="font-medium">{viewingBill.tableNumber}</span>
+
+                {/* Rincian per hari */}
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  {sortedDays.map(([dateKey, { items: dayItems, dayTotal }], dayIdx) => (
+                    <div key={dateKey} className="rounded-lg border overflow-hidden">
+                      {/* Header hari */}
+                      <div className="flex items-center justify-between px-3 py-2 bg-muted/60">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
+                            <span className="text-white text-[9px] font-bold">{dayIdx + 1}</span>
+                          </div>
+                          <span className="text-xs font-semibold text-foreground">{fmtDay(dateKey)}</span>
+                        </div>
+                        <span className="text-xs font-semibold text-primary">{formatCurrency(dayTotal)}</span>
+                      </div>
+
+                      {/* Item-item hari itu */}
+                      <div className="divide-y">
+                        {dayItems.map(({ item, index }) => (
+                          <div key={index} className="flex items-start justify-between px-3 py-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{item.quantity}x {item.name}</p>
+                              {item.notes && (
+                                <p className="text-xs text-muted-foreground">Catatan: {item.notes}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                              <span className="text-sm font-medium">{formatCurrency((item.price || 0) * (item.quantity || 0))}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRequestItemDeletion(viewingBill.id, index)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0"
+                                data-testid={`button-cancel-item-${index}`}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Dibuat:</span>
-                  <span className="font-medium">{new Date(viewingBill.createdAt).toLocaleString('id-ID')}</span>
-                </div>
-              </div>
-              
-              {/* Order Items */}
-              <div className="space-y-2">
-                <h4 className="font-medium">Items:</h4>
-                {Array.isArray(viewingBill.items) && viewingBill.items.map((item: any, index: number) => (
-                  <div key={index} className="flex justify-between items-start py-2 border-b">
-                    <div className="flex-1">
-                      <span className="font-medium">{item.quantity}x {item.name}</span>
-                      {item.notes && (
-                        <p className="text-sm text-muted-foreground">Note: {item.notes}</p>
+
+                {/* Total keseluruhan */}
+                <div className="bg-green-50 dark:bg-green-950/20 px-4 py-3 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">Total Keseluruhan</p>
+                      {totalDays > 1 && (
+                        <p className="text-xs text-muted-foreground">{totalDays} hari · {items.length} item</p>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">
-                        {formatCurrency((item.price || 0) * (item.quantity || 0))}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRequestItemDeletion(viewingBill.id, index)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
-                        data-testid={`button-cancel-item-${index}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <span className="text-lg font-bold text-primary">{formatCurrency(viewingBill.total)}</span>
                   </div>
-                ))}
-              </div>
-              
-              {/* Total */}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
-                  <span className="text-primary">{formatCurrency(viewingBill.total)}</span>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
           
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button 
