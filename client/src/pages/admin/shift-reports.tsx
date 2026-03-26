@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { FileBarChart2, Search, ChevronLeft, ChevronRight, Eye, Download, Calendar, User, Building2, DollarSign, Utensils, Coffee, FileText, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { generateShiftPDF } from "@/utils/shift-pdf";
+import { useToast } from "@/hooks/use-toast";
 import type { ShiftReport } from "@shared/schema";
 
 function formatDate(d: string | Date) {
@@ -37,6 +38,7 @@ interface RecapData {
 }
 
 export default function ShiftReportsSection() {
+  const { toast } = useToast();
   const [page, setPage] = useState(0);
   const pageSize = 20;
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,8 +65,15 @@ export default function ShiftReportsSection() {
   );
 
   const handleDownload = (report: ShiftReport) => {
-    const recap = report.recapData as RecapData | null;
-    generateShiftPDF(report, recap);
+    try {
+      const recap = report.recapData as RecapData | null;
+      const ok = generateShiftPDF(report, recap);
+      if (!ok) {
+        toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
+      }
+    } catch (err) {
+      toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
+    }
   };
 
   return (

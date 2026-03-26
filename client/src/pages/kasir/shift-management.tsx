@@ -454,28 +454,33 @@ export default function ShiftManagementSection() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => {
-                      const { shift, recap } = closedShiftData;
-                      const reportDate = new Date(shift.startTime).toISOString().split("T")[0];
-                      generateShiftPDF(
-                        {
-                          kasirName: user?.username ?? "Kasir",
-                          branchName: "",
-                          reportDate,
-                          shiftStart: shift.startTime,
-                          shiftEnd: shift.endTime ?? new Date(),
-                          totalOrders: recap?.summary.totalOrders ?? shift.totalOrders ?? 0,
-                          totalPaid: recap?.summary.totalPaid ?? shift.totalRevenue ?? 0,
-                          totalMakanan: recap?.summary.totalMakanan ?? 0,
-                          totalMinuman: recap?.summary.totalMinuman ?? 0,
-                          totalOpenBillPending: recap?.summary.totalOpenBillPending ?? 0,
-                          initialCash: shift.initialCash ?? 0,
-                          finalCash: shift.finalCash ?? 0,
-                          systemCash: shift.systemCash ?? 0,
-                          cashDifference: shift.cashDifference ?? 0,
-                          notes: shift.notes,
-                        },
-                        recap ? { makanan: recap.makanan, minuman: recap.minuman, openBill: recap.openBill } : null
-                      );
+                      try {
+                        const { shift, recap } = closedShiftData;
+                        const reportDate = new Date(shift.startTime).toISOString().split("T")[0];
+                        const ok = generateShiftPDF(
+                          {
+                            kasirName: user?.username ?? "Kasir",
+                            branchName: "",
+                            reportDate,
+                            shiftStart: shift.startTime,
+                            shiftEnd: shift.endTime ?? new Date(),
+                            totalOrders: recap?.summary.totalOrders ?? shift.totalOrders ?? 0,
+                            totalPaid: recap?.summary.totalPaid ?? shift.totalRevenue ?? 0,
+                            totalMakanan: recap?.summary.totalMakanan ?? 0,
+                            totalMinuman: recap?.summary.totalMinuman ?? 0,
+                            totalOpenBillPending: recap?.summary.totalOpenBillPending ?? 0,
+                            initialCash: shift.initialCash ?? 0,
+                            finalCash: shift.finalCash ?? 0,
+                            systemCash: shift.systemCash ?? 0,
+                            cashDifference: shift.cashDifference ?? 0,
+                            notes: shift.notes,
+                          },
+                          recap ? { makanan: recap.makanan, minuman: recap.minuman, openBill: recap.openBill } : null
+                        );
+                        if (!ok) toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
+                      } catch {
+                        toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
+                      }
                     }}
                     data-testid="button-download-pdf"
                   >
