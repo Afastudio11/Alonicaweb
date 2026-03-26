@@ -10,7 +10,8 @@ import {
   TrendingUp,
   X,
   LogOut,
-  Printer
+  Printer,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -30,13 +31,14 @@ interface KasirSidebarProps {
 }
 
 const menuItems = [
-  { id: 'orders', label: 'Orders', icon: ClipboardList, path: '/kasir/orders' },
-  { id: 'kitchen', label: 'Dapur', icon: ChefHat, path: '/kasir/kitchen' },
-  { id: 'cashier', label: 'Point of Sale (POS)', icon: Calculator, path: '/kasir/cashier' },
-  { id: 'reservations', label: 'Reservasi', icon: Calendar, path: '/kasir/reservations' },
-  { id: 'expenses', label: 'Pencatatan Pengeluaran', icon: Receipt, path: '/kasir/expenses' },
-  { id: 'daily-reports', label: 'Laporan Penjualan', icon: TrendingUp, path: '/kasir/daily-reports' },
-  { id: 'printer', label: 'Pengaturan Printer', icon: Printer, path: '/kasir/printer' },
+  { id: 'orders',       label: 'Pesanan',          icon: ClipboardList, path: '/kasir/orders' },
+  { id: 'kitchen',      label: 'Dapur',             icon: ChefHat,       path: '/kasir/kitchen' },
+  { id: 'cashier',      label: 'Kasir',             icon: Calculator,    path: '/kasir/cashier' },
+  { id: 'shift',        label: 'Manajemen Shift',   icon: Clock,         path: '/kasir/shift' },
+  { id: 'reservations', label: 'Reservasi',         icon: Calendar,      path: '/kasir/reservations' },
+  { id: 'expenses',     label: 'Pengeluaran',       icon: Receipt,       path: '/kasir/expenses' },
+  { id: 'daily-reports',label: 'Laporan Penjualan', icon: TrendingUp,    path: '/kasir/daily-reports' },
+  { id: 'printer',      label: 'Printer',           icon: Printer,       path: '/kasir/printer' },
 ];
 
 export default function KasirSidebar({ isOpen, onClose, currentSection, user }: KasirSidebarProps) {
@@ -46,7 +48,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
 
   return (
     <>
-      {/* Sidebar - Collapsible with Hover */}
+      {/* Sidebar Desktop — Collapsible on hover */}
       <div 
         className={cn(
           "fixed inset-y-0 left-0 z-50 bg-background border-r border-border transform transition-all duration-300 ease-in-out flex flex-col",
@@ -56,14 +58,14 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Header */}
+        {/* Header / Brand */}
         <div className="flex items-center justify-center px-4 py-5 border-b border-border">
           <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-lg">A</span>
+            <span className="text-white font-bold text-lg">N</span>
           </div>
           {isHovered && (
             <h1 className="text-base font-semibold text-foreground ml-3 whitespace-nowrap" data-testid="text-sidebar-brand">
-              Alonica
+              ngehnoom
             </h1>
           )}
         </div>
@@ -85,16 +87,14 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
         )}
 
-        {/* Navigation - Scrollable */}
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-4">
-          {/* Shift Toggle - Only show when expanded */}
           {isHovered && (
             <div className="mb-3 px-1">
               <ShiftToggle />
             </div>
           )}
           
-          {/* Menu Items */}
           <div className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -123,7 +123,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
         </nav>
 
-        {/* Footer - Fixed */}
+        {/* Footer */}
         <div className="border-t border-border p-2">
           <Button
             variant="ghost"
@@ -133,26 +133,26 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
               isHovered ? "justify-start px-3" : "justify-center px-0"
             )}
             data-testid="button-logout-sidebar"
-            title={!isHovered ? "Logout" : undefined}
+            title={!isHovered ? "Keluar" : undefined}
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
-            {isHovered && <span className="ml-3">Logout</span>}
+            {isHovered && <span className="ml-3">Keluar</span>}
           </Button>
         </div>
       </div>
 
-      {/* Mobile Sidebar - Full Width */}
+      {/* Mobile Sidebar */}
       <div className={cn(
         "fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out flex flex-col lg:hidden",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        {/* Header */}
+        {/* Header / Brand */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+              <span className="text-white font-bold text-sm">N</span>
             </div>
-            <h1 className="text-base font-semibold text-foreground" data-testid="text-sidebar-brand-mobile">Alonica</h1>
+            <h1 className="text-base font-semibold text-foreground" data-testid="text-sidebar-brand-mobile">ngehnoom</h1>
           </div>
           <Button
             variant="ghost"
@@ -180,14 +180,12 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
         </div>
 
-        {/* Navigation - Scrollable */}
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {/* Shift Toggle */}
           <div className="mb-3">
             <ShiftToggle />
           </div>
           
-          {/* Menu Items */}
           <div className="space-y-0.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -214,7 +212,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
         </nav>
 
-        {/* Footer - Fixed */}
+        {/* Footer */}
         <div className="border-t border-border p-3">
           <Button
             variant="ghost"
@@ -223,7 +221,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
             data-testid="button-logout-sidebar-mobile"
           >
             <LogOut className="h-4 w-4 mr-3 flex-shrink-0" />
-            <span>Logout</span>
+            <span>Keluar</span>
           </Button>
         </div>
       </div>
