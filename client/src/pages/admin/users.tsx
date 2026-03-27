@@ -129,6 +129,7 @@ export default function UsersSection() {
     if (!editingUser) return;
     const updateData: Partial<EditFormData> = {
       username: data.username,
+      name: data.name ?? null,
       role: data.role,
       allowedMenus: data.allowedMenus,
     };
