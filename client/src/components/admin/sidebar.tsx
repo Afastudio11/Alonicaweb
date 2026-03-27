@@ -22,6 +22,7 @@ import {
   Network,
   Grid3X3,
   ClipboardList,
+  FileText,
   LogOut,
   X,
   Menu as MenuIcon,
@@ -79,6 +80,7 @@ const BASE_NAV_GROUPS = [
       { key: "approvals", label: "Persetujuan", icon: CircleCheck },
       { key: "audit-reports", label: "Laporan Keuangan", icon: Landmark },
       { key: "analytics", label: "Laporan Penjualan", icon: BarChart3 },
+      { key: "daily-reports", label: "Laporan Harian Kasir", icon: FileText },
     ],
   },
   {
