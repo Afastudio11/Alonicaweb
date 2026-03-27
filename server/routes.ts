@@ -2669,7 +2669,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total,
         paymentMethod: 'cash' as const,
         paymentStatus: 'paid' as const,
-        orderStatus: 'queued' as const
+        orderStatus: 'queued' as const,
+        paidAt: new Date()
       };
 
       const order = await storage.createOrder(orderData);

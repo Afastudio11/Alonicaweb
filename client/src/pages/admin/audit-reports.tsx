@@ -162,12 +162,13 @@ export default function AuditReportsSection() {
       );
 
       // Compute real revenue from paid orders within this shift's time window
+      // Use paidAt if set, else fall back to createdAt (for old cash orders without paidAt)
       const shiftStart = new Date(shift.startTime);
       const shiftEnd = shift.endTime ? new Date(shift.endTime) : new Date();
       const shiftPaidOrders = allOrders.filter(o => {
-        const paidAt = o.paidAt ? new Date(o.paidAt) : null;
-        if (!paidAt) return false;
-        return paidAt >= shiftStart && paidAt <= shiftEnd && o.paymentStatus === 'paid';
+        if (o.paymentStatus !== 'paid') return false;
+        const paidAt = new Date((o.paidAt as string | null) ?? o.createdAt);
+        return paidAt >= shiftStart && paidAt <= shiftEnd;
       });
       const computedRevenue = shiftPaidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 

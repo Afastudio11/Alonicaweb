@@ -1529,11 +1529,11 @@ export class DatabaseStorage implements IStorage {
     const cashierId = currentShift.cashierId;
     
     // Get orders paid during shift period (proper revenue recognition timing)
+    // Use COALESCE(paidAt, createdAt) as fallback for cash orders that may not have paidAt set
     const shiftOrders = await db.select().from(orders)
-      .where(sql`${orders.paidAt} >= ${shiftStart} 
-                 AND ${orders.paidAt} <= ${shiftEnd} 
-                 AND ${orders.paymentStatus} = 'paid' 
-                 AND ${orders.orderStatus} = 'served'`);
+      .where(sql`COALESCE(${orders.paidAt}, ${orders.createdAt}) >= ${shiftStart} 
+                 AND COALESCE(${orders.paidAt}, ${orders.createdAt}) <= ${shiftEnd} 
+                 AND ${orders.paymentStatus} = 'paid'`);
 
     // Get cash movements for this shift
     const cashMovements = await this.getCashMovementsByShift(id);
