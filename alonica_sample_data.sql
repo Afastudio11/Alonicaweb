@@ -104,30 +104,30 @@ ON CONFLICT DO NOTHING;
 
 -- 7. MEJA (Cabang Pusat)
 WITH branch AS (SELECT id FROM branches WHERE name = 'Alonica Bantaeng Pusat' LIMIT 1)
-INSERT INTO tables (number, capacity, is_available, branch_id) VALUES
-  ('T01', 2, true, (SELECT id FROM branch)),
-  ('T02', 2, true, (SELECT id FROM branch)),
-  ('T03', 4, true, (SELECT id FROM branch)),
-  ('T04', 4, true, (SELECT id FROM branch)),
-  ('T05', 4, true, (SELECT id FROM branch)),
-  ('T06', 6, true, (SELECT id FROM branch)),
-  ('T07', 6, true, (SELECT id FROM branch)),
-  ('VIP01', 8, true, (SELECT id FROM branch)),
-  ('VIP02', 8, true, (SELECT id FROM branch)),
-  ('Bar01', 2, true, (SELECT id FROM branch)),
-  ('Bar02', 2, true, (SELECT id FROM branch)),
-  ('Bar03', 2, true, (SELECT id FROM branch))
+INSERT INTO tables (number, capacity, room, is_active, sort_order, branch_id) VALUES
+  ('T01', 2, 'indoor', true, 1, (SELECT id FROM branch)),
+  ('T02', 2, 'indoor', true, 2, (SELECT id FROM branch)),
+  ('T03', 4, 'indoor', true, 3, (SELECT id FROM branch)),
+  ('T04', 4, 'indoor', true, 4, (SELECT id FROM branch)),
+  ('T05', 4, 'indoor', true, 5, (SELECT id FROM branch)),
+  ('T06', 6, 'indoor', true, 6, (SELECT id FROM branch)),
+  ('T07', 6, 'indoor', true, 7, (SELECT id FROM branch)),
+  ('VIP01', 8, 'indoor', true, 8, (SELECT id FROM branch)),
+  ('VIP02', 8, 'indoor', true, 9, (SELECT id FROM branch)),
+  ('Bar01', 2, 'outdoor', true, 10, (SELECT id FROM branch)),
+  ('Bar02', 2, 'outdoor', true, 11, (SELECT id FROM branch)),
+  ('Bar03', 2, 'outdoor', true, 12, (SELECT id FROM branch))
 ON CONFLICT DO NOTHING;
 
 -- 8. MEJA (Cabang Selatan)
 WITH branch AS (SELECT id FROM branches WHERE name = 'Alonica Bantaeng Selatan' LIMIT 1)
-INSERT INTO tables (number, capacity, is_available, branch_id) VALUES
-  ('T01', 2, true, (SELECT id FROM branch)),
-  ('T02', 4, true, (SELECT id FROM branch)),
-  ('T03', 4, true, (SELECT id FROM branch)),
-  ('T04', 6, true, (SELECT id FROM branch)),
-  ('Bar01', 2, true, (SELECT id FROM branch)),
-  ('Bar02', 2, true, (SELECT id FROM branch))
+INSERT INTO tables (number, capacity, room, is_active, sort_order, branch_id) VALUES
+  ('T01', 2, 'indoor', true, 1, (SELECT id FROM branch)),
+  ('T02', 4, 'indoor', true, 2, (SELECT id FROM branch)),
+  ('T03', 4, 'indoor', true, 3, (SELECT id FROM branch)),
+  ('T04', 6, 'indoor', true, 4, (SELECT id FROM branch)),
+  ('Bar01', 2, 'outdoor', true, 5, (SELECT id FROM branch)),
+  ('Bar02', 2, 'outdoor', true, 6, (SELECT id FROM branch))
 ON CONFLICT DO NOTHING;
 
 -- 9. MEMBER CONTOH
