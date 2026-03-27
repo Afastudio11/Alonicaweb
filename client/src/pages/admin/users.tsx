@@ -16,57 +16,7 @@ import { useErrorHandler } from "@/hooks/use-error-handler";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { insertUserSchema, type User, type InsertUser } from "@shared/schema";
-
-// Daftar semua menu yang bisa diatur izinnya
-const ALL_MENU_GROUPS = [
-  {
-    group: "POS & Pesanan",
-    items: [
-      { key: "cashier", label: "Kasir" },
-      { key: "orders", label: "Pesanan" },
-      { key: "drink-queue", label: "Antrian Pesanan" },
-      { key: "kitchen", label: "Dapur & Bar" },
-      { key: "reservations", label: "Reservasi" },
-      { key: "shift", label: "Manajemen Shift" },
-      { key: "expenses", label: "Pengeluaran" },
-      { key: "daily-reports", label: "Laporan Penjualan" },
-    ],
-  },
-  {
-    group: "Pelanggan",
-    items: [
-      { key: "members", label: "Data Member" },
-      { key: "users", label: "Pengguna Admin" },
-    ],
-  },
-  {
-    group: "Promo & Konten",
-    items: [
-      { key: "discounts", label: "Diskon & Voucher" },
-      { key: "banners", label: "Banner Halaman Depan" },
-    ],
-  },
-  {
-    group: "Laporan",
-    items: [
-      { key: "approvals", label: "Persetujuan" },
-      { key: "audit-reports", label: "Laporan Keuangan" },
-      { key: "analytics", label: "Laporan Penjualan" },
-      { key: "inventory", label: "Laporan Item" },
-    ],
-  },
-  {
-    group: "Pengaturan",
-    items: [
-      { key: "settings", label: "Pengaturan Toko" },
-      { key: "menu", label: "Manajemen Menu" },
-      { key: "categories", label: "Kategori Menu" },
-      { key: "printer", label: "Pengaturan Printer" },
-    ],
-  },
-];
-
-const ALL_MENU_KEYS = ALL_MENU_GROUPS.flatMap(g => g.items.map(i => i.key));
+import { MENU_GROUPS, ALL_MENU_KEYS } from "@/lib/menu-definitions";
 
 // Schema for creating new users
 const createUserSchema = insertUserSchema.extend({
@@ -278,7 +228,7 @@ export default function UsersSection() {
             {allSelected ? "Hapus Semua" : "Pilih Semua"}
           </button>
         </div>
-        {ALL_MENU_GROUPS.map(group => (
+        {MENU_GROUPS.map(group => (
           <div key={group.group} style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#8E8E93", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
               {group.group}
@@ -523,7 +473,7 @@ export default function UsersSection() {
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                     {userAllowedMenus!.map(key => {
-                      const label = ALL_MENU_GROUPS.flatMap(g => g.items).find(i => i.key === key)?.label ?? key;
+                      const label = MENU_GROUPS.flatMap(g => g.items).find(i => i.key === key)?.label ?? key;
                       return (
                         <span
                           key={key}
