@@ -16,12 +16,14 @@ const shouldUseSSL = () => {
   if (explicitSSL === 'true') return { rejectUnauthorized: false };
   if (explicitSSL === 'false') return false;
   
-  // Known cloud databases that require SSL
-  if (dbUrl.includes('supabase.co') || dbUrl.includes('neon.tech') || dbUrl.includes('supabase.com')) {
-    return { rejectUnauthorized: false };
+  // Only use SSL in production for known cloud databases
+  if (process.env.NODE_ENV === 'production') {
+    if (dbUrl.includes('supabase.co') || dbUrl.includes('neon.tech') || dbUrl.includes('supabase.com')) {
+      return { rejectUnauthorized: false };
+    }
   }
   
-  // Local or unrecognized databases - no SSL
+  // Development or unrecognized - no SSL
   return false;
 };
 
