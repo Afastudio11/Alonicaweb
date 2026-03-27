@@ -1392,25 +1392,49 @@ export default function CashierSection() {
                           <CardContent className="p-0">
                             <div className="flex flex-col">
                               {/* Menu Image */}
-                              <div className="relative w-full h-40 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
-                                {item.image ? (
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop';
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
+                              <div className="relative w-full h-40 overflow-hidden" style={{ background: "linear-gradient(135deg, #f5f0eb, #e8ddd4)" }}>
+                                {(() => {
+                                  const catName = (categories.find(c => c.id === item.categoryId)?.name || "").toLowerCase();
+                                  const drinkPhotos = [
+                                    "photo-1509042239860-f550ce710b93", // latte art
+                                    "photo-1544145945-f90425340c7e", // cocktail
+                                    "photo-1461023058943-07fcbe16d735", // coffee cup
+                                    "photo-1556679343-c7306c1976bc", // smoothie
+                                    "photo-1497534446932-c925b458314e", // iced drink
+                                    "photo-1542820229-081e0c12af0b", // juice
+                                    "photo-1572490122747-3a3c8673f9db", // bubble tea
+                                    "photo-1563805042-7684c019e1cb", // cold brew
+                                  ];
+                                  const foodPhotos = [
+                                    "photo-1504674900247-0877df9cc836", // plated food
+                                    "photo-1546069901-ba9599a7e63c", // salad bowl
+                                    "photo-1567620905732-2d1ec7ab7445", // pancakes
+                                    "photo-1512621776951-a57141f2eefd", // veg dish
+                                    "photo-1484723091739-30a097e8f929", // toast
+                                    "photo-1555939594-58d7cb561ad1", // burger
+                                    "photo-1563379926898-05f4575a45d8", // rice dish
+                                    "photo-1540189549336-e6e99c3679fe", // salad
+                                  ];
+                                  const snackPhotos = [
+                                    "photo-1621939514649-280e2ee25f60", // chips
+                                    "photo-1569718212165-3a8278d5f624", // pastry
+                                    "photo-1558961363-fa8fdf82db35", // cookies
+                                    "photo-1559703248-dcaaec9fab78", // donuts
+                                  ];
+                                  let pool = foodPhotos;
+                                  if (catName.includes("minum") || catName.includes("drink") || catName.includes("jus") || catName.includes("kopi") || catName.includes("teh")) pool = drinkPhotos;
+                                  else if (catName.includes("snack") || catName.includes("camilan") || catName.includes("dessert")) pool = snackPhotos;
+                                  const idx = (item.name.charCodeAt(0) + item.name.length) % pool.length;
+                                  const fallbackSrc = `https://images.unsplash.com/${pool[idx]}?w=400&h=300&fit=crop&auto=format`;
+                                  return (
                                     <img
-                                      src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop"
+                                      src={item.image || fallbackSrc}
                                       alt={item.name}
                                       className="w-full h-full object-cover"
+                                      onError={(e) => { e.currentTarget.src = fallbackSrc; }}
                                     />
-                                  </div>
-                                )}
+                                  );
+                                })()}
                               </div>
                               
                               {/* Menu Details */}
@@ -1530,7 +1554,7 @@ export default function CashierSection() {
         <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Customer information</h3>
+            <h3 className="text-sm font-semibold text-foreground">Informasi Pelanggan</h3>
             {editingBill && (
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
@@ -2084,7 +2108,7 @@ export default function CashierSection() {
                 </div>
                 <div className="flex justify-between">
                   <span>Waktu:</span>
-                  <span>{new Date().toLocaleTimeString('id-ID')}</span>
+                  <span>{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Pelanggan:</span>
