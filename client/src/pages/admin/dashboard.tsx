@@ -189,7 +189,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F1F5", display: "flex" }}>
+    <div style={{ minHeight: "100vh", background: "hsl(var(--background))", display: "flex" }}>
       {/* Sidebar */}
       <AdminSidebar
         isOpen={sidebarOpen}
@@ -202,10 +202,10 @@ export default function AdminDashboard() {
         {/* Top Header Bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 30,
-          background: "rgba(240,241,245,0.92)",
+          background: "rgba(247,247,248,0.92)",
           backdropFilter: "blur(16px) saturate(180%)",
           WebkitBackdropFilter: "blur(16px) saturate(180%)",
-          borderBottom: "1px solid rgba(0,0,0,0.07)",
+          borderBottom: "1px solid hsl(var(--border))",
         }}>
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",

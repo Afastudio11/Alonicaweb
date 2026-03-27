@@ -1497,7 +1497,8 @@ export default function CashierSection() {
         </div>
 
         {/* RIGHT COLUMN - Cart Details */}
-        <div className="space-y-4 md:sticky md:top-4 md:self-start md:max-h-[calc(100vh-2rem)] md:overflow-y-auto">
+        <div className="md:self-start md:sticky md:top-[62px]">
+        <div className="space-y-4 md:max-h-[calc(100vh-80px)] md:overflow-y-auto">
         {/* Cart Details Header with Tabs */}
         <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
@@ -1925,6 +1926,7 @@ export default function CashierSection() {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
 
