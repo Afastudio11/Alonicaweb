@@ -10,18 +10,20 @@ INSERT INTO branches (name, address, city, phone, opening_hours, is_active, sort
 ON CONFLICT DO NOTHING;
 
 -- 2. PROFIL TOKO (store_profile)
-INSERT INTO store_profile (id, name, address, phone, tagline, tax_percent, service_charge_percent, footer_note, branch_id)
-SELECT 
+INSERT INTO store_profile (id, restaurant_name, address, phone, tagline, city, opening_hours, description, custom_receipt_footer, wifi_name, is_active)
+VALUES (
   gen_random_uuid(),
   'Alonica Café',
   'Jl. Pemuda No. 12, Kelurahan Letta, Bantaeng',
   '082187654321',
   'Secangkir Hangat, Sejuta Kenangan',
-  10,
-  0,
+  'Bantaeng',
+  '07.00 – 22.00',
+  'Kafe nyaman di pusat kota Bantaeng dengan menu kopi spesialti dan makanan pilihan.',
   'Terima kasih telah berkunjung ke Alonica Café. Sampai jumpa lagi!',
-  id
-FROM branches WHERE name = 'Alonica Bantaeng Pusat'
+  'Alonica_WiFi',
+  true
+)
 ON CONFLICT DO NOTHING;
 
 -- 3. KATEGORI (per cabang Pusat)
