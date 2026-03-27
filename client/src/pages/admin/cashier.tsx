@@ -1372,7 +1372,7 @@ export default function CashierSection() {
                           <CardContent className="p-0">
                             <div className="flex flex-col">
                               {/* Menu Image */}
-                              <div className="relative w-full h-40 overflow-hidden" style={{ background: "linear-gradient(135deg, #f5f0eb, #e8ddd4)" }}>
+                              <div className="relative w-full h-40 overflow-hidden" style={{ background: "#F5F0EB" }}>
                                 {(() => {
                                   const catName = (categories.find(c => c.id === item.categoryId)?.name || "").toLowerCase();
                                   const drinkPhotos = [
@@ -1881,9 +1881,7 @@ export default function CashierSection() {
                   transition: "all 0.15s",
                   background: cart.length === 0
                     ? "#E5E5EA"
-                    : paymentMethod === "qris"
-                      ? "linear-gradient(135deg, #FF9500, #FF6B00)"
-                      : "linear-gradient(135deg, #FF9500, #FF2D55)",
+                    : "#FF9500",
                   color: cart.length === 0 ? "#8E8E93" : "#fff",
                   boxShadow: cart.length === 0 ? "none" : "0 4px 16px rgba(255,149,0,0.35)",
                 }}

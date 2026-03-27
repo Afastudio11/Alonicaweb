@@ -17,7 +17,7 @@ function MemberBadge({ member }: { member: Member }) {
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 3,
         padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 700,
-        background: "linear-gradient(135deg, #FFAB00, #FF9500)", color: "#fff",
+        background: "#FF9500", color: "#fff",
       }}>
         <Crown size={10} /> VIP
       </span>
@@ -221,8 +221,8 @@ export default function MembersSection() {
               <div style={{
                 width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
                 background: member.isVip
-                  ? "linear-gradient(135deg, #FFAB00, #FF9500)"
-                  : "linear-gradient(135deg, #F0F0F0, #E5E5EA)",
+                  ? "#FF9500"
+                  : "#E5E5EA",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 {member.isVip
@@ -300,7 +300,7 @@ export default function MembersSection() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+                  background: "#FF9500",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>{editing.name[0]?.toUpperCase()}</span>
@@ -454,7 +454,7 @@ export default function MembersSection() {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: "50%",
-                    background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+                    background: "#FF9500",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <UserPlus size={18} style={{ color: "#fff" }} />

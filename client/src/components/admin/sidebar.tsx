@@ -1,30 +1,30 @@
 import { useLocation } from "wouter";
 import { useState } from "react";
 import {
-  ClipboardList,
+  ScanLine,
+  Receipt,
+  ListOrdered,
+  ChefHat,
+  Wine,
+  CalendarDays,
+  BadgeCheck,
+  UsersRound,
   Utensils,
-  Tags,
-  TrendingUp,
-  Package2,
-  Settings,
+  Layers,
+  Boxes,
+  BadgePercent,
+  Images,
+  CircleCheck,
+  Landmark,
+  BarChart3,
+  Settings2,
+  Printer,
+  Network,
+  Grid3X3,
+  ClipboardList,
   LogOut,
   X,
-  Calendar,
-  Percent as PercentIcon,
-  Printer,
-  Building2,
-  Cog,
-  CheckSquare,
-  ImageIcon,
-  Users,
-  CreditCard,
-  Crown,
   Menu as MenuIcon,
-  GitBranch,
-  GlassWater,
-  ChefHat,
-  FileBarChart2,
-  LayoutGrid,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -39,20 +39,20 @@ const BASE_NAV_GROUPS = [
     label: "POS & PESANAN",
     superAdminOnly: false,
     items: [
-      { key: "cashier", label: "Kasir", icon: CreditCard },
-      { key: "orders", label: "Pesanan", icon: ClipboardList },
-      { key: "drink-queue", label: "Antrian Pesanan", icon: GlassWater },
+      { key: "cashier", label: "Kasir", icon: ScanLine },
+      { key: "orders", label: "Pesanan", icon: Receipt },
+      { key: "drink-queue", label: "Antrian Pesanan", icon: ListOrdered },
       { key: "kitchen", label: "Dapur", icon: ChefHat },
-      { key: "bar", label: "Bar", icon: GlassWater },
-      { key: "reservations", label: "Reservasi", icon: Calendar },
+      { key: "bar", label: "Bar", icon: Wine },
+      { key: "reservations", label: "Reservasi", icon: CalendarDays },
     ],
   },
   {
     label: "PELANGGAN",
     superAdminOnly: false,
     items: [
-      { key: "members", label: "Data Member", icon: Crown },
-      { key: "users", label: "Kelola Akun Staff", icon: Users },
+      { key: "members", label: "Data Member", icon: BadgeCheck },
+      { key: "users", label: "Kelola Akun Staff", icon: UsersRound },
     ],
   },
   {
@@ -60,32 +60,32 @@ const BASE_NAV_GROUPS = [
     superAdminOnly: false,
     items: [
       { key: "menu", label: "Manajemen Menu", icon: Utensils },
-      { key: "categories", label: "Kategori Menu", icon: Tags },
-      { key: "inventory", label: "Stok Bahan Baku", icon: Package2 },
+      { key: "categories", label: "Kategori Menu", icon: Layers },
+      { key: "inventory", label: "Stok Bahan Baku", icon: Boxes },
     ],
   },
   {
     label: "PROMO & KONTEN",
     superAdminOnly: false,
     items: [
-      { key: "discounts", label: "Diskon & Voucher", icon: PercentIcon },
-      { key: "banners", label: "Banner Halaman Depan", icon: ImageIcon },
+      { key: "discounts", label: "Diskon & Voucher", icon: BadgePercent },
+      { key: "banners", label: "Banner Halaman Depan", icon: Images },
     ],
   },
   {
     label: "LAPORAN",
     superAdminOnly: false,
     items: [
-      { key: "approvals", label: "Persetujuan", icon: CheckSquare },
-      { key: "audit-reports", label: "Laporan Keuangan", icon: Building2 },
-      { key: "analytics", label: "Laporan Penjualan", icon: TrendingUp },
+      { key: "approvals", label: "Persetujuan", icon: CircleCheck },
+      { key: "audit-reports", label: "Laporan Keuangan", icon: Landmark },
+      { key: "analytics", label: "Laporan Penjualan", icon: BarChart3 },
     ],
   },
   {
     label: "PENGATURAN",
     superAdminOnly: false,
     items: [
-      { key: "settings", label: "Pengaturan Toko", icon: Cog },
+      { key: "settings", label: "Pengaturan Toko", icon: Settings2 },
       { key: "printer", label: "Pengaturan Printer", icon: Printer },
     ],
   },
@@ -93,9 +93,9 @@ const BASE_NAV_GROUPS = [
     label: "MULTI-CABANG",
     superAdminOnly: true,
     items: [
-      { key: "branches", label: "Manajemen Cabang", icon: GitBranch },
-      { key: "tables", label: "Manajemen Meja", icon: LayoutGrid },
-      { key: "shift-reports", label: "Laporan Shift Kasir", icon: FileBarChart2 },
+      { key: "branches", label: "Manajemen Cabang", icon: Network },
+      { key: "tables", label: "Manajemen Meja", icon: Grid3X3 },
+      { key: "shift-reports", label: "Laporan Shift Kasir", icon: ClipboardList },
     ],
   },
 ];
@@ -114,25 +114,14 @@ function getNavGroups(user: any) {
     .filter(group => group.items.length > 0);
 }
 
-const SIDEBAR_BG = "#16171D";
-const SIDEBAR_BORDER = "rgba(255,255,255,0.07)";
-const ACTIVE_BG = "rgba(255,149,0,0.14)";
-const HOVER_BG = "rgba(255,255,255,0.05)";
-const ICON_INACTIVE = "rgba(255,255,255,0.45)";
-const ICON_ACTIVE = "#FF9500";
-const TEXT_INACTIVE = "rgba(255,255,255,0.72)";
-const TEXT_ACTIVE = "#FF9500";
-const LABEL_COLOR = "rgba(255,255,255,0.28)";
-
 function NgehnoomLogo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{
-        width: 32, height: 32, borderRadius: 10,
-        background: "linear-gradient(135deg, #FFAB00 0%, #FF9500 50%, #FF2D55 100%)",
+        width: 34, height: 34, borderRadius: 10,
+        background: "#FF9500",
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
-        boxShadow: "0 2px 8px rgba(255,149,0,0.35)",
       }}>
         <svg width={17} height={13} viewBox="0 0 22 18" fill="none">
           <path d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
@@ -140,8 +129,8 @@ function NgehnoomLogo() {
         </svg>
       </div>
       <div>
-        <p style={{ fontWeight: 800, fontSize: 14.5, letterSpacing: "-0.02em", color: "#FFFFFF", lineHeight: 1 }}>ngehnoom</p>
-        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", lineHeight: 1.3, marginTop: 2, letterSpacing: "0.02em" }}>admin dashboard</p>
+        <p style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em", color: "#18181B", lineHeight: 1 }}>ngehnoom</p>
+        <p style={{ fontSize: 10, color: "#A1A1AA", lineHeight: 1.3, marginTop: 2 }}>admin dashboard</p>
       </div>
     </div>
   );
@@ -158,17 +147,16 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Header */}
       <div style={{
-        padding: collapsed ? "18px 0 16px" : "18px 16px 16px",
-        borderBottom: `1px solid ${SIDEBAR_BORDER}`,
+        padding: collapsed ? "16px 0 14px" : "16px 16px 14px",
+        borderBottom: "1px solid hsl(var(--sidebar-border))",
         display: "flex", alignItems: "center",
         justifyContent: collapsed ? "center" : "flex-start",
       }}>
         {collapsed ? (
           <div style={{
-            width: 32, height: 32, borderRadius: 10,
-            background: "linear-gradient(135deg, #FFAB00 0%, #FF9500 50%, #FF2D55 100%)",
+            width: 34, height: 34, borderRadius: 10,
+            background: "#FF9500",
             display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(255,149,0,0.35)",
           }}>
             <svg width={15} height={11} viewBox="0 0 22 18" fill="none">
               <path d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
@@ -181,19 +169,19 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, overflowY: "auto", padding: collapsed ? "10px 6px" : "10px 8px" }}>
+      <nav style={{ flex: 1, overflowY: "auto", padding: collapsed ? "8px 6px" : "8px 10px" }}>
         {getNavGroups(user).map((group, gi) => (
-          <div key={group.label} style={{ marginTop: gi > 0 ? (collapsed ? 6 : 18) : 0 }}>
+          <div key={group.label} style={{ marginTop: gi > 0 ? (collapsed ? 6 : 16) : 0 }}>
             {!collapsed && (
               <p style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: "0.07em",
-                color: LABEL_COLOR, padding: "0 8px", marginBottom: 3, textTransform: "uppercase",
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.08em",
+                color: "#A1A1AA", padding: "0 8px", marginBottom: 2, textTransform: "uppercase",
               }}>
                 {group.label}
               </p>
             )}
             {collapsed && gi > 0 && (
-              <div style={{ height: 1, background: SIDEBAR_BORDER, margin: "2px 8px 6px" }} />
+              <div style={{ height: 1, background: "hsl(var(--sidebar-border))", margin: "2px 8px 6px" }} />
             )}
             <div>
               {group.items.map((item) => {
@@ -211,42 +199,31 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
                       justifyContent: collapsed ? "center" : "flex-start",
                       gap: collapsed ? 0 : 9,
                       width: "100%",
-                      padding: collapsed ? "9px 0" : "8px 9px",
-                      borderRadius: 9, border: "none", cursor: "pointer",
-                      background: isActive ? ACTIVE_BG : "transparent",
+                      padding: collapsed ? "9px 0" : "7px 9px",
+                      borderRadius: 7, border: "none", cursor: "pointer",
+                      background: isActive ? "hsl(var(--sidebar-accent))" : "transparent",
                       marginBottom: 1,
-                      transition: "background 0.13s",
+                      transition: "background 0.1s",
                       position: "relative",
                     }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = HOVER_BG; }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "hsl(var(--muted))"; }}
                     onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
-                    {isActive && !collapsed && (
-                      <div style={{
-                        position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)",
-                        width: 3, height: 16, borderRadius: "0 3px 3px 0",
-                        background: "#FF9500",
-                      }} />
-                    )}
                     <Icon
-                      size={collapsed ? 19 : 16}
-                      style={{ color: isActive ? ICON_ACTIVE : ICON_INACTIVE, flexShrink: 0 }}
+                      size={16}
+                      style={{
+                        color: isActive ? "#FF9500" : "#71717A",
+                        flexShrink: 0,
+                      }}
                     />
                     {!collapsed && (
                       <span style={{
                         fontSize: 13, fontWeight: isActive ? 600 : 400,
-                        color: isActive ? TEXT_ACTIVE : TEXT_INACTIVE,
+                        color: isActive ? "#FF9500" : "#52525B",
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                       }}>
                         {item.label}
                       </span>
-                    )}
-                    {collapsed && isActive && (
-                      <div style={{
-                        position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-                        width: 3, height: 16, borderRadius: "2px 0 0 2px",
-                        background: "#FF9500",
-                      }} />
                     )}
                   </button>
                 );
@@ -257,7 +234,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
       </nav>
 
       {/* Footer - User info + logout */}
-      <div style={{ borderTop: `1px solid ${SIDEBAR_BORDER}`, padding: collapsed ? "10px 6px" : "10px 8px" }}>
+      <div style={{ borderTop: "1px solid hsl(var(--sidebar-border))", padding: collapsed ? "10px 6px" : "10px 10px" }}>
         {collapsed ? (
           <button
             onClick={onLogout}
@@ -265,19 +242,19 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
             title="Logout"
             style={{
               width: "100%", display: "flex", justifyContent: "center", alignItems: "center",
-              padding: "8px 0", borderRadius: 9, border: "none", cursor: "pointer",
+              padding: "8px 0", borderRadius: 7, border: "none", cursor: "pointer",
               background: "transparent",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = HOVER_BG; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "hsl(var(--muted))"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
-            <LogOut size={17} style={{ color: ICON_INACTIVE }} />
+            <LogOut size={16} style={{ color: "#71717A" }} />
           </button>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 9px", borderRadius: 10, background: "rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 9px", borderRadius: 8, background: "hsl(var(--muted))" }}>
             <div style={{
               width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-              background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+              background: "#FF9500",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <span style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>
@@ -285,18 +262,18 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
               </span>
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.9)", lineHeight: 1 }}>{user?.username || "Admin"}</p>
-              <p style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)", marginTop: 2.5 }}>{user?.role === "admin" ? "Administrator" : "Kasir"}</p>
+              <p style={{ fontSize: 12.5, fontWeight: 600, color: "#18181B", lineHeight: 1 }}>{user?.username || "Admin"}</p>
+              <p style={{ fontSize: 10.5, color: "#A1A1AA", marginTop: 2.5 }}>{user?.role === "admin" ? "Administrator" : "Kasir"}</p>
             </div>
             <button
               onClick={onLogout}
               data-testid="button-logout-sidebar"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 7 }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 6 }}
               title="Logout"
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = HOVER_BG; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "hsl(var(--border))"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "none"; }}
             >
-              <LogOut size={15} style={{ color: "rgba(255,255,255,0.38)" }} />
+              <LogOut size={15} style={{ color: "#A1A1AA" }} />
             </button>
           </div>
         )}
@@ -320,6 +297,9 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
 
   const handleLogout = () => { logout(); onClose(); };
 
+  const SIDEBAR_BG = "hsl(var(--sidebar))";
+  const SIDEBAR_BORDER = "1px solid hsl(var(--sidebar-border))";
+
   return (
     <>
       {/* Tablet Sidebar — icon-only, 64px (md to lg) */}
@@ -328,7 +308,7 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
         style={{
           position: "fixed", top: 0, left: 0, bottom: 0, width: 64,
           background: SIDEBAR_BG,
-          borderRight: `1px solid ${SIDEBAR_BORDER}`,
+          borderRight: SIDEBAR_BORDER,
           zIndex: 40, flexDirection: "column",
         }}
       >
@@ -347,6 +327,7 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
         style={{
           position: "fixed", top: 0, left: 0, bottom: 0, width: 240,
           background: SIDEBAR_BG,
+          borderRight: SIDEBAR_BORDER,
           zIndex: 40,
         }}
       >
@@ -369,24 +350,24 @@ export default function AdminSidebar({ isOpen, onClose, currentSection }: AdminS
         >
           <div
             onClick={onClose}
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
+            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }}
           />
           <div style={{
             position: "relative", width: 260, height: "100%",
-            background: SIDEBAR_BG, boxShadow: "4px 0 32px rgba(0,0,0,0.25)",
-            zIndex: 1,
+            background: SIDEBAR_BG, boxShadow: "4px 0 24px rgba(0,0,0,0.1)",
+            zIndex: 1, borderRight: SIDEBAR_BORDER,
           }}>
             <button
               onClick={onClose}
               data-testid="button-close-sidebar"
               style={{
                 position: "absolute", top: 16, right: 16,
-                background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer",
+                background: "hsl(var(--muted))", border: "none", cursor: "pointer",
                 width: 28, height: 28, borderRadius: "50%",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <X size={14} style={{ color: "rgba(255,255,255,0.8)" }} />
+              <X size={14} style={{ color: "#71717A" }} />
             </button>
             <SidebarContent
               currentSection={currentSection}

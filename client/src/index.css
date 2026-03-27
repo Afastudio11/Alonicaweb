@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 220 14% 96%;
+  --background: 0 0% 97%;
   --foreground: 224 10% 10%;
   --card: 0 0% 100%;
   --card-foreground: 224 10% 10%;
@@ -29,28 +29,24 @@
   --chart-3: 195 85% 50%;
   --chart-4: 145 70% 42%;
   --chart-5: 60 90% 50%;
-  --sidebar: 228 18% 13%;
-  --sidebar-foreground: 220 10% 88%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 224 10% 15%;
   --sidebar-primary: 35 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 228 15% 20%;
-  --sidebar-accent-foreground: 35 100% 60%;
-  --sidebar-border: 228 12% 20%;
+  --sidebar-accent: 35 100% 96%;
+  --sidebar-accent-foreground: 35 100% 40%;
+  --sidebar-border: 220 13% 91%;
   --sidebar-ring: 35 100% 50%;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --radius: 12px;
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
+  --radius: 8px;
 
   /* Ngehnoom brand */
   --ng-orange: #FF9500;
   --ng-orange-dark: #E8880F;
   --ng-pink: #FF2D55;
   --ng-amber: #FFAB00;
-  --ng-surface: #F0F1F5;
-  --ng-border: #E2E4EA;
+  --ng-surface: #F7F7F8;
+  --ng-border: #E8E9EE;
   --ng-text: #18181B;
   --ng-text-2: #52525B;
   --ng-text-3: #A1A1AA;
@@ -98,21 +94,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ngehnoom gradient */
-.ng-gradient {
-  background: linear-gradient(135deg, var(--ng-orange) 0%, var(--ng-pink) 100%);
-}
-
-.ng-gradient-amber {
-  background: linear-gradient(135deg, var(--ng-amber) 0%, var(--ng-orange) 60%, var(--ng-pink) 100%);
-}
-
 /* Clean card */
 .ng-card {
   background: #FFFFFF;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid #E8E9EE;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 /* Apple blur glass effect for navbar */
@@ -145,9 +132,9 @@ body {
 .font-playfair { font-family: var(--font-sans); }
 .alonica-card {
   background: #FFFFFF;
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid #E8E9EE;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 /* Admin page section header */

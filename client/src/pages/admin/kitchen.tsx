@@ -342,8 +342,8 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
             <div style={{
               width: 40, height: 40, borderRadius: 12,
               background: mode === "drink"
-                ? "linear-gradient(135deg, #007AFF, #5AC8FA)"
-                : "linear-gradient(135deg, #FF9500, #FF2D55)",
+                ? "#007AFF"
+                : "#FF9500",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {mode === "drink" ? <GlassWater size={20} color="#fff" /> : <ChefHat size={20} color="#fff" />}

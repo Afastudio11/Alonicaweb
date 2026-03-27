@@ -341,7 +341,7 @@ export default function BranchesSection() {
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 background: branch.isActive
-                  ? "linear-gradient(135deg, #FFAB00, #FF9500)"
+                  ? "#FF9500"
                   : "#E5E5EA",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>

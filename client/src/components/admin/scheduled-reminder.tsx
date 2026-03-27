@@ -81,9 +81,7 @@ export default function ScheduledOrderReminder() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: isUrgent
-                  ? "linear-gradient(135deg, #FF2D55, #FF6B6B)"
-                  : "linear-gradient(135deg, #FF9500, #FFAB00)",
+                background: isUrgent ? "#FF2D55" : "#FF9500",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
@@ -120,9 +118,7 @@ export default function ScheduledOrderReminder() {
               <div style={{
                 height: "100%",
                 width: `${Math.max(0, Math.min(100, ((10 - Math.min(mins, 10)) / 10) * 100))}%`,
-                background: isUrgent
-                  ? "linear-gradient(90deg, #FF2D55, #FF6B6B)"
-                  : "linear-gradient(90deg, #FF9500, #FFAB00)",
+                background: isUrgent ? "#FF2D55" : "#FF9500",
                 borderRadius: 999,
                 transition: "width 0.5s",
               }} />

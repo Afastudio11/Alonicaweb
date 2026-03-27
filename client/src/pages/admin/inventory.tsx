@@ -205,7 +205,7 @@ function AdjustStockDialog({ item, onClose }: { item: InventoryItem; onClose: ()
           width: "100%", height: 48, borderRadius: 12, border: "none",
           cursor: mutation.isPending || quantity === 0 ? "not-allowed" : "pointer",
           fontSize: 15, fontWeight: 700,
-          background: quantity === 0 ? "#E5E5EA" : "linear-gradient(135deg, #FF9500, #FF2D55)",
+          background: quantity === 0 ? "#E5E5EA" : "#FF9500",
           color: quantity === 0 ? "#8E8E93" : "#fff",
           boxShadow: quantity === 0 ? "none" : "0 4px 16px rgba(255,149,0,0.35)",
         }}
@@ -468,7 +468,7 @@ export default function InventorySection() {
                         data-testid={`button-adjust-${item.id}`}
                         style={{
                           height: 44, paddingInline: 16, borderRadius: 10, border: "none",
-                          background: "linear-gradient(135deg, #FF9500, #FFAB00)",
+                          background: "#FF9500",
                           color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
                           display: "flex", alignItems: "center", gap: 6,
                         }}

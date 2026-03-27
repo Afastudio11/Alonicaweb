@@ -240,7 +240,7 @@ function TableFormModal({
             data-testid="button-save-table"
             style={{
               width: "100%", height: 50, borderRadius: 14, border: "none",
-              background: saveMutation.isPending ? "#E5E5EA" : "linear-gradient(135deg, #FF9500, #FF2D55)",
+              background: saveMutation.isPending ? "#E5E5EA" : "#FF9500",
               color: saveMutation.isPending ? "#8E8E93" : "#fff",
               fontSize: 15, fontWeight: 700, cursor: saveMutation.isPending ? "wait" : "pointer",
             }}
@@ -316,7 +316,7 @@ export default function TablesSection() {
           data-testid="button-add-table"
           style={{
             height: 40, paddingInline: 18, borderRadius: 12, border: "none",
-            background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+            background: "#FF9500",
             color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
             display: "flex", alignItems: "center", gap: 6,
           }}

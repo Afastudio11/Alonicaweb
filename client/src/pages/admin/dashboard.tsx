@@ -227,7 +227,7 @@ export default function AdminDashboard() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{
                   width: 6, height: 6, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+                  background: "#FF9500",
                 }} />
                 <h1 style={{ fontSize: 15, fontWeight: 700, color: "#18181B", lineHeight: 1, letterSpacing: "-0.01em" }}>
                   {pageLabel}

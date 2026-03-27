@@ -253,8 +253,8 @@ function OrderCard({ group, onStatusChange, pendingId }: {
             height: "100%", borderRadius: 999,
             width: `${progressPct}%`,
             background: progressPct === 100
-              ? "linear-gradient(90deg, #007AFF, #34C759)"
-              : "linear-gradient(90deg, #FF9500, #FF2D55)",
+              ? "#34C759"
+              : "#FF9500",
             transition: "width 0.4s ease",
           }} />
         </div>
@@ -385,7 +385,7 @@ export default function DrinkQueueSection() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
-              background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+              background: "#FF9500",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <LayoutGrid size={20} color="#fff" />
