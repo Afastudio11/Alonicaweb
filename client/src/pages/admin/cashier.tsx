@@ -2081,8 +2081,8 @@ export default function CashierSection() {
 
       {/* Receipt Dialog */}
       <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
-        <DialogContent className="max-w-md print:max-w-none print:shadow-none">
-          <DialogHeader className="print:hidden">
+        <DialogContent className="max-w-md max-h-[90vh] flex flex-col print:max-w-none print:shadow-none print:max-h-none">
+          <DialogHeader className="print:hidden flex-shrink-0">
             <DialogTitle className="flex items-center space-x-2">
               <Receipt className="h-5 w-5" />
               <span>Struk Pembayaran</span>
@@ -2090,7 +2090,7 @@ export default function CashierSection() {
           </DialogHeader>
           
           {paymentData && (
-            <div className="customer-receipt space-y-4 print:text-black print:bg-white" data-testid="receipt-content">
+            <div className="customer-receipt space-y-4 overflow-y-auto flex-1 pr-1 print:text-black print:bg-white print:overflow-visible" data-testid="receipt-content">
               {/* Restaurant Header */}
               <div className="text-center border-b pb-4">
                 <h2 className="font-playfair text-xl font-bold">{storeProfile?.restaurantName || "ngehnoom"}</h2>
@@ -2202,7 +2202,7 @@ export default function CashierSection() {
             </div>
           )}
           
-          <DialogFooter className="print:hidden">
+          <DialogFooter className="print:hidden flex-shrink-0 border-t pt-4 mt-2">
             <Button 
               variant="outline" 
               onClick={resetAllForms}
