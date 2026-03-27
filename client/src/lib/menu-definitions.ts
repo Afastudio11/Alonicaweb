@@ -69,7 +69,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     group: "Pelanggan",
     items: [
       { key: "members", label: "Data Member",    icon: Users,   path: "/kasir/members" },
-      { key: "users",   label: "Pengguna Admin", icon: UserCog, path: "/kasir/users" },
+      { key: "users",   label: "Kelola Akun Staff", icon: UserCog, path: "/kasir/users" },
     ],
   },
   {

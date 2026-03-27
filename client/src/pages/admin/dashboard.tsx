@@ -33,7 +33,7 @@ const SECTION_LABELS: Record<string, string> = {
   cashier: "Kasir",
   reservations: "Reservasi",
   members: "Data Member",
-  users: "Pengguna Admin",
+  users: "Kelola Akun Staff",
   discounts: "Diskon & Voucher",
   banners: "Banner Halaman Depan",
   approvals: "Persetujuan",

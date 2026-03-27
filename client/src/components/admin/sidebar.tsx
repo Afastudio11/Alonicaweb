@@ -51,7 +51,7 @@ const BASE_NAV_GROUPS = [
     superAdminOnly: false,
     items: [
       { key: "members", label: "Data Member", icon: Crown },
-      { key: "users", label: "Pengguna Admin", icon: Users },
+      { key: "users", label: "Kelola Akun Staff", icon: Users },
     ],
   },
   {
