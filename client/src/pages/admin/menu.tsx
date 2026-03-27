@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import imageCompression from "browser-image-compression";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Edit, Copy, Trash2, Upload, Package, FlaskConical, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -549,11 +550,11 @@ function MenuItemForm({
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (20MB max before compression)
+    if (file.size > 20 * 1024 * 1024) {
       toast({
         title: "File terlalu besar",
-        description: "Ukuran maksimal file adalah 5MB",
+        description: "Ukuran maksimal file adalah 20MB",
         variant: "destructive",
       });
       return;
@@ -561,9 +562,17 @@ function MenuItemForm({
 
     setIsUploading(true);
     try {
-      // Create form data
+      // Compress image before upload (max 500KB, max 800px)
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+        fileType: 'image/webp',
+      });
+
+      // Create form data with compressed file
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressed, compressed.name.replace(/\.[^/.]+$/, '.webp'));
 
       // Upload directly to /api/objects/upload
       const response = await fetch('/api/objects/upload', {
