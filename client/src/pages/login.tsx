@@ -40,9 +40,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "admin") navigate("/admin");
+      if (user.role === "super_admin" || user.role === "admin") navigate("/admin");
       else if (user.role === "kasir") navigate("/kasir");
       else if (user.role === "dapur") navigate("/kasir/kitchen");
+      else navigate("/admin");
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -56,6 +57,7 @@ export default function LoginPage() {
       const msg = err?.message || "Username atau password salah.";
       setError(msg);
       toast({ title: "Login gagal", description: msg, variant: "destructive" });
+    } finally {
       setIsLoading(false);
     }
   };
