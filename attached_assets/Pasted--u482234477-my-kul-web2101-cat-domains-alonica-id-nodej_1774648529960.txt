@@ -1,0 +1,98 @@
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/stderr.log
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+[u482234477@my-kul-web2101 ~]$

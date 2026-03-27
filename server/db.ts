@@ -8,24 +8,21 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Determine SSL configuration based on DATABASE_URL or environment variable
-// SSL is required for managed databases (Neon, Supabase, etc.)
-// SSL is disabled for localhost PostgreSQL
+// Determine SSL configuration based on DATABASE_URL
 const shouldUseSSL = () => {
   const dbUrl = process.env.DATABASE_URL || '';
   const explicitSSL = process.env.DATABASE_SSL;
   
-  // Explicit SSL configuration takes precedence
-  if (explicitSSL === 'true') return { rejectUnauthorized: true };
+  if (explicitSSL === 'true') return { rejectUnauthorized: false };
   if (explicitSSL === 'false') return false;
   
-  // Auto-detect: localhost = no SSL, remote = SSL
-  if (dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')) {
-    return false;
+  // Known cloud databases that require SSL
+  if (dbUrl.includes('supabase.co') || dbUrl.includes('neon.tech') || dbUrl.includes('supabase.com')) {
+    return { rejectUnauthorized: false };
   }
   
-  // Default to SSL for remote databases
-  return { rejectUnauthorized: true };
+  // Local or unrecognized databases - no SSL
+  return false;
 };
 
 // Create connection pool with proper configuration
