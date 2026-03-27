@@ -34,7 +34,7 @@ export default function KasirDashboard() {
   }
 
   // Show access denied only after auth is ready and user is not authenticated or not kasir
-  if (!isAuthenticated || !user || user.role !== 'kasir') {
+  if (!isAuthenticated || !user || (user.role !== 'kasir' && user.role !== 'dapur')) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -50,11 +50,16 @@ export default function KasirDashboard() {
     );
   }
 
-  // Check if current section is allowed for this user
+  // Compute effective allowed list (respects dapur default + allowedMenus override)
+  const userAllowedMenus = (user as any)?.allowedMenus as string[] | null | undefined;
+  const dapurDefault = user?.role === 'dapur' ? ['kitchen'] : null;
+  const effectiveAllowed = (userAllowedMenus && userAllowedMenus.length > 0)
+    ? userAllowedMenus
+    : dapurDefault;
+
   const isSectionAllowed = (sec: string) => {
-    const allowed = (user as any)?.allowedMenus as string[] | null | undefined;
-    if (!allowed || allowed.length === 0) return true; // null = all access
-    return allowed.includes(sec);
+    if (!effectiveAllowed) return true; // null = all access
+    return effectiveAllowed.includes(sec);
   };
 
   const renderSection = () => {

@@ -42,6 +42,7 @@ export default function LoginPage() {
     if (isAuthenticated && user) {
       if (user.role === "admin") navigate("/admin");
       else if (user.role === "kasir") navigate("/kasir");
+      else if (user.role === "dapur") navigate("/kasir/kitchen");
     }
   }, [isAuthenticated, user, navigate]);
 

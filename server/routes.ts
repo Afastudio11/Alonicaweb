@@ -300,10 +300,10 @@ function requireKasir(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-// Admin or Kasir role check middleware (for shared resources)
+// Admin or Kasir/Dapur role check middleware (for shared resources)
 function requireAdminOrKasir(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
-  if (user?.role !== 'admin' && user?.role !== 'kasir') {
+  if (user?.role !== 'admin' && user?.role !== 'kasir' && user?.role !== 'dapur') {
     return res.status(403).json({ message: "Admin or Kasir access required" });
   }
   next();

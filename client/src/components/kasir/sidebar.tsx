@@ -47,9 +47,15 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
   const { logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
 
-  // Filter menu items: if allowedMenus is set, only show items whose id is in that list
-  const visibleMenuItems = user?.allowedMenus && user.allowedMenus.length > 0
-    ? menuItems.filter(item => (user.allowedMenus as string[]).includes(item.id))
+  // "dapur" role defaults to kitchen-only unless allowedMenus overrides it
+  const defaultAllowed = user?.role === 'dapur' ? ['kitchen'] : null;
+  const effectiveAllowed = (user?.allowedMenus && user.allowedMenus.length > 0)
+    ? user.allowedMenus
+    : defaultAllowed;
+
+  // Filter menu items based on effective allowed list (null = show all)
+  const visibleMenuItems = effectiveAllowed
+    ? menuItems.filter(item => (effectiveAllowed as string[]).includes(item.id))
     : menuItems;
 
   return (

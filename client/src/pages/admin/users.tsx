@@ -411,6 +411,7 @@ export default function UsersSection() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="kasir">Kasir</SelectItem>
+                          <SelectItem value="dapur">Dapur</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>
                       </Select>
@@ -478,7 +479,7 @@ export default function UsersSection() {
                       variant={user.role === 'admin' ? 'default' : 'secondary'}
                       data-testid={`badge-role-${user.id}`}
                     >
-                      {user.role === 'admin' ? 'Admin' : 'Kasir'}
+                      {user.role === 'admin' ? 'Admin' : user.role === 'dapur' ? 'Dapur' : 'Kasir'}
                     </Badge>
                     {hasRestriction && (
                       <Badge variant="outline" style={{ fontSize: 11, color: "#FF9500", borderColor: "#FF9500" }}>
