@@ -285,7 +285,7 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
 // Admin role check middleware
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'admin' && user?.role !== 'super_admin') {
     return res.status(403).json({ message: "Admin access required" });
   }
   next();
@@ -303,7 +303,7 @@ function requireKasir(req: Request, res: Response, next: NextFunction) {
 // Admin or Kasir/Dapur role check middleware (for shared resources)
 function requireAdminOrKasir(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
-  if (user?.role !== 'admin' && user?.role !== 'kasir' && user?.role !== 'dapur') {
+  if (user?.role !== 'admin' && user?.role !== 'super_admin' && user?.role !== 'kasir' && user?.role !== 'dapur') {
     return res.status(403).json({ message: "Admin or Kasir access required" });
   }
   next();
@@ -312,7 +312,7 @@ function requireAdminOrKasir(req: Request, res: Response, next: NextFunction) {
 // Super admin = admin with NO branchId (global access across all branches)
 function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
-  if (user?.role !== 'admin' || user?.branchId !== null) {
+  if ((user?.role !== 'admin' && user?.role !== 'super_admin') || user?.branchId !== null) {
     return res.status(403).json({ message: "Super admin access required" });
   }
   next();
