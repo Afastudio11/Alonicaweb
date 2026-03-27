@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, TrendingDown, BarChart3, Clock, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Clock, Download, ChevronLeft, ChevronRight, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
@@ -41,13 +42,35 @@ export default function AnalyticsSection() {
   const [selectedPeriod, setSelectedPeriod] = useState('daily');
   const [periodOffset, setPeriodOffset] = useState(0);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showDanaTertahan, setShowDanaTertahan] = useState(false);
   const { toast } = useToast();
 
   const { data: rawOrders, isLoading } = useQuery<{ orders: Order[]; total: number } | Order[]>({
     queryKey: ["/api/orders?limit=9999"],
   });
 
+  const { data: openBills = [] } = useQuery<Order[]>({
+    queryKey: ["/api/orders/open-bills"],
+    refetchInterval: 30000,
+  });
+
   const orders: Order[] = Array.isArray(rawOrders) ? rawOrders : (rawOrders?.orders ?? []);
+
+  // Compute dana tertahan (held funds from unpaid open bills)
+  const danaTertahan = useMemo(() => {
+    const totalTertahan = openBills.reduce((s, b) => s + b.total, 0);
+    const byCustomer: Record<string, { customerName: string; orderCount: number; total: number; oldestDate: Date }> = {};
+    openBills.forEach(bill => {
+      const k = bill.customerName;
+      if (!byCustomer[k]) byCustomer[k] = { customerName: k, orderCount: 0, total: 0, oldestDate: new Date(bill.createdAt) };
+      byCustomer[k].orderCount++;
+      byCustomer[k].total += bill.total;
+      const d = new Date(bill.createdAt);
+      if (d < byCustomer[k].oldestDate) byCustomer[k].oldestDate = d;
+    });
+    const customers = Object.values(byCustomer).sort((a, b) => b.total - a.total);
+    return { totalTertahan, totalOrders: openBills.length, customerCount: customers.length, customers };
+  }, [openBills]);
 
   const analytics = calculateAnalytics(orders, selectedPeriod, periodOffset);
   const periodLabel = getPeriodLabel(selectedPeriod, periodOffset);
@@ -444,6 +467,68 @@ export default function AnalyticsSection() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dana Tertahan — Unpaid Open Bills */}
+      <Card className="alonica-card border-amber-200 dark:border-amber-700">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-amber-500" />
+              <CardTitle className="text-base">Dana Tertahan (Open Bill Belum Bayar)</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" className="h-8 px-2"
+              onClick={() => setShowDanaTertahan(v => !v)}
+              data-testid="button-toggle-dana-tertahan"
+            >
+              {showDanaTertahan ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 mb-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Total Dana Tertahan</p>
+              <p className="text-xl font-bold text-amber-600" data-testid="stat-dana-tertahan-total">
+                {formatCurrency(danaTertahan.totalTertahan)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Jumlah Pesanan</p>
+              <p className="text-xl font-bold">{danaTertahan.totalOrders}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Jumlah Pelanggan</p>
+              <p className="text-xl font-bold">{danaTertahan.customerCount}</p>
+            </div>
+          </div>
+
+          {showDanaTertahan && (
+            <div className="mt-3 border-t pt-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Rincian per Pelanggan</p>
+              {danaTertahan.customers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Tidak ada open bill aktif</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {danaTertahan.customers.map((c) => (
+                    <div key={c.customerName} className="flex items-center justify-between p-2 rounded-lg bg-amber-50/60 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800">
+                      <div>
+                        <p className="text-sm font-medium">{c.customerName}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Badge variant="outline" className="text-xs border-amber-300 text-amber-700 py-0 px-1.5">
+                            {c.orderCount} pesanan
+                          </Badge>
+                          <span>Sejak {c.oldestDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <p className="font-bold text-amber-600 text-sm">{formatCurrency(c.total)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* REAL CHARTS WITH LIVE DATA */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

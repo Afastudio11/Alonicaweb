@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Minus, Trash2, ShoppingCart, ShoppingBag, User, Table, Receipt, Calculator, Printer, FileText, Send, Eye, Split, Search, Clock, QrCode, Banknote, CreditCard as CreditCardIcon, Wallet, Smartphone, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,7 @@ export default function CashierSection() {
   const [openBillsCollapsed, setOpenBillsCollapsed] = useState(false);
   const [viewingBill, setViewingBill] = useState<Order | null>(null);
   const [editingBill, setEditingBill] = useState<Order | null>(null);
+  const [selectedGroupDetail, setSelectedGroupDetail] = useState<string | null>(null); // customerName for group detail
   
   // Deletion request state (new notification-based system)
   const [showDeletionReason, setShowDeletionReason] = useState(false);
@@ -121,6 +122,24 @@ export default function CashierSection() {
   const { data: openBills = [], refetch: refetchOpenBills } = useQuery<Order[]>({
     queryKey: ["/api/orders/open-bills"],
   });
+
+  // Group open bills by customerName
+  const groupedOpenBills = useMemo(() => {
+    const groups: Record<string, { customerName: string; tableNumber: string; orders: Order[]; totalAmount: number; orderCount: number; oldestDate: Date; latestDate: Date }> = {};
+    openBills.forEach(bill => {
+      const key = bill.customerName;
+      if (!groups[key]) {
+        groups[key] = { customerName: bill.customerName, tableNumber: bill.tableNumber, orders: [], totalAmount: 0, orderCount: 0, oldestDate: new Date(bill.createdAt), latestDate: new Date(0) };
+      }
+      groups[key].orders.push(bill);
+      groups[key].totalAmount += bill.total;
+      groups[key].orderCount++;
+      const d = new Date(bill.createdAt);
+      if (d > groups[key].latestDate) { groups[key].latestDate = d; groups[key].tableNumber = bill.tableNumber; }
+      if (d < groups[key].oldestDate) { groups[key].oldestDate = d; }
+    });
+    return Object.values(groups).sort((a, b) => b.latestDate.getTime() - a.latestDate.getTime());
+  }, [openBills]);
 
   // Load active discounts
   const { data: activeDiscounts = [] } = useQuery<Discount[]>({
@@ -1193,81 +1212,41 @@ export default function CashierSection() {
           
           {!openBillsCollapsed && (
             <>
-            {openBills.length === 0 ? (
+            {groupedOpenBills.length === 0 ? (
               <div className="text-center py-8 bg-muted/30 rounded-lg">
                 <p className="text-muted-foreground text-sm">Tidak ada open bills</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
-              {openBills.slice(0, 6).map((bill) => {
-                const statusColors = {
-                  pending: 'bg-green-50 text-green-700 border-green-200',
-                  preparing: 'bg-amber-50 text-amber-700 border-amber-200',
-                  ready: 'bg-green-50 text-green-700 border-green-200',
-                  served: 'bg-gray-50 text-gray-700 border-gray-200',
-                  cancelled: 'bg-red-50 text-red-700 border-red-200'
-                };
-                const status = bill.orderStatus || 'pending';
-                const statusText = status === 'pending' || status === 'ready' ? 'Siap Disajikan' : 
-                                  status === 'preparing' ? 'Sedang Dimasak' : 
-                                  status === 'cancelled' ? 'Dibatalkan' : 'Selesai';
-                
-                return (
-                  <Card key={bill.id} className="border hover:shadow-md transition-all cursor-pointer bg-white" onClick={() => handlePayOpenBill(bill)}>
-                    <CardContent className="p-3">
-                      {/* Header with ID and Status */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-foreground">#{bill.id.slice(0, 8).toUpperCase()}</span>
-                        <Badge className={`text-xs px-2 py-0.5 border ${statusColors[status as keyof typeof statusColors] || statusColors.pending}`}>
-                          {statusText}
-                        </Badge>
-                      </div>
-                      
-                      {/* Customer Name */}
-                      <p className="font-semibold text-sm text-foreground mb-1">{bill.customerName}</p>
-                      
-                      {/* Date and Time */}
-                      <p className="text-xs text-muted-foreground mb-3">
-                        {new Date(bill.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}, {new Date(bill.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
-                      </p>
-                      
-                      {/* Item Count and Table */}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-1">
-                          <ShoppingBag className="h-3.5 w-3.5" />
-                          <span>{Array.isArray(bill.items) ? bill.items.length : 0} items</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Table className="h-3.5 w-3.5" />
-                          <span>Table {bill.tableNumber}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={(e) => { e.stopPropagation(); setViewingBill(bill); }}
-                          className="h-10 flex-1 text-xs"
-                          data-testid={`button-view-bill-${bill.id}`}
-                        >
-                          <Eye className="h-3.5 w-3.5 mr-1" />
-                          Lihat
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={(e) => { e.stopPropagation(); handleEditOpenBill(bill); }}
-                          className="h-10 flex-1 text-xs"
-                          data-testid={`button-edit-bill-${bill.id}`}
-                        >
-                          <FileText className="h-3.5 w-3.5 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {groupedOpenBills.slice(0, 6).map((group) => (
+                <Card key={group.customerName} className="border hover:shadow-md transition-all cursor-pointer bg-white"
+                  onClick={() => setSelectedGroupDetail(group.customerName)}
+                  data-testid={`card-group-bill-${group.customerName}`}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge className="text-xs px-2 py-0.5 border bg-amber-50 text-amber-700 border-amber-200">
+                        {group.orderCount} pesanan
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{group.tableNumber}</span>
+                    </div>
+                    <p className="font-semibold text-sm text-foreground mb-1 truncate">{group.customerName}</p>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Sejak {group.oldestDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </p>
+                    <p className="text-sm font-bold text-primary">{formatCurrency(group.totalAmount)}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2 h-8 text-xs"
+                      onClick={(e) => { e.stopPropagation(); setSelectedGroupDetail(group.customerName); }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Lihat Detail
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
               </div>
             )}
             </>
@@ -2365,6 +2344,109 @@ export default function CashierSection() {
               <p className="text-xs text-green-600 mt-1">Open bill otomatis dikirim ke dapur</p>
             </div>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Detail Dialog — all orders for one customer */}
+      {(() => {
+        const group = selectedGroupDetail ? groupedOpenBills.find(g => g.customerName === selectedGroupDetail) : null;
+        if (!group) return null;
+        const sortedOrders = [...group.orders].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        return (
+          <Dialog open={!!selectedGroupDetail} onOpenChange={() => setSelectedGroupDetail(null)}>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto" data-testid="modal-group-detail">
+              <DialogHeader>
+                <DialogTitle>{group.customerName}</DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  {group.orderCount} pesanan · Total {formatCurrency(group.totalAmount)} · {group.tableNumber}
+                </p>
+              </DialogHeader>
+              <div className="space-y-3">
+                {sortedOrders.map((bill, idx) => {
+                  const items: any[] = Array.isArray(bill.items) ? bill.items : [];
+                  return (
+                    <div key={bill.id} className="border rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between px-3 py-2 bg-muted/60">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">{idx + 1}</span>
+                          <span className="text-xs font-semibold">
+                            {new Date(bill.createdAt).toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(bill.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-primary">{formatCurrency(bill.total)}</span>
+                      </div>
+                      <div className="px-3 py-2 space-y-1">
+                        {items.map((item, i) => (
+                          <div key={i} className="flex justify-between text-xs">
+                            <span>{item.name} <span className="text-muted-foreground">x{item.quantity}</span></span>
+                            <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-3 pb-2 flex gap-2">
+                        <Button size="sm" variant="outline" className="h-7 text-xs flex-1"
+                          onClick={() => { setSelectedGroupDetail(null); setViewingBill(bill); }}
+                        >
+                          <Eye className="h-3 w-3 mr-1" /> Detail
+                        </Button>
+                        <Button size="sm" className="h-7 text-xs flex-1 bg-primary hover:bg-primary/90"
+                          onClick={() => { setSelectedGroupDetail(null); handlePayOpenBill(bill); }}
+                        >
+                          <Calculator className="h-3 w-3 mr-1" /> Bayar
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="border-t pt-3 flex items-center justify-between">
+                <span className="font-semibold text-sm">Total Keseluruhan</span>
+                <span className="text-lg font-bold text-primary">{formatCurrency(group.totalAmount)}</span>
+              </div>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
+      {/* Lihat Semua Open Bills Dialog — grouped by customer */}
+      <Dialog open={showOpenBills} onOpenChange={setShowOpenBills}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="modal-all-open-bills">
+          <DialogHeader>
+            <DialogTitle>Semua Open Bill</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              {groupedOpenBills.length} pelanggan · {openBills.length} pesanan · Total {formatCurrency(openBills.reduce((s, b) => s + b.total, 0))}
+            </p>
+          </DialogHeader>
+          <div className="space-y-3">
+            {groupedOpenBills.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Tidak ada open bill aktif</p>
+            ) : groupedOpenBills.map((group) => (
+              <div key={group.customerName} className="border rounded-lg p-3 hover:bg-muted/30 transition-colors">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">{group.customerName}</span>
+                    <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">{group.orderCount} pesanan</Badge>
+                  </div>
+                  <span className="font-bold text-primary text-sm">{formatCurrency(group.totalAmount)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                  <span>{group.tableNumber}</span>
+                  <span>·</span>
+                  <span>Sejak {group.oldestDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  <span>·</span>
+                  <span>Terakhir {group.latestDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</span>
+                </div>
+                <Button size="sm" variant="outline" className="h-7 text-xs"
+                  onClick={() => { setShowOpenBills(false); setSelectedGroupDetail(group.customerName); }}
+                >
+                  <Eye className="h-3 w-3 mr-1" /> Lihat Detail per Tanggal
+                </Button>
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
 
