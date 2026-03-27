@@ -452,6 +452,15 @@ export default function InventorySection() {
                         </span>
                       </div>
                       <StockBar current={item.currentStock} min={item.minStock} max={item.maxStock} />
+                      {item.pricePerUnit > 0 && (
+                        <p style={{ fontSize: 11, color: "#6E6E73", margin: "6px 0 0", display: "flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#34C759", background: "#F0FFF4", borderRadius: 999, padding: "1px 7px" }}>
+                            Harga Terakhir
+                          </span>
+                          <strong style={{ color: "#1D1D1F" }}>{formatRp(item.pricePerUnit)}</strong>
+                          <span>/ {item.unit}</span>
+                        </p>
+                      )}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
                       <button
@@ -825,18 +834,18 @@ function InventoryItemForm({
         </div>
       </div>
 
-      <div>
-        <Label>Stok Awal ({formData.unit})</Label>
-        <NumInput value={formData.currentStock} onChange={v => setFormData(p => ({ ...p, currentStock: v }))} testId="input-current-stock" required />
-        {initialData?.pricePerUnit ? (
-          <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 4 }}>
-            Harga terakhir: <strong>{formatRp(initialData.pricePerUnit)}</strong> per {formData.unit} — diperbarui otomatis saat restok
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Stok Awal ({formData.unit})</Label>
+          <NumInput value={formData.currentStock} onChange={v => setFormData(p => ({ ...p, currentStock: v }))} testId="input-current-stock" required />
+        </div>
+        <div>
+          <Label>Harga Beli per {formData.unit} (Rp)</Label>
+          <NumInput value={formData.pricePerUnit} onChange={v => setFormData(p => ({ ...p, pricePerUnit: v }))} testId="input-price-per-unit" />
+          <p style={{ fontSize: 10, color: "#8E8E93", marginTop: 3 }}>
+            Opsional · otomatis diperbarui saat restok
           </p>
-        ) : (
-          <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 4 }}>
-            Harga beli bisa diisi saat melakukan restok stok pertama kali.
-          </p>
-        )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
