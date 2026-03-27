@@ -6,3 +6,9 @@ id = "KXbrOQFpsWo11voifoLuh"
 uri = "file://ngehnoom_fitur.xlsx"
 type = "table"
 title = "Daftar Fitur ngehnoom Cafe"
+
+[[outputs]]
+id = "kiGCK-t9z6fXmizTnqQMr"
+uri = "file://ngehnoom-deploy.tar.gz"
+type = "unspecified"
+title = "ngehnoom-deploy.tar.gz — File deploy untuk Hostinger"
