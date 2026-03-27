@@ -1204,10 +1204,6 @@ export default function CashierSection() {
                 {openBillsCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
               </Button>
             </div>
-            <button className="text-sm text-primary hover:underline flex items-center gap-1 min-h-[44px] px-2" onClick={() => setShowOpenBills(true)}>
-              <Eye className="h-4 w-4" />
-              Lihat Semua
-            </button>
           </div>
           
           {!openBillsCollapsed && (
