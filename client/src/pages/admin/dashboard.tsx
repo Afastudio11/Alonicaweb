@@ -69,7 +69,7 @@ export default function AdminDashboard() {
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: 40, height: 40, borderRadius: "50%",
-            border: "3px solid #FF9500", borderTopColor: "transparent",
+            border: "3px solid #8B1538", borderTopColor: "transparent",
             animation: "spin 0.8s linear infinite", margin: "0 auto 12px",
           }} />
           <p style={{ color: "#6E6E73", fontSize: 14 }}>Memuat...</p>
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
           <button
             onClick={logout}
             style={{
-              padding: "10px 24px", background: "#FF9500", color: "#fff",
+              padding: "10px 24px", background: "#8B1538", color: "#fff",
               border: "none", borderRadius: 12, fontWeight: 600, cursor: "pointer", fontSize: 14,
             }}
             data-testid="button-logout-access-denied"
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
                 width: 64, height: 64, borderRadius: "50%",
                 background: "#FFF5E6", display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <Ban size={32} color="#FF9500" />
+                <Ban size={32} color="#8B1538" />
               </div>
             </div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1D1D1F", marginBottom: 8 }}>
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{
                   width: 6, height: 6, borderRadius: "50%",
-                  background: "#FF9500",
+                  background: "#8B1538",
                 }} />
                 <h1 style={{ fontSize: 15, fontWeight: 700, color: "#18181B", lineHeight: 1, letterSpacing: "-0.01em" }}>
                   {pageLabel}

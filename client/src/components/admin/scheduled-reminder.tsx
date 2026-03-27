@@ -55,9 +55,9 @@ export default function ScheduledOrderReminder() {
               borderRadius: 18,
               padding: "16px 18px",
               boxShadow: isUrgent
-                ? "0 8px 30px rgba(255,45,85,0.25), 0 2px 8px rgba(0,0,0,0.08)"
-                : "0 8px 30px rgba(255,149,0,0.2), 0 2px 8px rgba(0,0,0,0.06)",
-              border: `2px solid ${isUrgent ? "#FF2D55" : "#FF9500"}`,
+                ? "0 8px 30px rgba(168,41,74,0.25), 0 2px 8px rgba(0,0,0,0.08)"
+                : "0 8px 30px rgba(139,21,56,0.2), 0 2px 8px rgba(0,0,0,0.06)",
+              border: `2px solid ${isUrgent ? "#A8294A" : "#8B1538"}`,
               animation: isUrgent ? "pulse-reminder 1.5s infinite" : "none",
               position: "relative",
             }}
@@ -81,7 +81,7 @@ export default function ScheduledOrderReminder() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: isUrgent ? "#FF2D55" : "#FF9500",
+                background: isUrgent ? "#A8294A" : "#8B1538",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
@@ -89,7 +89,7 @@ export default function ScheduledOrderReminder() {
               </div>
               <div>
                 <p style={{
-                  fontSize: 13, fontWeight: 800, color: isUrgent ? "#FF2D55" : "#FF9500",
+                  fontSize: 13, fontWeight: 800, color: isUrgent ? "#A8294A" : "#8B1538",
                   margin: 0, textTransform: "uppercase", letterSpacing: "0.05em",
                 }}>
                   {isUrgent ? "Segera Siapkan!" : "Pesanan Terjadwal"}
@@ -118,7 +118,7 @@ export default function ScheduledOrderReminder() {
               <div style={{
                 height: "100%",
                 width: `${Math.max(0, Math.min(100, ((10 - Math.min(mins, 10)) / 10) * 100))}%`,
-                background: isUrgent ? "#FF2D55" : "#FF9500",
+                background: isUrgent ? "#A8294A" : "#8B1538",
                 borderRadius: 999,
                 transition: "width 0.5s",
               }} />

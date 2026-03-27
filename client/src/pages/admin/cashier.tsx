@@ -1342,7 +1342,7 @@ export default function CashierSection() {
                       onClick={() => setSelectedCategory(category.id)}
                       className="whitespace-nowrap flex-shrink-0 h-11 px-5 rounded-full text-sm font-medium transition-all"
                       style={selectedCategory === category.id
-                        ? { background: "#FF9500", color: "#fff", border: "none" }
+                        ? { background: "#8B1538", color: "#fff", border: "none" }
                         : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
                       }
                       data-testid={`button-category-${index}`}
@@ -1435,7 +1435,7 @@ export default function CashierSection() {
 
                                 {/* Stock Badge */}
                                 {item.stock !== null && item.stock !== undefined && (
-                                  <div className="text-xs font-medium" style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} data-testid={`stock-${item.id}`}>
+                                  <div className="text-xs font-medium" style={{ color: item.stock === 0 ? "#A8294A" : item.stock <= 5 ? "#8B1538" : "#34C759" }} data-testid={`stock-${item.id}`}>
                                     {item.stock === 0 ? "Habis" : `Sisa ${item.stock}`}
                                   </div>
                                 )}
@@ -1447,7 +1447,7 @@ export default function CashierSection() {
                                     variant="outline"
                                     disabled
                                     data-testid={`button-add-${item.id}`}
-                                    style={{ color: "#FF2D55", borderColor: "#FF2D55", opacity: 0.6 }}
+                                    style={{ color: "#A8294A", borderColor: "#A8294A", opacity: 0.6 }}
                                   >
                                     Habis
                                   </Button>
@@ -1520,7 +1520,7 @@ export default function CashierSection() {
                 onClick={() => setOrderType(opt.value as typeof orderType)}
                 className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                 style={orderType === opt.value
-                  ? { background: "#FF9500", color: "#fff", border: "none" }
+                  ? { background: "#8B1538", color: "#fff", border: "none" }
                   : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
                 }
               >
@@ -1594,7 +1594,7 @@ export default function CashierSection() {
                   {/* Open Bill group */}
                   {openBillSuggestions.length > 0 && (
                     <>
-                      <div style={{ padding: "5px 12px 3px", fontSize: 10, fontWeight: 700, color: "#FF9500", background: "#FFF9F0", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      <div style={{ padding: "5px 12px 3px", fontSize: 10, fontWeight: 700, color: "#8B1538", background: "#FFF9F0", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                         Open Bill Aktif
                       </div>
                       {openBillSuggestions.map((g) => (
@@ -1618,7 +1618,7 @@ export default function CashierSection() {
                             <span style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F" }}>{g.customerName}</span>
                             <span style={{ fontSize: 11, color: "#8E8E93" }}>{g.orderCount} pesanan • {formatCurrency(g.totalAmount)}</span>
                           </div>
-                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#FF9500" }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#8B1538" }}>
                             Open Bill
                           </span>
                         </button>
@@ -1657,7 +1657,7 @@ export default function CashierSection() {
                       <span style={{
                         fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
                         background: m.isVip ? "#FFF5E6" : "#F5F5F7",
-                        color: m.isVip ? "#FF9500" : "#8E8E93",
+                        color: m.isVip ? "#8B1538" : "#8E8E93",
                       }}>
                         {m.isVip ? "VIP" : "Member"}
                       </span>
@@ -1698,7 +1698,7 @@ export default function CashierSection() {
             <Label htmlFor="customerPhone" className="text-xs text-muted-foreground mb-1.5 block">
               Nomor HP
               {customerPhone && allMembers.some(m => m.phone === customerPhone) && (
-                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#FF9500" }}>
+                <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#8B1538" }}>
                   {allMembers.find(m => m.phone === customerPhone)?.isVip ? "VIP Member" : "Member"}
                 </span>
               )}
@@ -1718,7 +1718,7 @@ export default function CashierSection() {
                 <div style={{
                   position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
                   width: 18, height: 18, borderRadius: "50%",
-                  background: allMembers.some(m => m.phone === customerPhone) ? "#FF9500" : "#E5E5EA",
+                  background: allMembers.some(m => m.phone === customerPhone) ? "#8B1538" : "#E5E5EA",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{ fontSize: 9, color: "#fff", fontWeight: 800 }}>
@@ -1848,7 +1848,7 @@ export default function CashierSection() {
                     data-testid="button-method-cash"
                     className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
                     style={paymentMethod === "cash"
-                      ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                      ? { background: "#FFF3E0", borderColor: "#8B1538", color: "#8B1538" }
                       : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
                     }
                   >
@@ -1860,7 +1860,7 @@ export default function CashierSection() {
                     data-testid="button-method-qris"
                     className="flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-medium transition-all"
                     style={paymentMethod === "qris"
-                      ? { background: "#FFF3E0", borderColor: "#FF9500", color: "#FF9500" }
+                      ? { background: "#FFF3E0", borderColor: "#8B1538", color: "#8B1538" }
                       : { background: "#fff", borderColor: "#E5E5EA", color: "#1D1D1F" }
                     }
                   >
@@ -1882,9 +1882,9 @@ export default function CashierSection() {
                   transition: "all 0.15s",
                   background: cart.length === 0
                     ? "#E5E5EA"
-                    : "#FF9500",
+                    : "#8B1538",
                   color: cart.length === 0 ? "#8E8E93" : "#fff",
-                  boxShadow: cart.length === 0 ? "none" : "0 4px 16px rgba(255,149,0,0.35)",
+                  boxShadow: cart.length === 0 ? "none" : "0 4px 16px rgba(139,21,56,0.35)",
                 }}
               >
                 {createOrderMutation.isPending
@@ -2115,7 +2115,7 @@ export default function CashierSection() {
             <div className="customer-receipt space-y-4 overflow-y-auto flex-1 pr-1 print:text-black print:bg-white print:overflow-visible" data-testid="receipt-content">
               {/* Restaurant Header */}
               <div className="text-center border-b pb-4">
-                <h2 className="font-playfair text-xl font-bold">{storeProfile?.restaurantName || "ngehnoom"}</h2>
+                <h2 className="font-playfair text-xl font-bold">{storeProfile?.restaurantName || "alonica"}</h2>
                 <p className="text-sm text-muted-foreground">
                   {storeProfile?.address && <>{storeProfile.address}<br /></>}
                   {storeProfile?.phone && <>Telp: {storeProfile.phone}</>}
@@ -2217,7 +2217,7 @@ export default function CashierSection() {
                   Terima kasih telah berkunjung!
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {storeProfile?.restaurantName || "ngehnoom"}
+                  {storeProfile?.restaurantName || "alonica"}
                   {storeProfile?.tagline ? ` - ${storeProfile.tagline}` : " - Yang Nyaman Jadi Sayang"}
                 </p>
               </div>

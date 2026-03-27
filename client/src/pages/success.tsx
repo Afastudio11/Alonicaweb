@@ -62,14 +62,14 @@ export default function SuccessPage() {
             </p>
           </div>
 
-          <p className="font-extrabold text-2xl" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-brand-footer">
-            ngehnoom
+          <p className="font-extrabold text-2xl" style={{ color: "#8B1538", letterSpacing: "-0.03em" }} data-testid="text-brand-footer">
+            alonica
           </p>
 
           <button
             onClick={handleBackToMenu}
             className="ng-tap px-8 h-12 rounded-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+            style={{ background: "linear-gradient(135deg, #8B1538, #FF6B35)" }}
             data-testid="button-back-to-menu"
           >
             Kembali ke Menu
@@ -131,8 +131,8 @@ export default function SuccessPage() {
 
           {/* Restaurant Info */}
           <div className="receipt-header text-center border-b border-border pb-6 mb-6">
-            <h1 className="font-extrabold text-2xl mb-1" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-restaurant-name">
-              ngehnoom
+            <h1 className="font-extrabold text-2xl mb-1" style={{ color: "#8B1538", letterSpacing: "-0.03em" }} data-testid="text-restaurant-name">
+              alonica
             </h1>
             <p className="text-sm text-muted-foreground">Raya Lanto & Tanetea · Bantaeng</p>
             <p className="text-sm text-muted-foreground">#YangNyamanJadiSayang</p>
@@ -236,7 +236,7 @@ export default function SuccessPage() {
           {/* Footer */}
           <div className="text-center mt-8 pt-6 border-t border-border">
             <p className="text-sm text-muted-foreground mb-2">
-              Terima kasih telah memesan di ngehnoom!
+              Terima kasih telah memesan di alonica!
             </p>
             <p className="text-xs text-muted-foreground">
               Makanan Anda akan segera disiapkan

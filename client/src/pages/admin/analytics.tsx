@@ -92,8 +92,8 @@ export default function AnalyticsSection() {
       
       // Header
       doc.setFontSize(20);
-      doc.setTextColor(255, 149, 0); // Ngehnoom orange
-      doc.text('Ngehnoom Cafe', pageWidth / 2, 25, { align: 'center' });
+      doc.setTextColor(139, 21, 56); // Alonica orange
+      doc.text('Alonica Cafe', pageWidth / 2, 25, { align: 'center' });
       
       doc.setFontSize(16);
       doc.setTextColor(0, 0, 0);
@@ -113,7 +113,7 @@ export default function AnalyticsSection() {
       
       // KPI Summary
       doc.setFontSize(14);
-      doc.setTextColor(255, 149, 0);
+      doc.setTextColor(139, 21, 56);
       doc.text('Indikator Kinerja Utama', 20, 80);
       
       doc.setFontSize(11);
@@ -125,7 +125,7 @@ export default function AnalyticsSection() {
       
       // Menu Terlaris Table
       doc.setFontSize(14);
-      doc.setTextColor(255, 149, 0);
+      doc.setTextColor(139, 21, 56);
       doc.text('Menu Terlaris', 20, 145);
       
       try {
@@ -142,7 +142,7 @@ export default function AnalyticsSection() {
           head: [['Peringkat', 'Menu', 'Pesanan']],
           body: topItemsData,
           theme: 'grid',
-          headStyles: { fillColor: [255, 149, 0], textColor: 255 },
+          headStyles: { fillColor: [139, 21, 56], textColor: 255 },
           alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 20, right: 20 },
         });
@@ -172,7 +172,7 @@ export default function AnalyticsSection() {
           head: [['Date', 'Revenue']],
           body: dailySalesTableData,
           theme: 'grid',
-          headStyles: { fillColor: [255, 149, 0], textColor: 255 },
+          headStyles: { fillColor: [139, 21, 56], textColor: 255 },
           alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 20, right: 20 },
         });
@@ -209,7 +209,7 @@ export default function AnalyticsSection() {
             head: [['Hour', 'Orders']],
             body: hourlyOrdersTableData,
             theme: 'grid',
-            headStyles: { fillColor: [255, 149, 0], textColor: 255 },
+            headStyles: { fillColor: [139, 21, 56], textColor: 255 },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 20, right: 20 },
             columnStyles: {
@@ -241,7 +241,7 @@ export default function AnalyticsSection() {
             head: [['Hour', 'Orders']],
             body: hourlyOrdersTableData,
             theme: 'grid',
-            headStyles: { fillColor: [255, 149, 0], textColor: 255 },
+            headStyles: { fillColor: [139, 21, 56], textColor: 255 },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 20, right: 20 },
             columnStyles: {
@@ -287,11 +287,11 @@ export default function AnalyticsSection() {
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
         doc.text(`Page ${i} of ${totalPages}`, pageWidth - 20, doc.internal.pageSize.height - 10, { align: 'right' });
-        doc.text('Dibuat oleh Ngehnoom Cafe POS', 20, doc.internal.pageSize.height - 10);
+        doc.text('Dibuat oleh Alonica Cafe POS', 20, doc.internal.pageSize.height - 10);
       }
       
       // Save the PDF
-      const filename = `ngehnoom-laporan-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
+      const filename = `alonica-laporan-${selectedPeriod}-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
       
       toast({
@@ -547,7 +547,7 @@ export default function AnalyticsSection() {
                     formatter={(value) => [formatCurrency(value as number), 'Pendapatan']}
                     labelFormatter={(label) => `Tanggal: ${label}`}
                   />
-                  <Bar dataKey="revenue" fill="#FF9500" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#8B1538" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -572,9 +572,9 @@ export default function AnalyticsSection() {
                   <Line 
                     type="monotone" 
                     dataKey="orders" 
-                    stroke="#FF9500" 
+                    stroke="#8B1538" 
                     strokeWidth={3}
-                    dot={{ fill: '#FF9500', r: 4 }}
+                    dot={{ fill: '#8B1538', r: 4 }}
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>

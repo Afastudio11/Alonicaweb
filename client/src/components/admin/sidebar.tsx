@@ -112,12 +112,12 @@ function getNavGroups(user: any) {
     .filter(group => group.items.length > 0);
 }
 
-function NgehnoomLogo() {
+function AlonicaLogo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <div style={{
         width: 34, height: 34, borderRadius: 10,
-        background: "#FF9500",
+        background: "#8B1538",
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
       }}>
@@ -127,7 +127,7 @@ function NgehnoomLogo() {
         </svg>
       </div>
       <div>
-        <p style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em", color: "#18181B", lineHeight: 1 }}>ngehnoom</p>
+        <p style={{ fontWeight: 800, fontSize: 15, letterSpacing: "-0.02em", color: "#18181B", lineHeight: 1 }}>alonica</p>
         <p style={{ fontSize: 10, color: "#A1A1AA", lineHeight: 1.3, marginTop: 2 }}>admin dashboard</p>
       </div>
     </div>
@@ -153,7 +153,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
         {collapsed ? (
           <div style={{
             width: 34, height: 34, borderRadius: 10,
-            background: "#FF9500",
+            background: "#8B1538",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width={15} height={11} viewBox="0 0 22 18" fill="none">
@@ -162,7 +162,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
             </svg>
           </div>
         ) : (
-          <NgehnoomLogo />
+          <AlonicaLogo />
         )}
       </div>
 
@@ -210,14 +210,14 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
                     <Icon
                       size={16}
                       style={{
-                        color: isActive ? "#FF9500" : "#71717A",
+                        color: isActive ? "#8B1538" : "#71717A",
                         flexShrink: 0,
                       }}
                     />
                     {!collapsed && (
                       <span style={{
                         fontSize: 13, fontWeight: isActive ? 600 : 400,
-                        color: isActive ? "#FF9500" : "#52525B",
+                        color: isActive ? "#8B1538" : "#52525B",
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                       }}>
                         {item.label}
@@ -252,7 +252,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
           <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 9px", borderRadius: 8, background: "hsl(var(--muted))" }}>
             <div style={{
               width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-              background: "#FF9500",
+              background: "#8B1538",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <span style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>

@@ -3,12 +3,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
-function NgehnoomLogoFull() {
+function AlonicaLogoFull() {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
       <div style={{
         width: 64, height: 64, borderRadius: "50%",
-        background: "linear-gradient(135deg, #FFAB00, #FF9500, #FF2D55)",
+        background: "linear-gradient(135deg, #8B1538, #8B1538, #A8294A)",
         padding: 3, flexShrink: 0,
       }}>
         <div style={{
@@ -16,13 +16,13 @@ function NgehnoomLogoFull() {
           background: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <svg width={30} height={26} viewBox="0 0 22 18" fill="none">
-            <path d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16" stroke="#FF9500" strokeWidth="3" strokeLinecap="round" />
-            <path d="M11 16V6C11 6 11 2 15.5 2C20 2 20 6 20 6V16" stroke="#FF9500" strokeWidth="3" strokeLinecap="round" />
+            <path d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16" stroke="#8B1538" strokeWidth="3" strokeLinecap="round" />
+            <path d="M11 16V6C11 6 11 2 15.5 2C20 2 20 6 20 6V16" stroke="#8B1538" strokeWidth="3" strokeLinecap="round" />
           </svg>
         </div>
       </div>
       <div style={{ textAlign: "center" }}>
-        <p style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em", color: "#1D1D1F", lineHeight: 1 }}>ngehnoom</p>
+        <p style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.03em", color: "#1D1D1F", lineHeight: 1 }}>alonica</p>
         <p style={{ fontSize: 13, color: "#6E6E73", marginTop: 4 }}>Admin Dashboard</p>
       </div>
     </div>
@@ -72,11 +72,11 @@ export default function LoginPage() {
       {/* Decorative blobs */}
       <div style={{
         position: "fixed", top: -100, left: -100, width: 300, height: 300,
-        borderRadius: "50%", background: "rgba(255,149,0,0.08)", pointerEvents: "none",
+        borderRadius: "50%", background: "rgba(139,21,56,0.08)", pointerEvents: "none",
       }} />
       <div style={{
         position: "fixed", bottom: -80, right: -80, width: 250, height: 250,
-        borderRadius: "50%", background: "rgba(255,45,85,0.07)", pointerEvents: "none",
+        borderRadius: "50%", background: "rgba(168,41,74,0.07)", pointerEvents: "none",
       }} />
 
       {/* Card */}
@@ -89,7 +89,7 @@ export default function LoginPage() {
       }}>
         {/* Logo */}
         <div style={{ marginBottom: 32 }}>
-          <NgehnoomLogoFull />
+          <AlonicaLogoFull />
         </div>
 
         {/* Form */}
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 borderRadius: 14, fontSize: 15, outline: "none",
                 boxSizing: "border-box", transition: "border-color 0.2s",
               }}
-              onFocus={e => (e.target.style.borderColor = "#FF9500")}
+              onFocus={e => (e.target.style.borderColor = "#8B1538")}
               onBlur={e => (e.target.style.borderColor = "transparent")}
             />
           </div>
@@ -139,7 +139,7 @@ export default function LoginPage() {
                 borderRadius: 14, fontSize: 15, outline: "none",
                 boxSizing: "border-box", transition: "border-color 0.2s",
               }}
-              onFocus={e => (e.target.style.borderColor = "#FF9500")}
+              onFocus={e => (e.target.style.borderColor = "#8B1538")}
               onBlur={e => (e.target.style.borderColor = "transparent")}
             />
           </div>
@@ -161,11 +161,11 @@ export default function LoginPage() {
             data-testid="button-login"
             style={{
               width: "100%", height: 52, borderRadius: 16, border: "none",
-              background: isLoading ? "#FFCC85" : "linear-gradient(135deg, #FF9500, #FF6B00)",
+              background: isLoading ? "#C4788E" : "linear-gradient(135deg, #8B1538, #6B1028)",
               color: "#fff", fontWeight: 700, fontSize: 16,
               cursor: isLoading ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              boxShadow: "0 4px 16px rgba(255,149,0,0.35)",
+              boxShadow: "0 4px 16px rgba(139,21,56,0.35)",
               transition: "opacity 0.2s",
             }}
           >

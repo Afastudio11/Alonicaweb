@@ -160,7 +160,7 @@ export default function SettingsSection() {
   const SectionDivider = ({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) => (
     <div className="border-t pt-5 mt-2">
       <p className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-        <span style={{ background: "#FF9500", borderRadius: 4, width: 4, height: 16, display: "inline-block" }} />
+        <span style={{ background: "#8B1538", borderRadius: 4, width: 4, height: 16, display: "inline-block" }} />
         <Icon size={15} className="text-primary" />
         {title}
       </p>
@@ -188,7 +188,7 @@ export default function SettingsSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <Label htmlFor="restaurantName" className="flex items-center gap-2"><Building size={14} /><span>Nama Toko / Cafe</span></Label>
-              <Input id="restaurantName" value={formData.restaurantName || ""} onChange={(e) => handleInput("restaurantName", e.target.value)} placeholder="Ngehnoom Cafe" required data-testid="input-restaurant-name" />
+              <Input id="restaurantName" value={formData.restaurantName || ""} onChange={(e) => handleInput("restaurantName", e.target.value)} placeholder="Alonica Cafe" required data-testid="input-restaurant-name" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2"><Phone size={14} /><span>Telepon</span></Label>
@@ -196,7 +196,7 @@ export default function SettingsSection() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2"><Mail size={14} /><span>Email</span></Label>
-              <Input id="email" type="email" value={formData.email || ""} onChange={(e) => handleInput("email", e.target.value)} placeholder="info@ngehnoom.com" data-testid="input-email" />
+              <Input id="email" type="email" value={formData.email || ""} onChange={(e) => handleInput("email", e.target.value)} placeholder="info@alonica.com" data-testid="input-email" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="city" className="flex items-center gap-2"><MapPin size={14} /><span>Kota / Lokasi</span></Label>
@@ -240,8 +240,8 @@ export default function SettingsSection() {
           {/* Tampilkan Nama Kasir Toggle */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#F9F9F9", borderRadius: 10, border: "1.5px solid #E5E5EA" }}>
             <div className="flex items-center gap-3">
-              <div style={{ width: 36, height: 36, borderRadius: 9, background: (formData as any).showCashierName ? "rgba(255,149,0,0.12)" : "#EFEFEF", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <User size={17} style={{ color: (formData as any).showCashierName ? "#FF9500" : "#8E8E93" }} />
+              <div style={{ width: 36, height: 36, borderRadius: 9, background: (formData as any).showCashierName ? "rgba(139,21,56,0.12)" : "#EFEFEF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <User size={17} style={{ color: (formData as any).showCashierName ? "#8B1538" : "#8E8E93" }} />
               </div>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F" }}>Tampilkan Nama Kasir di Struk</p>
@@ -249,7 +249,7 @@ export default function SettingsSection() {
               </div>
             </div>
             <button type="button" onClick={() => setFormData(p => ({ ...p, showCashierName: !(p as any).showCashierName }))} data-testid="toggle-show-cashier" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-              {(formData as any).showCashierName ? <ToggleRight size={36} style={{ color: "#FF9500" }} /> : <ToggleLeft size={36} style={{ color: "#C7C7CC" }} />}
+              {(formData as any).showCashierName ? <ToggleRight size={36} style={{ color: "#8B1538" }} /> : <ToggleLeft size={36} style={{ color: "#C7C7CC" }} />}
             </button>
           </div>
 
@@ -257,7 +257,7 @@ export default function SettingsSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <Label htmlFor="wifiName" className="flex items-center gap-2"><Wifi size={14} /><span>Nama WiFi (SSID)</span></Label>
-              <Input id="wifiName" value={(formData as any).wifiName || ""} onChange={(e) => setFormData(p => ({ ...p, wifiName: e.target.value }))} placeholder="Ngehnoom_WiFi" data-testid="input-wifi-name" />
+              <Input id="wifiName" value={(formData as any).wifiName || ""} onChange={(e) => setFormData(p => ({ ...p, wifiName: e.target.value }))} placeholder="Alonica_WiFi" data-testid="input-wifi-name" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="wifiPassword" className="flex items-center gap-2"><Wifi size={14} /><span>Password WiFi</span></Label>
@@ -279,8 +279,8 @@ export default function SettingsSection() {
           <SectionDivider icon={GitBranch} title="Sistem Multi-Cabang" desc="Aktifkan untuk menampilkan pilihan cabang kepada pelanggan" />
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "#F9F9F9", borderRadius: 12, border: "1.5px solid #E5E5EA" }}>
             <div className="flex items-center gap-3">
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: formData.multiBranchEnabled ? "rgba(255,149,0,0.12)" : "#EFEFEF", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <GitBranch size={18} style={{ color: formData.multiBranchEnabled ? "#FF9500" : "#8E8E93" }} />
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: formData.multiBranchEnabled ? "rgba(139,21,56,0.12)" : "#EFEFEF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <GitBranch size={18} style={{ color: formData.multiBranchEnabled ? "#8B1538" : "#8E8E93" }} />
               </div>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F" }}>Mode Multi-Cabang</p>
@@ -288,7 +288,7 @@ export default function SettingsSection() {
               </div>
             </div>
             <button type="button" onClick={() => setFormData(p => ({ ...p, multiBranchEnabled: !p.multiBranchEnabled }))} data-testid="toggle-multi-branch" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-              {formData.multiBranchEnabled ? <ToggleRight size={38} style={{ color: "#FF9500" }} /> : <ToggleLeft size={38} style={{ color: "#C7C7CC" }} />}
+              {formData.multiBranchEnabled ? <ToggleRight size={38} style={{ color: "#8B1538" }} /> : <ToggleLeft size={38} style={{ color: "#C7C7CC" }} />}
             </button>
           </div>
 

@@ -86,7 +86,7 @@ function buildReceiptHTML(order: any, profile?: any, cashierName?: string): stri
   const orderDate = new Date(order.createdAt);
   const orderTime = orderDate.toLocaleTimeString('id-ID');
 
-  const storeName = profile?.restaurantName || 'Ngehnoom Cafe';
+  const storeName = profile?.restaurantName || 'Alonica Cafe';
   const storeAddress = profile?.address || 'Bantaeng, Sulawesi Selatan';
   const storePhone = profile?.phone || '';
   const wifiName = profile?.wifiName || '';
@@ -303,7 +303,7 @@ export function disconnectBluetoothPrinter(): void {
 function buildReceiptCommands(order: any, profile?: any, cashierName?: string): string {
   const orderDate = new Date(order.createdAt);
 
-  const storeName = (profile?.restaurantName || 'Ngehnoom Cafe').toUpperCase();
+  const storeName = (profile?.restaurantName || 'Alonica Cafe').toUpperCase();
   const storeAddress = profile?.address || 'Bantaeng, Sulawesi Selatan';
   const storePhone = profile?.phone || '';
   const wifiName = profile?.wifiName || '';

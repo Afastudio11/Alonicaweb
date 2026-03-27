@@ -397,7 +397,7 @@ export default function OrdersSection() {
               <div
                 key={order.id}
                 data-testid={`row-order-${order.id}`}
-                style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: rowBg, borderLeft: isPendingPayment ? "3px solid #FF9500" : isOnlineOrder ? "3px solid #34C759" : "3px solid transparent" }}
+                style={{ padding: "14px 20px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", background: rowBg, borderLeft: isPendingPayment ? "3px solid #8B1538" : isOnlineOrder ? "3px solid #34C759" : "3px solid transparent" }}
               >
                 {/* Left: ID + waktu */}
                 <div style={{ minWidth: 90, flexShrink: 0 }}>
@@ -428,7 +428,7 @@ export default function OrdersSection() {
                     <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
                     <button
                       onClick={() => setViewingOrder(order)}
-                      style={{ fontSize: 12, color: "#FF9500", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                      style={{ fontSize: 12, color: "#8B1538", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
                       data-testid={`button-view-items-${order.id}`}
                     >
                       {itemCount} item
@@ -443,7 +443,7 @@ export default function OrdersSection() {
                       return (
                         <>
                           <span style={{ fontSize: 12, color: "#6E6E73" }}>•</span>
-                          <span style={{ fontSize: 12, color: "#FF2D55", fontWeight: 600 }}>
+                          <span style={{ fontSize: 12, color: "#A8294A", fontWeight: 600 }}>
                             Ambil: {dateLabel}, {timeLabel}
                           </span>
                         </>

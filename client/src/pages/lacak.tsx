@@ -58,7 +58,7 @@ function ProgressTracker({ status }: { status: string }) {
         <div style={{
           position: "absolute", top: 17, left: "8%",
           height: 2, borderRadius: 99, zIndex: 1,
-          background: currentIdx >= 3 ? "#34C759" : "linear-gradient(90deg, #FF9500, #FFAB00)",
+          background: currentIdx >= 3 ? "#34C759" : "linear-gradient(90deg, #8B1538, #8B1538)",
           width: `${filledPct * 0.84}%`,
           transition: "width 0.5s ease",
         }} />
@@ -67,7 +67,7 @@ function ProgressTracker({ status }: { status: string }) {
           const done = idx <= currentIdx;
           const active = idx === currentIdx;
           const Icon = step.icon;
-          const color = done ? (idx === 3 ? "#34C759" : "#FF9500") : "#C7C7CC";
+          const color = done ? (idx === 3 ? "#34C759" : "#8B1538") : "#C7C7CC";
 
           return (
             <div key={step.key} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1, position: "relative", zIndex: 2 }}>
@@ -75,7 +75,7 @@ function ProgressTracker({ status }: { status: string }) {
                 width: 34, height: 34, borderRadius: "50%",
                 background: done ? color : "#F2F2F7",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: active ? `0 0 0 4px ${idx === 3 ? "#34C75920" : "#FF950025"}` : "none",
+                boxShadow: active ? `0 0 0 4px ${idx === 3 ? "#34C75920" : "#8B153825"}` : "none",
                 border: active ? "2px solid white" : "none",
                 transition: "all 0.35s",
               }}>
@@ -85,7 +85,7 @@ function ProgressTracker({ status }: { status: string }) {
                 {step.label}
               </div>
               {active && (
-                <div style={{ fontSize: 8, color: "#FF9500", fontWeight: 700, letterSpacing: 0.5, marginTop: 2 }}>
+                <div style={{ fontSize: 8, color: "#8B1538", fontWeight: 700, letterSpacing: 0.5, marginTop: 2 }}>
                   SEKARANG
                 </div>
               )}
@@ -119,7 +119,7 @@ function OrderCard({ order }: { order: TrackedOrder }) {
       overflow: "hidden",
       border: `1.5px solid ${isActive ? (order.orderStatus === "ready" ? "#86EFAC" : "#FFD480") : "#F0F0F0"}`,
       boxShadow: isActive
-        ? `0 2px 20px rgba(${order.orderStatus === "ready" ? "52,199,89" : "255,149,0"},0.12)`
+        ? `0 2px 20px rgba(${order.orderStatus === "ready" ? "52,199,89" : "139,21,56"},0.12)`
         : "0 1px 6px rgba(0,0,0,0.05)",
     }}>
       {/* Status stripe */}
@@ -128,7 +128,7 @@ function OrderCard({ order }: { order: TrackedOrder }) {
         background: order.orderStatus === "ready" ? "linear-gradient(90deg,#34C759,#30D158)" :
           order.orderStatus === "served" ? "#C7C7CC" :
           order.orderStatus === "cancelled" ? "#FF3B30" :
-          "linear-gradient(90deg,#FF9500,#FFAB00)",
+          "linear-gradient(90deg,#8B1538,#8B1538)",
       }} />
 
       <div style={{ padding: "16px 18px 18px" }}>
@@ -140,7 +140,7 @@ function OrderCard({ order }: { order: TrackedOrder }) {
                 #{order.id.slice(-8).toUpperCase()}
               </span>
               {isActive && (
-                <span style={{ fontSize: 9, fontWeight: 800, background: "linear-gradient(135deg,#FF9500,#FFAB00)", color: "#fff", padding: "2px 7px", borderRadius: 99, letterSpacing: 0.3 }}>
+                <span style={{ fontSize: 9, fontWeight: 800, background: "linear-gradient(135deg,#8B1538,#8B1538)", color: "#fff", padding: "2px 7px", borderRadius: 99, letterSpacing: 0.3 }}>
                   AKTIF
                 </span>
               )}
@@ -231,7 +231,7 @@ function OrderCard({ order }: { order: TrackedOrder }) {
 
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1.5px dashed #E5E5EA", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F" }}>Total</span>
-            <span style={{ fontSize: 15, fontWeight: 800, color: "#FF9500" }}>{formatCurrency(order.total)}</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#8B1538" }}>{formatCurrency(order.total)}</span>
           </div>
           <div style={{ marginTop: 4, fontSize: 11, color: "#AEAEB2" }}>
             Pembayaran: {order.paymentMethod === "qris" ? "QRIS" : order.paymentMethod === "cash" ? "Tunai" : order.paymentMethod}
@@ -284,7 +284,7 @@ export default function LacakPage() {
           <ArrowLeft size={16} color="#1D1D1F" />
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#FF9500,#FFAB00)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 10px rgba(255,149,0,0.3)", flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#8B1538,#8B1538)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 3px 10px rgba(139,21,56,0.3)", flexShrink: 0 }}>
             <PackageSearch size={18} color="#fff" />
           </div>
           <div>
@@ -299,7 +299,7 @@ export default function LacakPage() {
         {/* Search Card */}
         <div style={{ background: "#fff", borderRadius: 18, padding: "18px 18px 16px", marginBottom: 20, border: "1.5px solid #F0F0F0" }}>
           <label style={{ fontSize: 11, fontWeight: 700, color: "#8E8E93", letterSpacing: "0.07em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-            <Phone size={12} color="#FF9500" />
+            <Phone size={12} color="#8B1538" />
             Nomor telepon kamu
           </label>
           <div style={{ display: "flex", gap: 10 }}>
@@ -312,7 +312,7 @@ export default function LacakPage() {
               style={{
                 flex: 1, height: 48, padding: "0 16px",
                 fontSize: 16, fontWeight: 600, color: "#1D1D1F",
-                border: `1.5px solid ${error ? "#FF3B30" : phone ? "#FF9500" : "#E5E5EA"}`,
+                border: `1.5px solid ${error ? "#FF3B30" : phone ? "#8B1538" : "#E5E5EA"}`,
                 borderRadius: 12, outline: "none", fontFamily: "inherit",
                 background: phone ? "#FFFBF5" : "#F9F9F9",
                 transition: "all 0.15s", boxSizing: "border-box",
@@ -324,10 +324,10 @@ export default function LacakPage() {
               disabled={loading}
               style={{
                 width: 48, height: 48, borderRadius: 12, border: "none", flexShrink: 0,
-                background: loading ? "#FFCF6B" : "linear-gradient(135deg,#FF9500,#FFAB00)",
+                background: loading ? "#FFCF6B" : "linear-gradient(135deg,#8B1538,#8B1538)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: loading ? "none" : "0 3px 12px rgba(255,149,0,0.35)",
+                boxShadow: loading ? "none" : "0 3px 12px rgba(139,21,56,0.35)",
                 transition: "all 0.15s",
               }}
               data-testid="button-search-orders"
@@ -370,8 +370,8 @@ export default function LacakPage() {
                 {activeOrders.length > 0 && (
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF9500", boxShadow: "0 0 0 3px rgba(255,149,0,0.2)", animation: "pulse 1.5s ease-in-out infinite" }} />
-                      <span style={{ fontSize: 11, fontWeight: 800, color: "#FF9500", letterSpacing: "0.07em" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#8B1538", boxShadow: "0 0 0 3px rgba(139,21,56,0.2)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                      <span style={{ fontSize: 11, fontWeight: 800, color: "#8B1538", letterSpacing: "0.07em" }}>
                         PESANAN AKTIF ({activeOrders.length})
                       </span>
                     </div>
@@ -404,8 +404,8 @@ export default function LacakPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse {
-          0%,100% { box-shadow: 0 0 0 3px rgba(255,149,0,0.3); }
-          50% { box-shadow: 0 0 0 6px rgba(255,149,0,0.08); }
+          0%,100% { box-shadow: 0 0 0 3px rgba(139,21,56,0.3); }
+          50% { box-shadow: 0 0 0 6px rgba(139,21,56,0.08); }
         }
       `}</style>
     </div>

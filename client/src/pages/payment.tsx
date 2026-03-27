@@ -201,11 +201,11 @@ export default function PaymentPage() {
           {/* QRIS Info Card */}
           <div
             className="rounded-3xl p-5 flex items-center gap-4"
-            style={{ background: "rgba(255,149,0,0.07)", border: "1.5px solid rgba(255,149,0,0.18)" }}
+            style={{ background: "rgba(139,21,56,0.07)", border: "1.5px solid rgba(139,21,56,0.18)" }}
           >
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+              style={{ background: "linear-gradient(135deg, #8B1538, #FF6B35)" }}
             >
               <CreditCard className="h-6 w-6 text-white" />
             </div>
@@ -215,7 +215,7 @@ export default function PaymentPage() {
                 GoPay · OVO · Dana · ShopeePay · Mobile Banking
               </p>
             </div>
-            <Check className="h-5 w-5 ml-auto flex-shrink-0" style={{ color: "#FF9500" }} />
+            <Check className="h-5 w-5 ml-auto flex-shrink-0" style={{ color: "#8B1538" }} />
           </div>
 
           {/* Total Summary */}
@@ -223,7 +223,7 @@ export default function PaymentPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: "#AEAEB2" }}>Total Pembayaran</p>
-                <p className="font-extrabold text-3xl" style={{ color: "#FF9500", letterSpacing: "-0.03em" }} data-testid="text-payment-total">
+                <p className="font-extrabold text-3xl" style={{ color: "#8B1538", letterSpacing: "-0.03em" }} data-testid="text-payment-total">
                   {formatCurrency(total)}
                 </p>
               </div>
@@ -239,7 +239,7 @@ export default function PaymentPage() {
             onClick={handleCreateOrder}
             disabled={createOrderMutation.isPending}
             className="ng-tap w-full h-14 rounded-2xl font-bold text-white disabled:opacity-50"
-            style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)", fontSize: 15, letterSpacing: "-0.02em" }}
+            style={{ background: "linear-gradient(135deg, #8B1538, #FF6B35)", fontSize: 15, letterSpacing: "-0.02em" }}
             data-testid="button-create-payment"
           >
             {createOrderMutation.isPending ? (
@@ -290,7 +290,7 @@ export default function PaymentPage() {
               )}
             </div>
 
-            <p className="font-extrabold text-2xl mb-1" style={{ color: "#FF9500", letterSpacing: "-0.03em" }}>
+            <p className="font-extrabold text-2xl mb-1" style={{ color: "#8B1538", letterSpacing: "-0.03em" }}>
               {formatCurrency(total)}
             </p>
             <p className="text-xs" style={{ color: "#AEAEB2" }}>
@@ -300,7 +300,7 @@ export default function PaymentPage() {
             {/* Timer */}
             <div
               className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{ background: "rgba(255,149,0,0.1)", color: "#FF9500" }}
+              style={{ background: "rgba(139,21,56,0.1)", color: "#8B1538" }}
             >
               <Clock className="h-3.5 w-3.5" />
               Kedaluwarsa: {formatTimeRemaining(paymentData.payment.expiryTime)}

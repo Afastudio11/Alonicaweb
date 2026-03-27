@@ -22,7 +22,7 @@ const ROOM_OPTIONS = [
     label: "Indoor",
     desc: "Ruangan dalam, ber-AC",
     icon: Home,
-    color: "#FF9500",
+    color: "#8B1538",
     bg: "#FFF5E6",
     border: "#FFDFA0",
   },
@@ -96,7 +96,7 @@ export default function ReservasiPage() {
     const roomLabel = ROOM_OPTIONS.find(r => r.value === form.roomPreference)?.label;
     return (
       <div style={{ minHeight: "100dvh", background: "#F5F5F7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #FF9500, #FF2D55)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #8B1538, #A8294A)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
           <CheckCircle2 size={36} color="#fff" />
         </div>
         <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1D1D1F", marginBottom: 6, textAlign: "center" }}>
@@ -121,7 +121,7 @@ export default function ReservasiPage() {
         </div>
 
         <Link href="/">
-          <button style={{ height: 50, paddingInline: 40, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #FF9500, #FF2D55)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+          <button style={{ height: 50, paddingInline: 40, borderRadius: 14, border: "none", background: "linear-gradient(135deg, #8B1538, #A8294A)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
             Kembali ke Menu
           </button>
         </Link>
@@ -153,7 +153,7 @@ export default function ReservasiPage() {
 
           <div style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "block", marginBottom: 6 }}>
-              Nama Lengkap <span style={{ color: "#FF2D55" }}>*</span>
+              Nama Lengkap <span style={{ color: "#A8294A" }}>*</span>
             </label>
             <input
               value={form.customerName}
@@ -162,7 +162,7 @@ export default function ReservasiPage() {
               data-testid="input-reservasi-name"
               style={{
                 width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
-                borderColor: form.customerName ? "#FF9500" : "#E5E5EA",
+                borderColor: form.customerName ? "#8B1538" : "#E5E5EA",
                 padding: "0 14px", fontSize: 15, outline: "none",
                 background: form.customerName ? "#FFFBF5" : "#F9F9F9",
                 color: "#1D1D1F", boxSizing: "border-box",
@@ -173,7 +173,7 @@ export default function ReservasiPage() {
 
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "block", marginBottom: 6 }}>
-              Nomor HP <span style={{ color: "#FF2D55" }}>*</span>
+              Nomor HP <span style={{ color: "#A8294A" }}>*</span>
             </label>
             <input
               type="tel"
@@ -183,7 +183,7 @@ export default function ReservasiPage() {
               data-testid="input-reservasi-phone"
               style={{
                 width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
-                borderColor: form.phoneNumber ? "#FF9500" : "#E5E5EA",
+                borderColor: form.phoneNumber ? "#8B1538" : "#E5E5EA",
                 padding: "0 14px", fontSize: 15, outline: "none",
                 background: form.phoneNumber ? "#FFFBF5" : "#F9F9F9",
                 color: "#1D1D1F", boxSizing: "border-box",
@@ -216,7 +216,7 @@ export default function ReservasiPage() {
                 data-testid="button-guest-plus"
                 style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", transition: "all 0.15s" }}
               >
-                <Plus size={16} color="#FF9500" />
+                <Plus size={16} color="#8B1538" />
               </button>
             </div>
           </div>
@@ -237,9 +237,9 @@ export default function ReservasiPage() {
               style={{
                 gridColumn: "1 / -1",
                 height: 44, borderRadius: 12, border: "1.5px solid",
-                borderColor: form.roomPreference === "" ? "#FF9500" : "#E5E5EA",
+                borderColor: form.roomPreference === "" ? "#8B1538" : "#E5E5EA",
                 background: form.roomPreference === "" ? "#FFFBF5" : "#F9F9F9",
-                color: form.roomPreference === "" ? "#FF9500" : "#6E6E73",
+                color: form.roomPreference === "" ? "#8B1538" : "#6E6E73",
                 fontSize: 13, fontWeight: 700, cursor: "pointer",
                 transition: "all 0.15s",
               }}
@@ -284,8 +284,8 @@ export default function ReservasiPage() {
           {/* Tanggal */}
           <div style={{ marginBottom: 18 }}>
             <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-              <Calendar size={14} color="#FF9500" />
-              Tanggal <span style={{ color: "#FF2D55" }}>*</span>
+              <Calendar size={14} color="#8B1538" />
+              Tanggal <span style={{ color: "#A8294A" }}>*</span>
             </label>
             <input
               type="date"
@@ -295,7 +295,7 @@ export default function ReservasiPage() {
               data-testid="input-reservasi-date"
               style={{
                 width: "100%", height: 46, borderRadius: 12, border: "1.5px solid",
-                borderColor: form.reservationDate ? "#FF9500" : "#E5E5EA",
+                borderColor: form.reservationDate ? "#8B1538" : "#E5E5EA",
                 padding: "0 14px", fontSize: 15, outline: "none",
                 background: form.reservationDate ? "#FFFBF5" : "#F9F9F9",
                 color: "#1D1D1F", boxSizing: "border-box",
@@ -306,7 +306,7 @@ export default function ReservasiPage() {
           {/* Jam */}
           <div>
             <label style={{ fontSize: 13, fontWeight: 500, color: "#3C3C43", display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-              <Clock size={14} color="#FF9500" />
+              <Clock size={14} color="#8B1538" />
               Jam Kedatangan
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
@@ -320,8 +320,8 @@ export default function ReservasiPage() {
                     data-testid={`button-time-${t}`}
                     style={{
                       height: 38, borderRadius: 10, border: "1.5px solid",
-                      borderColor: selected ? "#FF9500" : "#EBEBEB",
-                      background: selected ? "#FF9500" : "#F9F9F9",
+                      borderColor: selected ? "#8B1538" : "#EBEBEB",
+                      background: selected ? "#8B1538" : "#F9F9F9",
                       color: selected ? "#fff" : "#3C3C43",
                       fontSize: 13, fontWeight: selected ? 700 : 500,
                       cursor: "pointer", transition: "all 0.15s",
@@ -350,7 +350,7 @@ export default function ReservasiPage() {
               background: "#F9F9F9", color: "#1D1D1F", resize: "none",
               lineHeight: 1.5, boxSizing: "border-box", fontFamily: "inherit",
             }}
-            onFocus={e => { e.target.style.borderColor = "#FF9500"; e.target.style.background = "#FFFBF5"; }}
+            onFocus={e => { e.target.style.borderColor = "#8B1538"; e.target.style.background = "#FFFBF5"; }}
             onBlur={e => { e.target.style.borderColor = "#E5E5EA"; e.target.style.background = "#F9F9F9"; }}
           />
         </div>
@@ -362,7 +362,7 @@ export default function ReservasiPage() {
           data-testid="button-submit-reservasi"
           style={{
             width: "100%", height: 52, borderRadius: 16, border: "none",
-            background: mutation.isPending ? "#E5E5EA" : "linear-gradient(135deg, #FF9500, #FF2D55)",
+            background: mutation.isPending ? "#E5E5EA" : "linear-gradient(135deg, #8B1538, #A8294A)",
             color: mutation.isPending ? "#8E8E93" : "#fff",
             fontSize: 16, fontWeight: 700, cursor: mutation.isPending ? "wait" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,

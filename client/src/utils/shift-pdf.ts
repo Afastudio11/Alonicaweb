@@ -81,7 +81,7 @@ export function generateShiftPDF(report: ShiftReportData, recap: RecapData | nul
   try {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = doc.internal.pageSize.getWidth();
-    const orange: [number, number, number] = [255, 149, 0];
+    const orange: [number, number, number] = [139, 21, 56];
     const dark: [number, number, number] = [29, 29, 31];
     const grey: [number, number, number] = [110, 110, 115];
 
@@ -93,7 +93,7 @@ export function generateShiftPDF(report: ShiftReportData, recap: RecapData | nul
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text("ngehnoom", 14, 11);
+    doc.text("alonica", 14, 11);
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text("Laporan Penutupan Shift Kasir", 14, 17);
@@ -201,7 +201,7 @@ export function generateShiftPDF(report: ShiftReportData, recap: RecapData | nul
         head: [["Nama Item", "Qty", "Total"]],
         body: makanan.map(i => [i.name, `${i.qty}x`, rp(i.total)]),
         styles: { fontSize: 8, cellPadding: 2.5 },
-        headStyles: { fillColor: [255, 149, 0], textColor: [255, 255, 255], fontSize: 8 },
+        headStyles: { fillColor: [139, 21, 56], textColor: [255, 255, 255], fontSize: 8 },
         columnStyles: { 1: { halign: "center" }, 2: { halign: "right" } },
         margin: { left: 14, right: 14 },
       });
@@ -273,7 +273,7 @@ export function generateShiftPDF(report: ShiftReportData, recap: RecapData | nul
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(...grey);
-      doc.text(`ngehnoom · Yang Nyaman Jadi Sayang`, 14, PAGE_H - 8);
+      doc.text(`alonica · Yang Nyaman Jadi Sayang`, 14, PAGE_H - 8);
       doc.text(`Halaman ${i} dari ${pageCount}`, W - 14, PAGE_H - 8, { align: "right" });
     }
 

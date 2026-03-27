@@ -160,7 +160,7 @@ export default function ReservationsSection() {
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: 36, height: 36, borderRadius: "50%",
-            border: "3px solid #FF9500", borderTopColor: "transparent",
+            border: "3px solid #8B1538", borderTopColor: "transparent",
             animation: "spin 0.8s linear infinite", margin: "0 auto 12px",
           }} />
           <p style={{ color: "#6E6E73", fontSize: 14 }}>Memuat reservasi...</p>
@@ -177,7 +177,7 @@ export default function ReservationsSection() {
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1D1D1F" }}>Reservasi</h1>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {[
-            { label: "Hari Ini", value: stats.todayCount, color: "#FF9500" },
+            { label: "Hari Ini", value: stats.todayCount, color: "#8B1538" },
             { label: "Menunggu", value: stats.pending, color: "#3B82F6" },
             { label: "Dikonfirmasi", value: stats.confirmed, color: "#22C55E" },
           ].map(s => (
@@ -192,7 +192,7 @@ export default function ReservationsSection() {
           ))}
           <Button
             onClick={() => setAddOpen(true)}
-            style={{ background: "#FF9500", color: "#fff", height: 38, gap: 6, borderRadius: 10 }}
+            style={{ background: "#8B1538", color: "#fff", height: 38, gap: 6, borderRadius: 10 }}
             data-testid="button-add-reservation"
           >
             <Plus size={16} />
@@ -289,8 +289,8 @@ export default function ReservationsSection() {
               <button
                 onClick={() => setCalendarDayFilter(null)}
                 style={{
-                  padding: "6px 14px", borderRadius: 8, border: "1.5px solid #FF9500",
-                  background: "#FFF5E6", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#FF9500",
+                  padding: "6px 14px", borderRadius: 8, border: "1.5px solid #8B1538",
+                  background: "#FFF5E6", cursor: "pointer", fontSize: 13, fontWeight: 600, color: "#8B1538",
                 }}
               >
                 {format(calendarDayFilter, "d MMM", { locale: idLocale })} ✕
@@ -340,14 +340,14 @@ export default function ReservationsSection() {
                       cursor: dayRes.length > 0 || true ? "pointer" : "default",
                       background: isSelected ? "#FFF5E6" : isToday ? "#FFFBF5" : "#fff",
                       border: "none",
-                      outline: isSelected ? "2px solid #FF9500" : "none",
+                      outline: isSelected ? "2px solid #8B1538" : "none",
                       transition: "background 0.1s",
                     }}
                   >
                     <span style={{
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
                       width: 26, height: 26, borderRadius: "50%", fontSize: 13, fontWeight: 600,
-                      background: isToday ? "#FF9500" : "transparent",
+                      background: isToday ? "#8B1538" : "transparent",
                       color: isToday ? "#fff" : "#1D1D1F",
                       marginBottom: 4,
                     }}>
@@ -413,7 +413,7 @@ export default function ReservationsSection() {
                   width: 48, height: 48, borderRadius: "50%",
                   background: "#FFF5E6", display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <User size={22} color="#FF9500" />
+                  <User size={22} color="#8B1538" />
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 16, color: "#1D1D1F" }}>{selectedReservation.customerName}</div>
@@ -469,7 +469,7 @@ export default function ReservationsSection() {
                     <span style={{
                       fontWeight: 700, fontSize: 12, paddingInline: 10, paddingBlock: 4, borderRadius: 20,
                       background: (selectedReservation as any).roomPreference === "indoor" ? "#FFF5E6" : "#F0FFF4",
-                      color: (selectedReservation as any).roomPreference === "indoor" ? "#FF9500" : "#34C759",
+                      color: (selectedReservation as any).roomPreference === "indoor" ? "#8B1538" : "#34C759",
                     }}>
                       {(selectedReservation as any).roomPreference === "indoor" ? "Indoor" : "Outdoor"}
                     </span>
@@ -575,7 +575,7 @@ export default function ReservationsSection() {
                       data-testid="button-complete"
                       style={{
                         flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
-                        background: "#FF9500", color: "#fff", fontWeight: 600, fontSize: 14, cursor: "pointer",
+                        background: "#8B1538", color: "#fff", fontWeight: 600, fontSize: 14, cursor: "pointer",
                       }}
                     >
                       Selesaikan
@@ -690,7 +690,7 @@ export default function ReservationsSection() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                style={{ background: "#FF9500", color: "#fff" }}
+                style={{ background: "#8B1538", color: "#fff" }}
                 data-testid="button-save-reservation"
               >
                 {createMutation.isPending ? "Menyimpan..." : "Simpan Reservasi"}
@@ -745,7 +745,7 @@ function ReservationList({
               }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: 10,
-                  background: isToday ? "#FF9500" : "#F5F5F7",
+                  background: isToday ? "#8B1538" : "#F5F5F7",
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{ fontSize: 16, fontWeight: 800, color: isToday ? "#fff" : "#1D1D1F", lineHeight: 1 }}>
@@ -755,7 +755,7 @@ function ReservationList({
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F" }}>
                     {format(date, "EEEE", { locale: idLocale })}
-                    {isToday && <span style={{ marginLeft: 6, fontSize: 11, color: "#FF9500", fontWeight: 600 }}>Hari ini</span>}
+                    {isToday && <span style={{ marginLeft: 6, fontSize: 11, color: "#8B1538", fontWeight: 600 }}>Hari ini</span>}
                   </div>
                   <div style={{ fontSize: 11, color: "#8E8E93" }}>
                     {format(date, "d MMMM yyyy", { locale: idLocale })}
@@ -808,7 +808,7 @@ function ReservationList({
                             <span style={{
                               display: "flex", alignItems: "center", gap: 3,
                               fontWeight: 600,
-                              color: (r as any).roomPreference === "indoor" ? "#FF9500" : "#34C759",
+                              color: (r as any).roomPreference === "indoor" ? "#8B1538" : "#34C759",
                             }}>
                               {(r as any).roomPreference === "indoor" ? <Home size={11} /> : <TreePine size={11} />}
                               {(r as any).roomPreference === "indoor" ? "Indoor" : "Outdoor"}

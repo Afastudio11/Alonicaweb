@@ -9,8 +9,8 @@ import type { DrinkQueue } from "@shared/schema";
 // Config per-status item
 // ──────────────────────────────────────────────
 const ITEM_STATUS: Record<string, { label: string; color: string; bg: string; nextLabel: string; nextStatus: string; nextBg: string }> = {
-  waiting: { label: "Antri", color: "#8E8E93", bg: "#F2F2F7", nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#FF9500" },
-  making:  { label: "Dibuat", color: "#FF9500", bg: "#FFF3E0", nextLabel: "Tandai Siap", nextStatus: "ready",  nextBg: "#34C759" },
+  waiting: { label: "Antri", color: "#8E8E93", bg: "#F2F2F7", nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#8B1538" },
+  making:  { label: "Dibuat", color: "#8B1538", bg: "#FFF3E0", nextLabel: "Tandai Siap", nextStatus: "ready",  nextBg: "#34C759" },
   ready:   { label: "Siap",   color: "#34C759", bg: "#F0FFF4", nextLabel: "Diambil",     nextStatus: "taken",  nextBg: "#007AFF" },
   taken:   { label: "Selesai", color: "#007AFF", bg: "#EEF4FF", nextLabel: "",            nextStatus: "",       nextBg: "" },
 };
@@ -59,7 +59,7 @@ function getOrderStatus(items: QueueItem[]) {
   const done = taken + ready;
 
   if (taken === all) return { label: "Selesai", color: "#007AFF", bg: "#EEF4FF" };
-  if (making > 0)    return { label: "Diproses", color: "#FF9500", bg: "#FFF3E0" };
+  if (making > 0)    return { label: "Diproses", color: "#8B1538", bg: "#FFF3E0" };
   if (done > 0)      return { label: "Sebagian Siap", color: "#34C759", bg: "#F0FFF4" };
   return               { label: "Antrian", color: "#8E8E93", bg: "#F2F2F7" };
 }
@@ -107,7 +107,7 @@ function ItemRow({ item, onStatusChange, pendingId }: {
           {item.drinkName}
         </p>
         {item.notes && (
-          <p style={{ fontSize: 11, color: "#FF9500", fontStyle: "italic", margin: "1px 0 0" }}>
+          <p style={{ fontSize: 11, color: "#8B1538", fontStyle: "italic", margin: "1px 0 0" }}>
             {item.notes}
           </p>
         )}
@@ -182,7 +182,7 @@ function OrderCard({ group, onStatusChange, pendingId }: {
         boxShadow: isAllDone
           ? "0 2px 8px rgba(0,122,255,0.08)"
           : status.label === "Diproses"
-          ? "0 4px 16px rgba(255,149,0,0.15)"
+          ? "0 4px 16px rgba(139,21,56,0.15)"
           : "0 2px 8px rgba(0,0,0,0.05)",
         opacity: isAllDone ? 0.75 : 1,
         transition: "all 0.2s",
@@ -254,7 +254,7 @@ function OrderCard({ group, onStatusChange, pendingId }: {
             width: `${progressPct}%`,
             background: progressPct === 100
               ? "#34C759"
-              : "#FF9500",
+              : "#8B1538",
             transition: "width 0.4s ease",
           }} />
         </div>
@@ -385,7 +385,7 @@ export default function DrinkQueueSection() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
-              background: "#FF9500",
+              background: "#8B1538",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <LayoutGrid size={20} color="#fff" />
@@ -430,7 +430,7 @@ export default function DrinkQueueSection() {
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
           {[
             { label: "Antri",    count: antriOrders,  color: "#8E8E93", bg: "#F2F2F7" },
-            { label: "Diproses", count: prosesOrders, color: "#FF9500", bg: "#FFF3E0" },
+            { label: "Diproses", count: prosesOrders, color: "#8B1538", bg: "#FFF3E0" },
             { label: "Selesai",  count: doneCount,    color: "#007AFF", bg: "#EEF4FF" },
           ].map(s => (
             <div key={s.label} style={{
@@ -463,15 +463,15 @@ export default function DrinkQueueSection() {
                   flex: 1, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
                   gap: 6, border: "none", background: "none", cursor: "pointer",
                   fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? "#FF9500" : "#6E6E73",
-                  borderBottom: isActive ? "2.5px solid #FF9500" : "2.5px solid transparent",
+                  color: isActive ? "#8B1538" : "#6E6E73",
+                  borderBottom: isActive ? "2.5px solid #8B1538" : "2.5px solid transparent",
                 }}
               >
                 {tab.label}
                 {tab.count > 0 && (
                   <span style={{
                     minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
-                    background: isActive ? "#FF9500" : "#E5E5EA",
+                    background: isActive ? "#8B1538" : "#E5E5EA",
                     color: isActive ? "#fff" : "#6E6E73",
                     fontSize: 10, fontWeight: 800,
                     display: "flex", alignItems: "center", justifyContent: "center",

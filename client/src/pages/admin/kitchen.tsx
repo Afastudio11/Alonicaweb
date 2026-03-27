@@ -14,10 +14,10 @@ const STATUS_CFG: Record<string, {
 }> = {
   waiting: {
     label: "Antri",  color: "#3C3C43", bg: "#F2F2F7", border: "#E5E5EA", dot: "#8E8E93",
-    nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#FF9500",
+    nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#8B1538",
   },
   making: {
-    label: "Dibuat", color: "#FF9500", bg: "#FFF3E0", border: "#FFCC80", dot: "#FF9500",
+    label: "Dibuat", color: "#8B1538", bg: "#FFF3E0", border: "#FFCC80", dot: "#8B1538",
     nextLabel: "Tandai Siap", nextStatus: "ready", nextBg: "#34C759",
   },
   ready: {
@@ -99,7 +99,7 @@ function OrderCard({ group, onStatusChange, pendingId }: {
 
   const bulkLabel  = actionableWaiting.length > 0 ? "Buat Semua" : actionableMaking.length > 0 ? "Semua Siap" : null;
   const bulkStatus = actionableWaiting.length > 0 ? "making"     : actionableMaking.length > 0 ? "ready"      : null;
-  const bulkBg     = actionableWaiting.length > 0 ? "#FF9500"    : "#34C759";
+  const bulkBg     = actionableWaiting.length > 0 ? "#8B1538"    : "#34C759";
   const bulkItems  = actionableWaiting.length > 0 ? actionableWaiting : actionableMaking;
 
   return (
@@ -111,7 +111,7 @@ function OrderCard({ group, onStatusChange, pendingId }: {
         border: `2px solid ${cfg.border}`,
         overflow: "hidden",
         boxShadow: group.worstStatus === "making"
-          ? "0 4px 20px rgba(255,149,0,0.15)"
+          ? "0 4px 20px rgba(139,21,56,0.15)"
           : group.worstStatus === "ready"
           ? "0 4px 20px rgba(52,199,89,0.15)"
           : "0 2px 8px rgba(0,0,0,0.05)",
@@ -196,7 +196,7 @@ function OrderCard({ group, onStatusChange, pendingId }: {
                   {item.drinkName}
                 </p>
                 {item.notes && (
-                  <p style={{ fontSize: 11, color: "#FF9500", fontStyle: "italic", margin: "2px 0 0" }}>
+                  <p style={{ fontSize: 11, color: "#8B1538", fontStyle: "italic", margin: "2px 0 0" }}>
                     {item.notes}
                   </p>
                 )}
@@ -343,7 +343,7 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
               width: 40, height: 40, borderRadius: 12,
               background: mode === "drink"
                 ? "#007AFF"
-                : "#FF9500",
+                : "#8B1538",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               {mode === "drink" ? <GlassWater size={20} color="#fff" /> : <ChefHat size={20} color="#fff" />}
@@ -375,7 +375,7 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
           {[
             { label: "Antri",  count: waiting, color: "#8E8E93", bg: "#F2F2F7" },
-            { label: "Dibuat", count: making,  color: "#FF9500", bg: "#FFF3E0" },
+            { label: "Dibuat", count: making,  color: "#8B1538", bg: "#FFF3E0" },
             { label: "Siap",   count: ready,   color: "#34C759", bg: "#F0FFF4" },
           ].map(s => (
             <div key={s.label} style={{
@@ -409,8 +409,8 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
                   flex: 1, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
                   gap: 6, border: "none", background: "none", cursor: "pointer",
                   fontSize: 13, fontWeight: isActive ? 700 : 500,
-                  color: isActive ? "#FF9500" : "#6E6E73",
-                  borderBottom: isActive ? "2.5px solid #FF9500" : "2.5px solid transparent",
+                  color: isActive ? "#8B1538" : "#6E6E73",
+                  borderBottom: isActive ? "2.5px solid #8B1538" : "2.5px solid transparent",
                 }}
               >
                 <Icon size={14} />
@@ -418,7 +418,7 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
                 {tab.count > 0 && (
                   <span style={{
                     minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
-                    background: isActive ? "#FF9500" : "#E5E5EA",
+                    background: isActive ? "#8B1538" : "#E5E5EA",
                     color: isActive ? "#fff" : "#6E6E73",
                     fontSize: 10, fontWeight: 800,
                     display: "flex", alignItems: "center", justifyContent: "center",

@@ -42,13 +42,13 @@ const MOVEMENT_TYPE_CONFIG = {
   in: { label: "Masuk", icon: ArrowUpCircle, color: "#34C759", bg: "#F0FFF4" },
   out: { label: "Keluar", icon: ArrowDownCircle, color: "#FF3B30", bg: "#FFF0EF" },
   adjustment: { label: "Penyesuaian", icon: SlidersHorizontal, color: "#007AFF", bg: "#F0F5FF" },
-  order_deduction: { label: "Pemakaian Pesanan", icon: ArrowDownCircle, color: "#FF9500", bg: "#FFF3E0" },
+  order_deduction: { label: "Pemakaian Pesanan", icon: ArrowDownCircle, color: "#8B1538", bg: "#FFF3E0" },
 };
 
 function StockBar({ current, min, max }: { current: number; min: number; max: number }) {
   const pct = max > 0 ? Math.min((current / max) * 100, 100) : 0;
   const status = getStockStatus(current, min, max);
-  const color = status === "critical" ? "#FF3B30" : status === "low" ? "#FF9500" : "#34C759";
+  const color = status === "critical" ? "#FF3B30" : status === "low" ? "#8B1538" : "#34C759";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div style={{ flex: 1, height: 6, borderRadius: 999, background: "#F2F2F7", overflow: "hidden" }}>
@@ -205,9 +205,9 @@ function AdjustStockDialog({ item, onClose }: { item: InventoryItem; onClose: ()
           width: "100%", height: 48, borderRadius: 12, border: "none",
           cursor: mutation.isPending || quantity === 0 ? "not-allowed" : "pointer",
           fontSize: 15, fontWeight: 700,
-          background: quantity === 0 ? "#E5E5EA" : "#FF9500",
+          background: quantity === 0 ? "#E5E5EA" : "#8B1538",
           color: quantity === 0 ? "#8E8E93" : "#fff",
-          boxShadow: quantity === 0 ? "none" : "0 4px 16px rgba(255,149,0,0.35)",
+          boxShadow: quantity === 0 ? "none" : "0 4px 16px rgba(139,21,56,0.35)",
         }}
       >
         {mutation.isPending ? "Menyimpan..." : "Simpan Perubahan"}
@@ -280,7 +280,7 @@ export default function InventorySection() {
         {[
           { label: "Total Item", value: inventoryItems.length, icon: Package, color: "#007AFF", bg: "#EEF4FF" },
           { label: "Kritis", value: criticalCount, icon: AlertTriangle, color: "#FF3B30", bg: "#FFF0EF" },
-          { label: "Hampir Habis", value: lowCount, icon: AlertTriangle, color: "#FF9500", bg: "#FFF3E0" },
+          { label: "Hampir Habis", value: lowCount, icon: AlertTriangle, color: "#8B1538", bg: "#FFF3E0" },
           { label: "Aman", value: okCount, icon: TrendingUp, color: "#34C759", bg: "#F0FFF4" },
         ].map(s => {
           const Icon = s.icon;
@@ -381,9 +381,9 @@ export default function InventorySection() {
                   style={{
                     height: 44, paddingInline: 16, borderRadius: 999,
                     border: "1.5px solid",
-                    borderColor: categoryFilter === cat ? "#FF9500" : "#E5E5EA",
+                    borderColor: categoryFilter === cat ? "#8B1538" : "#E5E5EA",
                     background: categoryFilter === cat ? "#FFF3E0" : "#fff",
-                    color: categoryFilter === cat ? "#FF9500" : "#6E6E73",
+                    color: categoryFilter === cat ? "#8B1538" : "#6E6E73",
                     fontSize: 13, fontWeight: 600, cursor: "pointer",
                     transition: "all 0.15s",
                   }}
@@ -410,7 +410,7 @@ export default function InventorySection() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {filtered.map(item => {
                 const status = getStockStatus(item.currentStock, item.minStock, item.maxStock);
-                const statusColor = status === "critical" ? "#FF3B30" : status === "low" ? "#FF9500" : "#34C759";
+                const statusColor = status === "critical" ? "#FF3B30" : status === "low" ? "#8B1538" : "#34C759";
                 const statusLabel = status === "critical" ? "Kritis" : status === "low" ? "Hampir Habis" : "Aman";
                 return (
                   <div
@@ -468,7 +468,7 @@ export default function InventorySection() {
                         data-testid={`button-adjust-${item.id}`}
                         style={{
                           height: 44, paddingInline: 16, borderRadius: 10, border: "none",
-                          background: "#FF9500",
+                          background: "#8B1538",
                           color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
                           display: "flex", alignItems: "center", gap: 6,
                         }}
@@ -533,7 +533,7 @@ export default function InventorySection() {
 
               <div style={{ flex: 1, textAlign: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <Calendar size={15} color="#FF9500" />
+                  <Calendar size={15} color="#8B1538" />
                   <span style={{ fontSize: 15, fontWeight: 700, color: "#1D1D1F" }}>
                     {getDateLabel(movementDate)}
                   </span>
@@ -565,7 +565,7 @@ export default function InventorySection() {
                   onClick={() => setMovementDate(today)}
                   style={{
                     height: 36, paddingInline: 14, borderRadius: 10, border: "none",
-                    background: "#FF9500", color: "#fff", fontSize: 12, fontWeight: 700,
+                    background: "#8B1538", color: "#fff", fontSize: 12, fontWeight: 700,
                     cursor: "pointer", flexShrink: 0,
                   }}
                   data-testid="button-go-today"

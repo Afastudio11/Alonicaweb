@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Table } from "@shared/schema";
 
 const ROOM_LABELS: Record<string, { label: string; icon: typeof Home; color: string; bg: string }> = {
-  indoor: { label: "Indoor", icon: Home, color: "#FF9500", bg: "#FFF5E6" },
+  indoor: { label: "Indoor", icon: Home, color: "#8B1538", bg: "#FFF5E6" },
   outdoor: { label: "Outdoor", icon: TreePine, color: "#34C759", bg: "#F0FFF4" },
 };
 
@@ -91,7 +91,7 @@ function TableFormModal({
 
   const inputStyle = (filled?: boolean) => ({
     width: "100%", height: 44, borderRadius: 12, border: "1.5px solid",
-    borderColor: filled ? "#FF9500" : "#E5E5EA",
+    borderColor: filled ? "#8B1538" : "#E5E5EA",
     padding: "0 14px", fontSize: 15, outline: "none",
     background: filled ? "#FFFBF5" : "#F9F9F9",
     color: "#1D1D1F", boxSizing: "border-box" as const,
@@ -120,7 +120,7 @@ function TableFormModal({
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: "#3C3C43", display: "block", marginBottom: 6 }}>
-              Nomor Meja <span style={{ color: "#FF2D55" }}>*</span>
+              Nomor Meja <span style={{ color: "#A8294A" }}>*</span>
             </label>
             <input
               value={form.number}
@@ -240,7 +240,7 @@ function TableFormModal({
             data-testid="button-save-table"
             style={{
               width: "100%", height: 50, borderRadius: 14, border: "none",
-              background: saveMutation.isPending ? "#E5E5EA" : "#FF9500",
+              background: saveMutation.isPending ? "#E5E5EA" : "#8B1538",
               color: saveMutation.isPending ? "#8E8E93" : "#fff",
               fontSize: 15, fontWeight: 700, cursor: saveMutation.isPending ? "wait" : "pointer",
             }}
@@ -316,7 +316,7 @@ export default function TablesSection() {
           data-testid="button-add-table"
           style={{
             height: 40, paddingInline: 18, borderRadius: 12, border: "none",
-            background: "#FF9500",
+            background: "#8B1538",
             color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
             display: "flex", alignItems: "center", gap: 6,
           }}
@@ -329,8 +329,8 @@ export default function TablesSection() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
         {[
-          { label: "Total Meja", value: allTables.length, color: "#FF9500", bg: "#FFF5E6" },
-          { label: "Indoor", value: indoorCount, color: "#FF9500", bg: "#FFF5E6" },
+          { label: "Total Meja", value: allTables.length, color: "#8B1538", bg: "#FFF5E6" },
+          { label: "Indoor", value: indoorCount, color: "#8B1538", bg: "#FFF5E6" },
           { label: "Outdoor", value: outdoorCount, color: "#34C759", bg: "#F0FFF4" },
         ].map(s => (
           <div key={s.label} style={{ background: s.bg, borderRadius: 14, padding: "14px 12px", textAlign: "center" }}>
@@ -354,7 +354,7 @@ export default function TablesSection() {
             style={{
               flex: 1, height: 36, borderRadius: 9, border: "none",
               background: roomFilter === tab.key ? "#fff" : "transparent",
-              color: roomFilter === tab.key ? "#FF9500" : "#6E6E73",
+              color: roomFilter === tab.key ? "#8B1538" : "#6E6E73",
               fontSize: 13, fontWeight: 700, cursor: "pointer",
               boxShadow: roomFilter === tab.key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
               transition: "all 0.15s",
@@ -448,7 +448,7 @@ export default function TablesSection() {
                     data-testid={`button-edit-${table.id}`}
                     style={{ width: 36, height: 36, borderRadius: 10, border: "none", background: "#FFF5E6", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <Edit2 size={15} color="#FF9500" />
+                    <Edit2 size={15} color="#8B1538" />
                   </button>
                   {isDeleting ? (
                     <div style={{ display: "flex", gap: 4 }}>

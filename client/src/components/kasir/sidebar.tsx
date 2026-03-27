@@ -60,7 +60,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
           {isHovered && (
             <h1 className="text-base font-semibold text-foreground ml-3 whitespace-nowrap" data-testid="text-sidebar-brand">
-              ngehnoom
+              alonica
             </h1>
           )}
         </div>
@@ -147,7 +147,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
             <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
               <span className="text-white font-bold text-sm">N</span>
             </div>
-            <h1 className="text-base font-semibold text-foreground" data-testid="text-sidebar-brand-mobile">ngehnoom</h1>
+            <h1 className="text-base font-semibold text-foreground" data-testid="text-sidebar-brand-mobile">alonica</h1>
           </div>
           <Button
             variant="ghost"

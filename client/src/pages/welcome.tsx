@@ -9,21 +9,21 @@ import type { MenuItem, Category, Banner } from "@shared/schema";
 
 const FALLBACK_SLIDES = [
   {
-    bg: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)",
+    bg: "linear-gradient(135deg, #8B1538 0%, #8B1538 55%, #A8294A 100%)",
     tag: "Original Local Product",
     headline: "Yang Nyaman\nJadi Sayang",
     sub: null, // will be replaced with restaurantInfo.tagline at render
     cta: "Pesan Sekarang",
   },
   {
-    bg: "linear-gradient(135deg, #FF9500 0%, #FF6B35 50%, #FF2D55 100%)",
+    bg: "linear-gradient(135deg, #8B1538 0%, #FF6B35 50%, #A8294A 100%)",
     tag: "Promo Spesial",
     headline: "Bottle Edition\nSiap Dibawa",
     sub: "Pesan sekarang, nikmat kapan saja dan di mana saja",
     cta: "Lihat Menu",
   },
   {
-    bg: "linear-gradient(135deg, #FF2D55 0%, #FF6B35 55%, #FFAB00 100%)",
+    bg: "linear-gradient(135deg, #A8294A 0%, #FF6B35 55%, #8B1538 100%)",
     tag: "Take Away Ready",
     headline: "Pesan Online,\nAmbil Langsung",
     sub: "Pre-order sebelum datang, langsung siap di tempat",
@@ -31,7 +31,7 @@ const FALLBACK_SLIDES = [
   },
 ];
 
-function NgehnoomLogo({ size = 32 }: { size?: number }) {
+function AlonicaLogo({ size = 32 }: { size?: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <div
@@ -39,7 +39,7 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
           width: size,
           height: size,
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #FFAB00, #FF9500, #FF2D55)",
+          background: "linear-gradient(135deg, #8B1538, #8B1538, #A8294A)",
           padding: 2,
           flexShrink: 0,
         }}
@@ -58,11 +58,11 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
           <svg width={size * 0.55} height={size * 0.55} viewBox="0 0 22 18" fill="none">
             <path
               d="M2 16V6C2 6 2 2 6.5 2C11 2 11 6 11 6V16"
-              stroke="#FF9500" strokeWidth="3" strokeLinecap="round"
+              stroke="#8B1538" strokeWidth="3" strokeLinecap="round"
             />
             <path
               d="M11 16V6C11 6 11 2 15.5 2C20 2 20 6 20 6V16"
-              stroke="#FF9500" strokeWidth="3" strokeLinecap="round"
+              stroke="#8B1538" strokeWidth="3" strokeLinecap="round"
             />
           </svg>
         </div>
@@ -77,13 +77,13 @@ function NgehnoomLogo({ size = 32 }: { size?: number }) {
           lineHeight: 1,
         }}
       >
-        ngehnoom
+        alonica
       </span>
     </div>
   );
 }
 
-const BRANCH_KEY = "ngehnoom-branch";
+const BRANCH_KEY = "alonica-branch";
 
 type RestaurantInfo = {
   restaurantName: string;
@@ -125,12 +125,12 @@ function BranchPickerModal({ branches, onSelect }: { branches: BranchInfo[]; onS
             width: 48, height: 4, borderRadius: 2,
             background: "#E5E5EA", margin: "0 auto 20px",
           }} />
-          <p style={{ fontSize: 13, color: "#FF9500", fontWeight: 600, letterSpacing: "0.04em", marginBottom: 6 }}>PILIH CABANG</p>
+          <p style={{ fontSize: 13, color: "#8B1538", fontWeight: 600, letterSpacing: "0.04em", marginBottom: 6 }}>PILIH CABANG</p>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1D1D1F", letterSpacing: "-0.02em" }}>
             Mau pesan di mana?
           </h2>
           <p style={{ fontSize: 14, color: "#6E6E73", marginTop: 6 }}>
-            Pilih cabang ngehnoom terdekat
+            Pilih cabang alonica terdekat
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -146,8 +146,8 @@ function BranchPickerModal({ branches, onSelect }: { branches: BranchInfo[]; onS
                 cursor: "pointer", textAlign: "left", transition: "all 0.15s",
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.borderColor = "#FF9500";
-                (e.currentTarget as HTMLElement).style.background = "rgba(255,149,0,0.05)";
+                (e.currentTarget as HTMLElement).style.borderColor = "#8B1538";
+                (e.currentTarget as HTMLElement).style.background = "rgba(139,21,56,0.05)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.borderColor = "#E5E5EA";
@@ -156,7 +156,7 @@ function BranchPickerModal({ branches, onSelect }: { branches: BranchInfo[]; onS
             >
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: "linear-gradient(135deg, #FFAB00, #FF9500)",
+                background: "linear-gradient(135deg, #8B1538, #8B1538)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <MapPin size={20} style={{ color: "#fff" }} />
@@ -169,7 +169,7 @@ function BranchPickerModal({ branches, onSelect }: { branches: BranchInfo[]; onS
                   </p>
                 )}
                 {branch.openingHours && (
-                  <p style={{ fontSize: 11, color: "#FF9500", marginTop: 2 }}>
+                  <p style={{ fontSize: 11, color: "#8B1538", marginTop: 2 }}>
                     <Clock size={10} style={{ display: "inline", marginRight: 4 }} />
                     {branch.openingHours}
                   </p>
@@ -307,7 +307,7 @@ export default function WelcomePage() {
       >
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 h-14">
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <NgehnoomLogo size={30} />
+            <AlonicaLogo size={30} />
             {multiBranchEnabled && selectedBranch && (
               <button
                 onClick={() => setShowBranchPicker(true)}
@@ -318,8 +318,8 @@ export default function WelcomePage() {
                   padding: 0, marginTop: 2,
                 }}
               >
-                <MapPin size={10} style={{ color: "#FF9500" }} />
-                <span style={{ fontSize: 11, color: "#FF9500", fontWeight: 600 }}>
+                <MapPin size={10} style={{ color: "#8B1538" }} />
+                <span style={{ fontSize: 11, color: "#8B1538", fontWeight: 600 }}>
                   {selectedBranch.name}
                 </span>
               </button>
@@ -329,7 +329,7 @@ export default function WelcomePage() {
             <button
               onClick={() => setShowSearch(s => !s)}
               className="ng-tap w-9 h-9 flex items-center justify-center rounded-full"
-              style={{ background: showSearch ? "#FF9500" : "transparent" }}
+              style={{ background: showSearch ? "#8B1538" : "transparent" }}
               data-testid="button-search"
             >
               <Search size={18} style={{ color: showSearch ? "#fff" : "#1D1D1F" }} />
@@ -359,7 +359,7 @@ export default function WelcomePage() {
               {totalItems > 0 && (
                 <span
                   className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ background: "#FF2D55", padding: "0 4px" }}
+                  style={{ background: "#A8294A", padding: "0 4px" }}
                 >
                   {totalItems}
                 </span>
@@ -506,7 +506,7 @@ export default function WelcomePage() {
             className="ng-tap flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
             style={
               !activeCategory
-                ? { background: "#FF9500", color: "#fff" }
+                ? { background: "#8B1538", color: "#fff" }
                 : { background: "#fff", color: "#1D1D1F", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
             }
             data-testid="category-all"
@@ -520,7 +520,7 @@ export default function WelcomePage() {
               className="ng-tap flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all"
               style={
                 activeCategory === cat.id
-                  ? { background: "#FF9500", color: "#fff" }
+                  ? { background: "#8B1538", color: "#fff" }
                   : { background: "#fff", color: "#1D1D1F", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }
               }
               data-testid={`category-${cat.id}`}
@@ -576,7 +576,7 @@ export default function WelcomePage() {
                           {qty > 0 && (
                             <div
                               className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                              style={{ background: "#FF2D55" }}
+                              style={{ background: "#A8294A" }}
                             >
                               {qty}
                             </div>
@@ -600,7 +600,7 @@ export default function WelcomePage() {
                           <div className="flex items-center justify-between">
                             <span
                               className="font-bold"
-                              style={{ fontSize: 13, color: "#FF9500" }}
+                              style={{ fontSize: 13, color: "#8B1538" }}
                               data-testid={`text-menu-price-${item.id}`}
                             >
                               {formatCurrency(item.price)}
@@ -610,7 +610,7 @@ export default function WelcomePage() {
                               <button
                                 onClick={e => { e.stopPropagation(); handleAdd(item); }}
                                 className="ng-tap w-7 h-7 rounded-full flex items-center justify-center"
-                                style={{ background: "#FF9500" }}
+                                style={{ background: "#8B1538" }}
                                 data-testid={`button-add-${item.id}`}
                               >
                                 <Plus size={14} color="#fff" strokeWidth={2.5} />
@@ -631,7 +631,7 @@ export default function WelcomePage() {
                                 <button
                                   onClick={() => { handleAdd(item); }}
                                   className="ng-tap w-6 h-6 rounded-full flex items-center justify-center"
-                                  style={{ background: "#FF9500" }}
+                                  style={{ background: "#8B1538" }}
                                   data-testid={`button-increase-${item.id}`}
                                 >
                                   <Plus size={11} color="#fff" strokeWidth={2.5} />
@@ -665,7 +665,7 @@ export default function WelcomePage() {
             <button
               onClick={() => setLocation("/cart")}
               className="ng-tap w-full h-14 rounded-2xl flex items-center justify-between px-5 shadow-lg"
-              style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+              style={{ background: "linear-gradient(135deg, #8B1538, #FF6B35)" }}
               data-testid="button-view-cart"
             >
               <div
@@ -716,14 +716,14 @@ export default function WelcomePage() {
                 <p className="text-sm mb-4" style={{ color: "#6E6E73" }}>{selectedItem.description}</p>
               )}
               <div className="flex items-center justify-between">
-                <span className="font-extrabold text-xl" style={{ color: "#FF9500", letterSpacing: "-0.02em" }}>
+                <span className="font-extrabold text-xl" style={{ color: "#8B1538", letterSpacing: "-0.02em" }}>
                   {formatCurrency(selectedItem.price)}
                 </span>
                 {getCartQty(selectedItem.id) === 0 ? (
                   <button
                     onClick={() => { handleAdd(selectedItem); setSelectedItem(null); }}
                     className="ng-tap px-6 h-11 rounded-2xl font-bold text-white text-sm"
-                    style={{ background: "linear-gradient(135deg, #FF9500, #FF6B35)" }}
+                    style={{ background: "linear-gradient(135deg, #8B1538, #FF6B35)" }}
                     data-testid="button-add-detail"
                   >
                     Tambah ke Keranjang
@@ -743,7 +743,7 @@ export default function WelcomePage() {
                     <button
                       onClick={() => handleAdd(selectedItem)}
                       className="ng-tap w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{ background: "#FF9500" }}
+                      style={{ background: "#8B1538" }}
                     >
                       <Plus size={16} color="#fff" />
                     </button>

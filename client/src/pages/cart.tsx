@@ -95,7 +95,7 @@ export default function CartPage() {
           {cartItems.length > 0 && (
             <span
               className="text-xs font-semibold px-3 py-1 rounded-full"
-              style={{ background: "#FF9500", color: "#fff" }}
+              style={{ background: "#8B1538", color: "#fff" }}
             >
               {cartItems.reduce((s, i) => s + i.quantity, 0)} item
             </span>
@@ -121,16 +121,16 @@ export default function CartPage() {
                 className="ng-tap flex flex-col items-center gap-2 py-5 rounded-2xl border-2 transition-all"
                 style={
                   orderType === val
-                    ? { borderColor: "#FF9500", background: "rgba(255,149,0,0.06)" }
+                    ? { borderColor: "#8B1538", background: "rgba(139,21,56,0.06)" }
                     : { borderColor: "#E5E5EA", background: "#FAFAFA" }
                 }
                 data-testid={`button-${val}`}
               >
                 <div
                   className="w-10 h-10 rounded-2xl flex items-center justify-center"
-                  style={{ background: orderType === val ? "rgba(255,149,0,0.12)" : "#F0F0F3" }}
+                  style={{ background: orderType === val ? "rgba(139,21,56,0.12)" : "#F0F0F3" }}
                 >
-                  <Icon size={20} style={{ color: orderType === val ? "#FF9500" : "#AEAEB2" }} />
+                  <Icon size={20} style={{ color: orderType === val ? "#8B1538" : "#AEAEB2" }} />
                 </div>
                 <div>
                   <p className="text-sm font-bold" style={{ color: orderType === val ? "#1D1D1F" : "#6E6E73" }}>
@@ -214,12 +214,12 @@ export default function CartPage() {
                 className="ng-tap flex items-center gap-3 px-3 py-3.5 rounded-2xl border-2 transition-all text-left"
                 style={
                   scheduleNow === key
-                    ? { borderColor: "#FF9500", background: "rgba(255,149,0,0.06)" }
+                    ? { borderColor: "#8B1538", background: "rgba(139,21,56,0.06)" }
                     : { borderColor: "#E5E5EA", background: "#FAFAFA" }
                 }
                 data-testid={`button-schedule-${key ? "now" : "later"}`}
               >
-                <Icon size={18} style={{ color: scheduleNow === key ? "#FF9500" : "#AEAEB2", flexShrink: 0 }} />
+                <Icon size={18} style={{ color: scheduleNow === key ? "#8B1538" : "#AEAEB2", flexShrink: 0 }} />
                 <div>
                   <p className="text-sm font-bold" style={{ color: scheduleNow === key ? "#1D1D1F" : "#6E6E73" }}>
                     {label}
@@ -275,7 +275,7 @@ export default function CartPage() {
               <button
                 onClick={() => setLocation("/")}
                 className="mt-3 text-xs font-bold"
-                style={{ color: "#FF9500" }}
+                style={{ color: "#8B1538" }}
               >
                 Lihat Menu →
               </button>
@@ -302,7 +302,7 @@ export default function CartPage() {
                     >
                       {item.name}
                     </p>
-                    <p className="text-sm font-bold" style={{ color: "#FF9500" }} data-testid={`text-cart-price-${item.id}`}>
+                    <p className="text-sm font-bold" style={{ color: "#8B1538" }} data-testid={`text-cart-price-${item.id}`}>
                       {formatCurrency(item.price)}
                     </p>
                   </div>
@@ -321,7 +321,7 @@ export default function CartPage() {
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="ng-tap w-7 h-7 rounded-full flex items-center justify-center"
-                      style={{ background: "#FF9500" }}
+                      style={{ background: "#8B1538" }}
                       data-testid={`button-increase-${item.id}`}
                     >
                       <Plus size={12} color="#fff" strokeWidth={2.5} />
@@ -329,10 +329,10 @@ export default function CartPage() {
                     <button
                       onClick={() => removeFromCart(item.id)}
                       className="ng-tap w-7 h-7 rounded-full flex items-center justify-center ml-1"
-                      style={{ background: "rgba(255,45,85,0.08)" }}
+                      style={{ background: "rgba(168,41,74,0.08)" }}
                       data-testid={`button-remove-${item.id}`}
                     >
-                      <Trash2 size={12} style={{ color: "#FF2D55" }} />
+                      <Trash2 size={12} style={{ color: "#A8294A" }} />
                     </button>
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function CartPage() {
                 style={{ borderTop: "1px solid #F5F5F7" }}
               >
                 <span className="font-bold" style={{ color: "#1D1D1F" }}>Total</span>
-                <span className="font-extrabold text-lg" style={{ color: "#FF9500", letterSpacing: "-0.02em" }} data-testid="text-total">
+                <span className="font-extrabold text-lg" style={{ color: "#8B1538", letterSpacing: "-0.02em" }} data-testid="text-total">
                   {formatCurrency(total)}
                 </span>
               </div>
@@ -382,7 +382,7 @@ export default function CartPage() {
             className="ng-tap w-full h-14 rounded-2xl font-bold text-white text-base shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: cartItems.length > 0
-                ? "linear-gradient(135deg, #FF9500, #FF6B35)"
+                ? "linear-gradient(135deg, #8B1538, #FF6B35)"
                 : "#E5E5EA",
               color: cartItems.length > 0 ? "#fff" : "#AEAEB2",
               letterSpacing: "-0.02em",

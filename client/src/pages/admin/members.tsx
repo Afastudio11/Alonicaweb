@@ -17,7 +17,7 @@ function MemberBadge({ member }: { member: Member }) {
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 3,
         padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 700,
-        background: "#FF9500", color: "#fff",
+        background: "#8B1538", color: "#fff",
       }}>
         <Crown size={10} /> VIP
       </span>
@@ -27,7 +27,7 @@ function MemberBadge({ member }: { member: Member }) {
     return (
       <span style={{
         padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-        background: "rgba(255,149,0,0.1)", color: "#FF9500",
+        background: "rgba(139,21,56,0.1)", color: "#8B1538",
       }}>
         {member.discountPercent}% Diskon
       </span>
@@ -141,7 +141,7 @@ export default function MembersSection() {
           style={{
             display: "flex", alignItems: "center", gap: 7, flexShrink: 0,
             padding: "9px 16px", borderRadius: 12, border: "none", cursor: "pointer",
-            background: "#FF9500", color: "#fff", fontSize: 13, fontWeight: 700,
+            background: "#8B1538", color: "#fff", fontSize: 13, fontWeight: 700,
           }}
         >
           <UserPlus size={15} /> Tambah Member
@@ -151,9 +151,9 @@ export default function MembersSection() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "Total Member", value: totalMembers, Icon: Users, color: "#FF9500" },
-          { label: "Member VIP", value: vipMembers, Icon: Crown, color: "#FFAB00" },
-          { label: "Ada Diskon", value: discountMembers, Icon: Gift, color: "#FF2D55" },
+          { label: "Total Member", value: totalMembers, Icon: Users, color: "#8B1538" },
+          { label: "Member VIP", value: vipMembers, Icon: Crown, color: "#8B1538" },
+          { label: "Ada Diskon", value: discountMembers, Icon: Gift, color: "#A8294A" },
         ].map(stat => (
           <div key={stat.label} style={{
             background: "#fff", borderRadius: 16, padding: "14px 16px",
@@ -221,7 +221,7 @@ export default function MembersSection() {
               <div style={{
                 width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
                 background: member.isVip
-                  ? "#FF9500"
+                  ? "#8B1538"
                   : "#E5E5EA",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
@@ -255,11 +255,11 @@ export default function MembersSection() {
                   onClick={() => handleEdit(member)}
                   style={{
                     width: 34, height: 34, borderRadius: 10, border: "none", cursor: "pointer",
-                    background: "rgba(255,149,0,0.08)", display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "rgba(139,21,56,0.08)", display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                   data-testid={`button-edit-member-${member.phone}`}
                 >
-                  <Edit2 size={14} style={{ color: "#FF9500" }} />
+                  <Edit2 size={14} style={{ color: "#8B1538" }} />
                 </button>
                 <button
                   onClick={() => {
@@ -300,7 +300,7 @@ export default function MembersSection() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%",
-                  background: "#FF9500",
+                  background: "#8B1538",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{ color: "#fff", fontWeight: 700, fontSize: 18 }}>{editing.name[0]?.toUpperCase()}</span>
@@ -340,7 +340,7 @@ export default function MembersSection() {
                       style={{
                         padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
                         fontSize: 13, fontWeight: 600,
-                        background: form.discountPercent === pct ? "#FF9500" : "#F5F5F7",
+                        background: form.discountPercent === pct ? "#8B1538" : "#F5F5F7",
                         color: form.discountPercent === pct ? "#fff" : "#1D1D1F",
                       }}
                     >
@@ -373,7 +373,7 @@ export default function MembersSection() {
                   onClick={() => setForm(f => ({ ...f, isVip: !f.isVip }))}
                   style={{
                     width: 48, height: 28, borderRadius: 14, border: "none", cursor: "pointer",
-                    background: form.isVip ? "#FF9500" : "#E5E5EA", position: "relative", flexShrink: 0,
+                    background: form.isVip ? "#8B1538" : "#E5E5EA", position: "relative", flexShrink: 0,
                     transition: "background 0.2s",
                   }}
                   data-testid="toggle-member-vip"
@@ -421,7 +421,7 @@ export default function MembersSection() {
                   disabled={updateMutation.isPending}
                   style={{
                     flex: 2, height: 48, borderRadius: 14, border: "none", cursor: "pointer",
-                    background: "#FF9500", fontSize: 14, fontWeight: 700, color: "#fff",
+                    background: "#8B1538", fontSize: 14, fontWeight: 700, color: "#fff",
                     opacity: updateMutation.isPending ? 0.6 : 1,
                   }}
                   data-testid="button-save-member"
@@ -454,7 +454,7 @@ export default function MembersSection() {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{
                     width: 40, height: 40, borderRadius: "50%",
-                    background: "#FF9500",
+                    background: "#8B1538",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <UserPlus size={18} style={{ color: "#fff" }} />
@@ -521,7 +521,7 @@ export default function MembersSection() {
                       style={{
                         padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
                         fontSize: 13, fontWeight: 600,
-                        background: addForm.discountPercent === pct ? "#FF9500" : "#F5F5F7",
+                        background: addForm.discountPercent === pct ? "#8B1538" : "#F5F5F7",
                         color: addForm.discountPercent === pct ? "#fff" : "#1D1D1F",
                       }}
                     >
@@ -542,7 +542,7 @@ export default function MembersSection() {
                   onClick={() => setAddForm(f => ({ ...f, isVip: !f.isVip }))}
                   style={{
                     width: 48, height: 28, borderRadius: 14, border: "none", cursor: "pointer",
-                    background: addForm.isVip ? "#FF9500" : "#E5E5EA", position: "relative", flexShrink: 0,
+                    background: addForm.isVip ? "#8B1538" : "#E5E5EA", position: "relative", flexShrink: 0,
                     transition: "background 0.2s",
                   }}
                   data-testid="toggle-add-member-vip"
@@ -592,7 +592,7 @@ export default function MembersSection() {
                   disabled={createMutation.isPending || !addForm.name.trim() || !addForm.phone.trim()}
                   style={{
                     flex: 2, height: 48, borderRadius: 14, border: "none", cursor: "pointer",
-                    background: "#FF9500", fontSize: 14, fontWeight: 700, color: "#fff",
+                    background: "#8B1538", fontSize: 14, fontWeight: 700, color: "#fff",
                     opacity: (createMutation.isPending || !addForm.name.trim() || !addForm.phone.trim()) ? 0.5 : 1,
                   }}
                   data-testid="button-submit-add-member"

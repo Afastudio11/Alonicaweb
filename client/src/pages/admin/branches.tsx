@@ -80,7 +80,7 @@ function BranchModal({
               id="name"
               value={form.name}
               onChange={e => set("name", e.target.value)}
-              placeholder="Contoh: ngehnoom Pusat"
+              placeholder="Contoh: alonica Pusat"
               data-testid="input-branch-name"
               style={{ marginTop: 6 }}
             />
@@ -156,7 +156,7 @@ function BranchModal({
               style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}
             >
               {form.isActive
-                ? <ToggleRight size={36} style={{ color: "#FF9500" }} />
+                ? <ToggleRight size={36} style={{ color: "#8B1538" }} />
                 : <ToggleLeft size={36} style={{ color: "#C7C7CC" }} />}
             </button>
           </div>
@@ -176,7 +176,7 @@ function BranchModal({
               onSave(form);
             }}
             disabled={isSaving || !form.name.trim()}
-            style={{ flex: 1, background: "#FF9500", borderColor: "#FF9500" }}
+            style={{ flex: 1, background: "#8B1538", borderColor: "#8B1538" }}
             data-testid="button-save-branch"
           >
             {isSaving ? "Menyimpan..." : branch ? "Simpan Perubahan" : "Tambah Cabang"}
@@ -289,7 +289,7 @@ export default function BranchesSection() {
         <Button
           onClick={() => { setEditingBranch(null); setShowModal(true); }}
           data-testid="button-add-branch"
-          style={{ background: "#FF9500", borderColor: "#FF9500", gap: 6 }}
+          style={{ background: "#8B1538", borderColor: "#8B1538", gap: 6 }}
         >
           <Plus size={16} />
           Tambah Cabang
@@ -304,11 +304,11 @@ export default function BranchesSection() {
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: 16,
-            background: "rgba(255,149,0,0.1)",
+            background: "rgba(139,21,56,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
             margin: "0 auto 12px",
           }}>
-            <MapPin size={24} style={{ color: "#FF9500" }} />
+            <MapPin size={24} style={{ color: "#8B1538" }} />
           </div>
           <p style={{ fontSize: 16, fontWeight: 600, color: "#1D1D1F", marginBottom: 6 }}>
             Belum ada cabang
@@ -319,7 +319,7 @@ export default function BranchesSection() {
           <Button
             onClick={() => { setEditingBranch(null); setShowModal(true); }}
             data-testid="button-add-first-branch"
-            style={{ background: "#FF9500", borderColor: "#FF9500" }}
+            style={{ background: "#8B1538", borderColor: "#8B1538" }}
           >
             <Plus size={16} />
             Tambah Cabang Pertama
@@ -341,7 +341,7 @@ export default function BranchesSection() {
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
                 background: branch.isActive
-                  ? "#FF9500"
+                  ? "#8B1538"
                   : "#E5E5EA",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
@@ -410,7 +410,7 @@ export default function BranchesSection() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <Pencil size={17} style={{ color: "#FF9500" }} />
+                  <Pencil size={17} style={{ color: "#8B1538" }} />
                 </button>
                 <button
                   onClick={() => handleDelete(branch)}

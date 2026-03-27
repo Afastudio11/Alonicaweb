@@ -41,10 +41,10 @@ async function compressImage(
 }
 
 const GRADIENT_PRESETS = [
-  { label: "Orange → Pink", value: "linear-gradient(135deg, #FFAB00 0%, #FF9500 55%, #FF2D55 100%)" },
-  { label: "Orange → Red", value: "linear-gradient(135deg, #FF9500 0%, #FF6B35 50%, #FF2D55 100%)" },
-  { label: "Pink → Orange", value: "linear-gradient(135deg, #FF2D55 0%, #FF6B35 55%, #FFAB00 100%)" },
-  { label: "Deep Orange", value: "linear-gradient(135deg, #E8880F 0%, #FF6B00 100%)" },
+  { label: "Orange → Pink", value: "linear-gradient(135deg, #8B1538 0%, #8B1538 55%, #A8294A 100%)" },
+  { label: "Orange → Red", value: "linear-gradient(135deg, #8B1538 0%, #FF6B35 50%, #A8294A 100%)" },
+  { label: "Pink → Orange", value: "linear-gradient(135deg, #A8294A 0%, #FF6B35 55%, #8B1538 100%)" },
+  { label: "Deep Orange", value: "linear-gradient(135deg, #6B1028 0%, #6B1028 100%)" },
   { label: "Sunset", value: "linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #fd6f3b 100%)" },
   { label: "Custom…", value: "custom" },
 ];
@@ -248,7 +248,7 @@ export default function BannersSection() {
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-semibold text-white"
-          style={{ background: "#FF9500" }}
+          style={{ background: "#8B1538" }}
           data-testid="button-add-banner"
         >
           <Plus size={16} />
@@ -303,7 +303,7 @@ export default function BannersSection() {
                       )}
                       {banner.tag && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
-                          style={{ background: "rgba(255,149,0,0.1)", color: "#FF9500" }}>
+                          style={{ background: "rgba(139,21,56,0.1)", color: "#8B1538" }}>
                           {banner.tag}
                         </span>
                       )}
@@ -332,10 +332,10 @@ export default function BannersSection() {
                     <button
                       onClick={() => handleEdit(banner)}
                       className="w-11 h-11 rounded-xl flex items-center justify-center"
-                      style={{ background: "rgba(255,149,0,0.08)" }}
+                      style={{ background: "rgba(139,21,56,0.08)" }}
                       data-testid={`button-edit-${banner.id}`}
                     >
-                      <Edit2 size={17} style={{ color: "#FF9500" }} />
+                      <Edit2 size={17} style={{ color: "#8B1538" }} />
                     </button>
                     <button
                       onClick={() => {
@@ -370,7 +370,7 @@ export default function BannersSection() {
             <div
               className="h-36 flex items-center px-6 relative overflow-hidden"
               style={{
-                background: imageMode === "image" && form.imageUrl ? undefined : (activeGradient || "#FF9500"),
+                background: imageMode === "image" && form.imageUrl ? undefined : (activeGradient || "#8B1538"),
               }}
             >
               {imageMode === "image" && form.imageUrl && (
@@ -493,7 +493,7 @@ export default function BannersSection() {
                     onClick={() => setImageMode("gradient")}
                     className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                     style={imageMode === "gradient"
-                      ? { background: "#FF9500", color: "#fff", border: "none" }
+                      ? { background: "#8B1538", color: "#fff", border: "none" }
                       : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
                   >
                     Warna Gradien
@@ -502,7 +502,7 @@ export default function BannersSection() {
                     onClick={() => setImageMode("image")}
                     className="flex-1 h-11 rounded-full text-sm font-medium transition-all"
                     style={imageMode === "image"
-                      ? { background: "#FF9500", color: "#fff", border: "none" }
+                      ? { background: "#8B1538", color: "#fff", border: "none" }
                       : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }}
                   >
                     Upload Gambar
@@ -533,7 +533,7 @@ export default function BannersSection() {
                     {selectedPreset === "custom" && (
                       <input
                         type="text"
-                        placeholder="linear-gradient(135deg, #FF9500 0%, #FF2D55 100%)"
+                        placeholder="linear-gradient(135deg, #8B1538 0%, #A8294A 100%)"
                         value={customGradient}
                         onChange={e => setCustomGradient(e.target.value)}
                         className="mt-2 w-full px-4 h-11 rounded-2xl text-sm outline-none font-mono"
@@ -598,8 +598,8 @@ export default function BannersSection() {
                           </>
                         ) : (
                           <>
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,149,0,0.1)" }}>
-                              <Upload size={22} style={{ color: "#FF9500" }} />
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(139,21,56,0.1)" }}>
+                              <Upload size={22} style={{ color: "#8B1538" }} />
                             </div>
                             <span className="text-sm font-semibold" style={{ color: "#1D1D1F" }}>Pilih Gambar</span>
                             <span className="text-xs" style={{ color: "#6E6E73" }}>JPG, PNG · dikompres otomatis</span>
@@ -629,7 +629,7 @@ export default function BannersSection() {
                 <button
                   onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
                   className="w-12 h-7 rounded-full transition-all relative"
-                  style={{ background: form.isActive ? "#FF9500" : "#E5E5EA" }}
+                  style={{ background: form.isActive ? "#8B1538" : "#E5E5EA" }}
                   data-testid="toggle-banner-active"
                 >
                   <div
@@ -652,7 +652,7 @@ export default function BannersSection() {
                   onClick={handleSubmit}
                   disabled={isPending}
                   className="flex-1 h-12 rounded-2xl font-bold text-sm text-white disabled:opacity-50"
-                  style={{ background: "#FF9500" }}
+                  style={{ background: "#8B1538" }}
                   data-testid="button-save-banner"
                 >
                   {isPending ? "Menyimpan…" : editing ? "Simpan Perubahan" : "Tambah Banner"}

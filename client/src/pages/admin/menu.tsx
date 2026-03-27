@@ -190,7 +190,7 @@ export default function MenuSection() {
             onClick={() => setCategoryFilter(filter.value)}
             className="h-11 px-4 rounded-full text-sm font-medium transition-all"
             style={categoryFilter === filter.value
-              ? { background: "#FF9500", color: "#fff", border: "none" }
+              ? { background: "#8B1538", color: "#fff", border: "none" }
               : { background: "#fff", color: "#1D1D1F", border: "1.5px solid #E5E5EA" }
             }
             data-testid={`button-filter-${filter.value}`}
@@ -234,8 +234,8 @@ export default function MenuSection() {
                     </p>
                     {item.stock !== null && item.stock !== undefined && (
                       <div className="flex items-center gap-1 mt-1">
-                        <Package size={11} style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} />
-                        <span className="text-xs font-medium" style={{ color: item.stock === 0 ? "#FF2D55" : item.stock <= 5 ? "#FFAB00" : "#34C759" }} data-testid={`text-stock-${item.id}`}>
+                        <Package size={11} style={{ color: item.stock === 0 ? "#A8294A" : item.stock <= 5 ? "#8B1538" : "#34C759" }} />
+                        <span className="text-xs font-medium" style={{ color: item.stock === 0 ? "#A8294A" : item.stock <= 5 ? "#8B1538" : "#34C759" }} data-testid={`text-stock-${item.id}`}>
                           {item.stock === 0 ? "Habis" : `Stok: ${item.stock}`}
                         </span>
                       </div>

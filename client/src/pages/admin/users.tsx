@@ -226,7 +226,7 @@ export default function UsersSection() {
             type="button"
             onClick={toggleAll}
             style={{
-              fontSize: 12, color: "#FF9500", fontWeight: 600,
+              fontSize: 12, color: "#8B1538", fontWeight: 600,
               background: "none", border: "none", cursor: "pointer", padding: "2px 4px",
             }}
             data-testid="button-toggle-all-menus"
@@ -250,9 +250,9 @@ export default function UsersSection() {
                     data-testid={`toggle-menu-${item.key}`}
                     style={{
                       padding: "4px 10px", borderRadius: 8, fontSize: 12, fontWeight: 500,
-                      border: isChecked ? "1.5px solid #FF9500" : "1.5px solid #E5E5EA",
+                      border: isChecked ? "1.5px solid #8B1538" : "1.5px solid #E5E5EA",
                       background: isChecked ? "#FFF5E6" : "#F5F5F7",
-                      color: isChecked ? "#FF9500" : "#6E6E73",
+                      color: isChecked ? "#8B1538" : "#6E6E73",
                       cursor: "pointer", transition: "all 0.15s",
                     }}
                   >
@@ -406,7 +406,7 @@ export default function UsersSection() {
                       marginBottom: 10, paddingBottom: 10,
                       borderBottom: "1px solid #E5E5EA",
                     }}>
-                      <ShieldCheck size={16} color="#FF9500" />
+                      <ShieldCheck size={16} color="#8B1538" />
                       <span style={{ fontWeight: 600, fontSize: 14, color: "#1D1D1F" }}>
                         Izin Akses Menu
                       </span>
@@ -460,7 +460,7 @@ export default function UsersSection() {
                       {user.role === 'admin' ? 'Admin' : user.role === 'dapur' ? 'Dapur' : 'Kasir'}
                     </Badge>
                     {hasRestriction && (
-                      <Badge variant="outline" style={{ fontSize: 11, color: "#FF9500", borderColor: "#FF9500" }}>
+                      <Badge variant="outline" style={{ fontSize: 11, color: "#8B1538", borderColor: "#8B1538" }}>
                         <ShieldCheck size={10} style={{ marginRight: 3 }} />
                         {userAllowedMenus!.length} menu
                       </Badge>
@@ -507,7 +507,7 @@ export default function UsersSection() {
                           key={key}
                           style={{
                             fontSize: 11, padding: "2px 8px", borderRadius: 6,
-                            background: "#FFF5E6", color: "#FF9500", fontWeight: 500,
+                            background: "#FFF5E6", color: "#8B1538", fontWeight: 500,
                           }}
                         >
                           {label}
