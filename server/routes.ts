@@ -1556,6 +1556,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET /api/shifts/:id/transactions — semua transaksi uang masuk/keluar selama shift
+  app.get("/api/shifts/:id/transactions", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shift = await storage.getShift(id);
+      if (!shift) return sendErrorResponse(res, 404, "Shift not found");
+
+      const shiftStart = new Date(shift.startTime);
+      const shiftEnd = shift.endTime ? new Date(shift.endTime) : new Date();
+
+      // 1. Paid orders during shift
+      const allOrders = await storage.getOrders();
+      const paidOrders = allOrders.filter((o: any) => {
+        if (o.paymentStatus !== "paid") return false;
+        const t = new Date((o as any).paidAt || o.createdAt);
+        return t >= shiftStart && t <= shiftEnd;
+      });
+
+      // 2. Cash movements for this shift
+      const cashMovements = await storage.getCashMovementsByShift(id);
+
+      // 3. Expenses during shift period recorded by shift's cashier
+      const expenses = await storage.getExpensesByDateRange(shiftStart, shiftEnd);
+
+      // Combine into unified list
+      type TxEntry = { id: string; time: Date; type: "in" | "out"; amount: number; description: string; source: "order" | "cash_movement" | "expense" };
+      const items: TxEntry[] = [];
+
+      for (const o of paidOrders) {
+        items.push({
+          id: o.id,
+          time: new Date((o as any).paidAt || o.createdAt),
+          type: "in",
+          amount: o.total ?? 0,
+          description: `Pesanan #${o.id.slice(-6).toUpperCase()} — ${o.customerName || "Pelanggan"}${o.tableNumber ? ` · Meja ${o.tableNumber}` : ""}`,
+          source: "order",
+        });
+      }
+
+      for (const m of cashMovements) {
+        items.push({
+          id: m.id,
+          time: new Date(m.createdAt),
+          type: m.type as "in" | "out",
+          amount: m.amount,
+          description: m.description || (m.type === "in" ? "Setoran kas" : "Pengeluaran kas"),
+          source: "cash_movement",
+        });
+      }
+
+      for (const e of expenses) {
+        items.push({
+          id: e.id,
+          time: new Date(e.createdAt),
+          type: "out",
+          amount: e.amount,
+          description: `[Pengeluaran] ${e.description}`,
+          source: "expense",
+        });
+      }
+
+      items.sort((a, b) => a.time.getTime() - b.time.getTime());
+
+      const totalIn  = items.filter(i => i.type === "in").reduce((s, i) => s + i.amount, 0);
+      const totalOut = items.filter(i => i.type === "out").reduce((s, i) => s + i.amount, 0);
+
+      res.json({ items, totalIn, totalOut, balance: totalIn - totalOut });
+    } catch (error) {
+      return handleApiError(res, error, "Failed to get shift transactions");
+    }
+  });
+
   // ===== Shift Reports — laporan shift kasir ke super admin =====
 
   // POST /api/shift-reports — kasir kirim laporan

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Clock, DollarSign, TrendingUp, TrendingDown, User, AlertCircle, BarChart2, Utensils, Coffee, FileText, ChevronDown, ChevronUp, Send, Download, CheckCircle2 } from "lucide-react";
+import { Clock, DollarSign, TrendingUp, TrendingDown, User, AlertCircle, BarChart2, Utensils, Coffee, FileText, ChevronDown, ChevronUp, Send, Download, CheckCircle2, ShoppingBag, ArrowUpCircle, ArrowDownCircle, Receipt } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { formatCurrency } from "@/lib/utils";
 import { generateShiftPDF } from "@/utils/shift-pdf";
@@ -59,6 +59,14 @@ export default function ShiftManagementSection() {
   const { data: recap, isLoading: loadingRecap } = useQuery<ShiftRecap>({
     queryKey: ['/api/shifts', activeShift?.id, 'recap'],
     enabled: !!activeShift?.id && showRecap,
+  });
+
+  // Riwayat transaksi otomatis selama shift aktif
+  type TxEntry = { id: string; time: string; type: "in" | "out"; amount: number; description: string; source: "order" | "cash_movement" | "expense" };
+  const { data: txData } = useQuery<{ items: TxEntry[]; totalIn: number; totalOut: number; balance: number }>({
+    queryKey: ['/api/shifts', activeShift?.id, 'transactions'],
+    enabled: !!activeShift?.id,
+    refetchInterval: 20000,
   });
 
   // Fetch orders during the closed shift — hanya aktif saat review step
@@ -175,6 +183,7 @@ export default function ShiftManagementSection() {
       setCashOut(0);
       setCashDescription("");
       queryClient.invalidateQueries({ queryKey: ['/api/cash-movements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shifts', activeShift?.id, 'transactions'] });
     },
     onError: (error: any) => {
       toast({ title: "Gagal Mencatat Kas", description: error.message || "Terjadi kesalahan saat mencatat transaksi kas", variant: "destructive" });
@@ -599,6 +608,83 @@ export default function ShiftManagementSection() {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* ===== Riwayat Transaksi Otomatis ===== */}
+          <Card className="md:col-span-2">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt className="h-5 w-5 text-primary" />
+                    Riwayat Transaksi Shift Ini
+                  </CardTitle>
+                  <CardDescription>Semua uang masuk &amp; keluar otomatis tercatat di sini · auto-refresh 20 detik</CardDescription>
+                </div>
+                {/* Totals summary */}
+                <div className="flex items-center gap-3 text-sm flex-wrap">
+                  <div className="flex items-center gap-1.5 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-full font-semibold">
+                    <ArrowUpCircle className="h-4 w-4" />
+                    Masuk: {formatCurrency(txData?.totalIn ?? 0)}
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full font-semibold">
+                    <ArrowDownCircle className="h-4 w-4" />
+                    Keluar: {formatCurrency(txData?.totalOut ?? 0)}
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full font-semibold">
+                    <DollarSign className="h-4 w-4" />
+                    Saldo: {formatCurrency((activeShift.initialCash ?? 0) + (txData?.balance ?? 0))}
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {!txData || txData.items.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <Receipt className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                  <p className="text-sm font-medium">Belum ada transaksi</p>
+                  <p className="text-xs mt-1">Transaksi akan muncul otomatis saat ada pesanan terbayar atau pengeluaran tercatat</p>
+                </div>
+              ) : (
+                <div className="space-y-1.5 max-h-[360px] overflow-y-auto pr-1">
+                  {[...txData.items].reverse().map((tx) => {
+                    const isIn = tx.type === "in";
+                    const srcIcon = tx.source === "order"
+                      ? <ShoppingBag className="h-3.5 w-3.5" />
+                      : tx.source === "expense"
+                      ? <TrendingDown className="h-3.5 w-3.5" />
+                      : isIn ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />;
+                    return (
+                      <div
+                        key={tx.id}
+                        data-testid={`tx-row-${tx.id}`}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm
+                          ${isIn
+                            ? "bg-green-50 dark:bg-green-950/20 border-green-100 dark:border-green-900/30"
+                            : "bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30"}`}
+                      >
+                        {/* Icon */}
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0
+                          ${isIn ? "bg-green-100 dark:bg-green-900/40 text-green-700" : "bg-red-100 dark:bg-red-900/40 text-red-600"}`}>
+                          {srcIcon}
+                        </div>
+                        {/* Description */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate text-foreground">{tx.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(tx.time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                          </p>
+                        </div>
+                        {/* Amount */}
+                        <p className={`font-bold shrink-0 ${isIn ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                          {isIn ? "+" : "−"}{formatCurrency(tx.amount)}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
 
