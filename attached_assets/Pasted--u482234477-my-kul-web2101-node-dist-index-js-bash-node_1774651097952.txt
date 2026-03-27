@@ -1,0 +1,289 @@
+[u482234477@my-kul-web2101 ~]$ node dist/index.js
+-bash: node: command not found
+[u482234477@my-kul-web2101 ~]$ source ~/.nvm/nvm.sh && nvm use 18
+-bash: /home/u482234477/.nvm/nvm.sh: No such file or directory
+[u482234477@my-kul-web2101 ~]$ ls ~/
+domains
+[u482234477@my-kul-web2101 ~]$ tail -n 200 public_html/stderr.log
+tail: cannot open 'public_html/stderr.log' for reading: No such file or directory
+[u482234477@my-kul-web2101 ~]$ ps aux | grep node
+u482234+ 3434845  0.0  0.0 221672  2548 pts/3    S+   21:54   0:00 grep --color=auto node
+[u482234477@my-kul-web2101 ~]$ ls ~/domains/
+alonica.id
+[u482234477@my-kul-web2101 ~]$ ls ~/domains/alonica.id/
+DO_NOT_UPLOAD_HERE  nodejs  public_html
+[u482234477@my-kul-web2101 ~]$ find ~/domains/alonica.id/ -name "*.log" 2>/dev/null
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3135-ca93-70c7-824e-7e9852943b49/2026-03-27_21-32-12_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3135-a704-714d-8f0d-03f72dff5c84/2026-03-27_21-31-48_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3127-154f-7002-ba2f-df33709a1f72/2026-03-27_21-15-51_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3142-6dc7-734a-8156-f34dc8da8fd2/2026-03-27_21-46-21_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3139-9b6c-7293-849d-8cfaa5fd0dd9/2026-03-27_21-36-01_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d312d-4564-7116-84d5-219c5cf846b4/2026-03-27_21-22-31_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3142-630e-721d-a8f7-f79a30129091/2026-03-27_21-45-38_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d311e-4da4-73b6-b655-198296ec72ad/2026-03-27_21-06-15_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3138-d8e8-720c-a7b3-0317bce5cead/2026-03-27_21-35-16_deploy.log
+/home/u482234477/domains/alonica.id/public_html/.builds/logs/019d3123-5f2d-7126-91e0-a6efc8ed20b5/2026-03-27_21-11-47_deploy.log
+/home/u482234477/domains/alonica.id/nodejs/stderr.log
+/home/u482234477/domains/alonica.id/nodejs/console.log
+/home/u482234477/domains/alonica.id/nodejs/node_modules/@transloadit/prettier-bytes/.turbo/turbo-build.log
+/home/u482234477/domains/alonica.id/nodejs/node_modules/motion-utils/.turbo/turbo-build.log
+/home/u482234477/domains/alonica.id/nodejs/node_modules/motion-dom/.turbo/turbo-build.log
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/stderr.log
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/usr/local/lsws/fcgi-bin/lsnode.js:51
+    var app = require(startupFile);
+              ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/dist/index.js from /usr/local/lsws/fcgi-bin/lsnode.js not supported.
+Instead change the require of index.js in /usr/local/lsws/fcgi-bin/lsnode.js to a dynamic import() which is available in all CommonJS modules.
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+[u482234477@my-kul-web2101 ~]$ ^C
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/console.log
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/console.log
+[u482234477@my-kul-web2101 ~]$
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/console.log
+[u482234477@my-kul-web2101 ~]$ client_loop: send disconnect: Connection reset
+PS C:\Users\fath> ssh -p 65002 u482234477@145.79.28.203
+u482234477@145.79.28.203's password:
+Last failed login: Fri Mar 27 21:52:39 UTC 2026 from 180.251.147.75 on ssh:notty
+There were 2 failed login attempts since the last successful login.
+
+   HHHH               HHHH
+   HHHHHHHH           HHHHHHHH
+   HHHHHHHH           HHHHHHHH
+   HHHHHHHH           HHHHHHHH
+   HHHHHHHHHHHHHHHHHHHH  HHHHH
+   HHHHHHHHHHHHHHHHHHHHHHHHH
+     HHHHHHHHHHHHHHHHHHHHHHHHH
+   HHHH  HHHHHHHHHHHHHHHHHHHHH
+   HHHHHHHH           HHHHHHHH
+   HHHHHHHH           HHHHHHHH
+   HHHHHHHH           HHHHHHHH
+       HHHH               HHHH
+
+Welcome back! The time now is 22:37 UTC
+Server load: 3.26, 3.21, 3.14
+
+Link to hPanel:
+https://hpanel.hostinger.com/
+
+[u482234477@my-kul-web2101 ~]$ cat ~/domains/alonica.id/nodejs/stderr.log
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321
+var import_nanoid = require("nanoid");
+                    ^
+
+Error [ERR_REQUIRE_ESM]: require() of ES Module /home/u482234477/domains/alonica.id/nodejs/node_modules/nanoid/index.js from /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs not supported.
+Instead change the require of index.js in /home/u482234477/domains/alonica.id/nodejs/dist/index.cjs to a dynamic import() which is available in all CommonJS modules.
+    at Object.<anonymous> (/home/u482234477/domains/alonica.id/nodejs/dist/index.cjs:6321:21)
+    at startApplication (/usr/local/lsws/fcgi-bin/lsnode.js:51:15)
+    at Object.<anonymous> (/usr/local/lsws/fcgi-bin/lsnode.js:16:1) {
+  code: 'ERR_REQUIRE_ESM'
+}
+
+Node.js v18.20.8
+[u482234477@my-kul-web2101 ~]$

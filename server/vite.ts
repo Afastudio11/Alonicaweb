@@ -2,7 +2,7 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { type Server } from "http";
-import { nanoid } from "nanoid";
+import { randomBytes } from "crypto";
 import { createLogger } from "vite";
 
 const viteLogger = createLogger();
@@ -52,7 +52,7 @@ export async function setupVite(app: Express, server: Server) {
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`,
+        `src="/src/main.tsx?v=${randomBytes(4).toString('hex')}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
