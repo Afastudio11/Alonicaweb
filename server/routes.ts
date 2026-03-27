@@ -1676,7 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shift-reports", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      const isSuperAdmin = user.role === "admin" && !user.branchId;
+      const isSuperAdmin = (user.role === "admin" || user.role === "super_admin") && !user.branchId;
       const { limit = "50", offset = "0", branchId, dateFrom, dateTo } = req.query as any;
       // Super admin bisa lihat semua, admin biasa hanya cabangnya
       const filterBranchId = isSuperAdmin ? (branchId || undefined) : user.branchId;

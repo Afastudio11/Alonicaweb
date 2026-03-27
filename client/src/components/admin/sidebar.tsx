@@ -99,7 +99,7 @@ const BASE_NAV_GROUPS = [
 ];
 
 function getNavGroups(user: any) {
-  const isSuperAdmin = user?.role === "admin" && user?.branchId === null;
+  const isSuperAdmin = (user?.role === "admin" || user?.role === "super_admin") && user?.branchId === null;
   const allowedMenus: string[] | null = user?.allowedMenus ?? null;
   return BASE_NAV_GROUPS
     .filter(g => !g.superAdminOnly || isSuperAdmin)
@@ -261,7 +261,7 @@ function SidebarContent({ currentSection, onNavigate, onLogout, user, collapsed 
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 12.5, fontWeight: 600, color: "#18181B", lineHeight: 1 }}>{user?.username || "Admin"}</p>
-              <p style={{ fontSize: 10.5, color: "#A1A1AA", marginTop: 2.5 }}>{user?.role === "admin" ? "Administrator" : "Kasir"}</p>
+              <p style={{ fontSize: 10.5, color: "#A1A1AA", marginTop: 2.5 }}>{(user?.role === "admin" || user?.role === "super_admin") ? "Administrator" : "Kasir"}</p>
             </div>
             <button
               onClick={onLogout}

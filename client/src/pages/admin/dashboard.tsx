@@ -92,7 +92,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (user.role !== "admin") {
+  if (user.role !== "admin" && user.role !== "super_admin") {
     return (
       <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center", padding: 32, background: "#fff", borderRadius: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const isSuperAdmin = user.role === "admin" && user.branchId === null;
+  const isSuperAdmin = (user.role === "admin" || user.role === "super_admin") && user.branchId === null;
   const allowedMenus: string[] | null = user.allowedMenus ?? null;
 
   // Cek apakah user punya akses ke section ini
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {user?.role === "admin" && <NotificationBell />}
+              {(user?.role === "admin" || user?.role === "super_admin") && <NotificationBell />}
               <button
                 onClick={logout}
                 data-testid="button-logout"

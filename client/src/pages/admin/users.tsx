@@ -44,7 +44,7 @@ export default function UsersSection() {
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
 
-  const isSuperAdmin = currentUser?.role === "admin" && currentUser?.branchId === null;
+  const isSuperAdmin = (currentUser?.role === "admin" || currentUser?.role === "super_admin") && currentUser?.branchId === null;
 
   // Form for creating new users
   const createForm = useForm<CreateFormData>({
