@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileBarChart2, Search, ChevronLeft, ChevronRight, Eye, Download, Calendar, User, Building2, DollarSign, Utensils, Coffee, FileText, TrendingUp } from "lucide-react";
+import {
+  FileBarChart2, Search, ChevronLeft, ChevronRight, Eye, Download,
+  Calendar, User, Building2, FileText, Utensils, Coffee, X,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { generateShiftPDF } from "@/utils/shift-pdf";
 import { useToast } from "@/hooks/use-toast";
@@ -42,12 +46,20 @@ export default function ShiftReportsSection() {
   const [page, setPage] = useState(0);
   const pageSize = 20;
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [viewingReport, setViewingReport] = useState<ShiftReport | null>(null);
 
   const { data, isLoading } = useQuery<{ reports: ShiftReport[]; total: number }>({
-    queryKey: ["/api/shift-reports", page, pageSize],
+    queryKey: ["/api/shift-reports", page, pageSize, dateFrom, dateTo],
     queryFn: async () => {
-      const res = await fetch(`/api/shift-reports?limit=${pageSize}&offset=${page * pageSize}`, { credentials: "include" });
+      const params = new URLSearchParams({
+        limit: String(pageSize),
+        offset: String(page * pageSize),
+      });
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
+      const res = await fetch(`/api/shift-reports?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Gagal mengambil laporan shift");
       return res.json();
     },
@@ -64,6 +76,21 @@ export default function ShiftReportsSection() {
     r.reportDate.includes(searchQuery)
   );
 
+  function resetFilters() {
+    setDateFrom("");
+    setDateTo("");
+    setSearchQuery("");
+    setPage(0);
+  }
+
+  function handleDateChange(type: "from" | "to", value: string) {
+    setPage(0);
+    if (type === "from") setDateFrom(value);
+    else setDateTo(value);
+  }
+
+  const hasFilter = dateFrom !== "" || dateTo !== "" || searchQuery !== "";
+
   const handleDownload = (report: ShiftReport) => {
     try {
       const recap = report.recapData as RecapData | null;
@@ -71,7 +98,7 @@ export default function ShiftReportsSection() {
       if (!ok) {
         toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
       }
-    } catch (err) {
+    } catch {
       toast({ title: "Gagal Unduh PDF", description: "Terjadi kesalahan saat membuat PDF. Coba lagi.", variant: "destructive" });
     }
   };
@@ -88,16 +115,57 @@ export default function ShiftReportsSection() {
         </Badge>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Cari kasir, cabang, tanggal..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-          data-testid="input-search-shift-reports"
-        />
+      {/* Filter row */}
+      <div className="flex flex-wrap gap-3 items-end">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari kasir atau cabang..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+            className="pl-9 w-52"
+            data-testid="input-search-shift-reports"
+          />
+        </div>
+
+        {/* Date From */}
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Dari</Label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => handleDateChange("from", e.target.value)}
+            className="w-40"
+            data-testid="input-date-from"
+          />
+        </div>
+
+        {/* Date To */}
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground">Sampai</Label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => handleDateChange("to", e.target.value)}
+            className="w-40"
+            data-testid="input-date-to"
+          />
+        </div>
+
+        {/* Reset */}
+        {hasFilter && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="self-end text-muted-foreground hover:text-foreground"
+            data-testid="button-reset-filters"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Reset
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -108,8 +176,19 @@ export default function ShiftReportsSection() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileBarChart2 className="h-12 w-12 text-muted-foreground/40 mb-4" />
-            <p className="text-muted-foreground font-medium">Belum ada laporan shift</p>
-            <p className="text-sm text-muted-foreground mt-1">Laporan akan muncul setelah kasir menutup shift dan mengirimkan laporan</p>
+            <p className="text-muted-foreground font-medium">
+              {hasFilter ? "Tidak ada laporan untuk filter ini" : "Belum ada laporan shift"}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {hasFilter
+                ? "Coba ubah rentang tanggal atau kata kunci pencarian"
+                : "Laporan akan muncul setelah kasir menutup shift dan mengirimkan laporan"}
+            </p>
+            {hasFilter && (
+              <Button variant="outline" size="sm" onClick={resetFilters} className="mt-4">
+                Reset Filter
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -350,9 +429,7 @@ export default function ShiftReportsSection() {
               <Button
                 className="w-full"
                 variant="outline"
-                onClick={() => {
-                  handleDownload(viewingReport);
-                }}
+                onClick={() => handleDownload(viewingReport)}
                 data-testid="button-download-from-dialog"
               >
                 <Download className="h-4 w-4 mr-2" />

@@ -16,7 +16,6 @@ import {
   Images,
   CircleCheck,
   Landmark,
-  BarChart3,
   Settings2,
   Printer,
   Network,
@@ -79,7 +78,6 @@ const BASE_NAV_GROUPS = [
     items: [
       { key: "approvals", label: "Persetujuan", icon: CircleCheck },
       { key: "audit-reports", label: "Laporan Keuangan", icon: Landmark },
-      { key: "analytics", label: "Laporan Penjualan", icon: BarChart3 },
       { key: "shift-reports", label: "Laporan Shift Kasir", icon: ClipboardList },
       { key: "daily-reports", label: "Laporan Harian Kasir", icon: FileText },
     ],

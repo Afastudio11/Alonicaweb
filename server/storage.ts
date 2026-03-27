@@ -141,7 +141,7 @@ export interface IStorage {
 
   // Shift Reports (laporan shift dikirim ke super admin)
   createShiftReport(report: InsertShiftReport): Promise<ShiftReport>;
-  getShiftReports(params?: { branchId?: string; limit?: number; offset?: number }): Promise<{ reports: ShiftReport[]; total: number }>;
+  getShiftReports(params?: { branchId?: string; limit?: number; offset?: number; dateFrom?: string; dateTo?: string }): Promise<{ reports: ShiftReport[]; total: number }>;
   getShiftReport(id: string): Promise<ShiftReport | undefined>;
 
   // Tables (Meja)
@@ -1636,9 +1636,13 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async getShiftReports(params: { branchId?: string; limit?: number; offset?: number } = {}): Promise<{ reports: ShiftReport[]; total: number }> {
-    const { branchId, limit = 50, offset = 0 } = params;
-    const where = branchId ? eq(shiftReports.branchId, branchId) : undefined;
+  async getShiftReports(params: { branchId?: string; limit?: number; offset?: number; dateFrom?: string; dateTo?: string } = {}): Promise<{ reports: ShiftReport[]; total: number }> {
+    const { branchId, limit = 50, offset = 0, dateFrom, dateTo } = params;
+    const conditions: any[] = [];
+    if (branchId) conditions.push(eq(shiftReports.branchId, branchId));
+    if (dateFrom) conditions.push(sql`${shiftReports.reportDate} >= ${dateFrom}`);
+    if (dateTo) conditions.push(sql`${shiftReports.reportDate} <= ${dateTo}`);
+    const where = conditions.length > 0 ? and(...conditions) : undefined;
     const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(shiftReports).where(where ?? sql`1=1`);
     const reports = await db.select().from(shiftReports)
       .where(where ?? sql`1=1`)

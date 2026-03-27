@@ -1677,13 +1677,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const isSuperAdmin = user.role === "admin" && !user.branchId;
-      const { limit = "50", offset = "0", branchId } = req.query as any;
+      const { limit = "50", offset = "0", branchId, dateFrom, dateTo } = req.query as any;
       // Super admin bisa lihat semua, admin biasa hanya cabangnya
       const filterBranchId = isSuperAdmin ? (branchId || undefined) : user.branchId;
       const result = await storage.getShiftReports({
         branchId: filterBranchId,
         limit: parseInt(limit),
         offset: parseInt(offset),
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
       });
       res.json(result);
     } catch (error) {
