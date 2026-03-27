@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { GlassWater, ChefHat, Clock, RefreshCw, ChevronRight, Loader2 } from "lucide-react";
+import { GlassWater, ChefHat, Clock, RefreshCw, ChevronRight, Loader2, Users, Utensils } from "lucide-react";
 import type { DrinkQueue } from "@shared/schema";
 
 // ──────────────────────────────────────────────
 // Config per-status
 // ──────────────────────────────────────────────
-const STATUS_CFG: Record<string, { label: string; color: string; bg: string; border: string; dot: string; nextLabel: string; nextStatus: string; nextBg: string }> = {
+const STATUS_CFG: Record<string, {
+  label: string; color: string; bg: string; border: string; dot: string;
+  nextLabel: string; nextStatus: string; nextBg: string;
+}> = {
   waiting: {
-    label: "Antri", color: "#3C3C43", bg: "#F2F2F7", border: "#E5E5EA", dot: "#8E8E93",
+    label: "Antri",  color: "#3C3C43", bg: "#F2F2F7", border: "#E5E5EA", dot: "#8E8E93",
     nextLabel: "Mulai Buat", nextStatus: "making", nextBg: "#FF9500",
   },
   making: {
@@ -18,8 +21,8 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; bor
     nextLabel: "Tandai Siap", nextStatus: "ready", nextBg: "#34C759",
   },
   ready: {
-    label: "Siap", color: "#34C759", bg: "#F0FFF4", border: "#A3D9A5", dot: "#34C759",
-    nextLabel: "Diambil", nextStatus: "taken", nextBg: "#007AFF",
+    label: "Siap",   color: "#34C759", bg: "#F0FFF4", border: "#A3D9A5", dot: "#34C759",
+    nextLabel: "Diambil",    nextStatus: "taken",  nextBg: "#007AFF",
   },
   taken: {
     label: "Selesai", color: "#007AFF", bg: "#EEF4FF", border: "#BDD0FF", dot: "#007AFF",
@@ -27,118 +30,234 @@ const STATUS_CFG: Record<string, { label: string; color: string; bg: string; bor
   },
 };
 
+const STATUS_ORDER: Record<string, number> = { waiting: 0, making: 1, ready: 2, taken: 3 };
+
 type QueueItem = DrinkQueue & { itemType?: string };
-type TabType = "food" | "drink";
+type TabType   = "food" | "drink";
 
 // ──────────────────────────────────────────────
-// ItemCard — satu item satu kartu
+// Group by orderId
 // ──────────────────────────────────────────────
-function ItemCard({ item, onStatusChange, pendingId }: {
-  item: QueueItem;
+type OrderGroup = {
+  orderId: string;
+  customerName: string;
+  tableNumber: string | null;
+  orderType: string;
+  items: QueueItem[];
+  worstStatus: string;
+  earliestTime: Date;
+};
+
+function groupByOrder(items: QueueItem[]): OrderGroup[] {
+  const map = new Map<string, OrderGroup>();
+  for (const item of items) {
+    const oid = (item as any).orderId ?? item.id;
+    if (!map.has(oid)) {
+      map.set(oid, {
+        orderId: oid,
+        customerName: item.customerName,
+        tableNumber: (item as any).tableNumber ?? null,
+        orderType: item.orderType,
+        items: [],
+        worstStatus: item.status,
+        earliestTime: new Date(item.createdAt),
+      });
+    }
+    const g = map.get(oid)!;
+    g.items.push(item);
+    if ((STATUS_ORDER[item.status] ?? 0) < (STATUS_ORDER[g.worstStatus] ?? 0)) {
+      g.worstStatus = item.status;
+    }
+    const t = new Date(item.createdAt);
+    if (t < g.earliestTime) g.earliestTime = t;
+  }
+  // Sort items within each group: waiting → making → ready
+  for (const g of map.values()) {
+    g.items.sort((a, b) => (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0));
+  }
+  return Array.from(map.values()).sort((a, b) => {
+    const sd = (STATUS_ORDER[a.worstStatus] ?? 0) - (STATUS_ORDER[b.worstStatus] ?? 0);
+    if (sd !== 0) return sd;
+    return a.earliestTime.getTime() - b.earliestTime.getTime();
+  });
+}
+
+// ──────────────────────────────────────────────
+// OrderCard — semua item dari satu pesanan
+// ──────────────────────────────────────────────
+function OrderCard({ group, onStatusChange, pendingId }: {
+  group: OrderGroup;
   onStatusChange: (id: string, status: string) => void;
   pendingId: string | null;
 }) {
-  const cfg = STATUS_CFG[item.status] ?? STATUS_CFG.waiting;
-  const elapsed = Math.floor((Date.now() - new Date(item.createdAt).getTime()) / 60000);
-  const isFood = (item as any).itemType === "food";
-  const isPending = pendingId === item.id;
-  const isDone = item.status === "taken";
+  const cfg = STATUS_CFG[group.worstStatus] ?? STATUS_CFG.waiting;
+  const elapsed = Math.floor((Date.now() - group.earliestTime.getTime()) / 60000);
+
+  // Items that can still be advanced
+  const actionableWaiting = group.items.filter(i => i.status === "waiting");
+  const actionableMaking  = group.items.filter(i => i.status === "making");
+
+  const bulkLabel  = actionableWaiting.length > 0 ? "Buat Semua" : actionableMaking.length > 0 ? "Semua Siap" : null;
+  const bulkStatus = actionableWaiting.length > 0 ? "making"     : actionableMaking.length > 0 ? "ready"      : null;
+  const bulkBg     = actionableWaiting.length > 0 ? "#FF9500"    : "#34C759";
+  const bulkItems  = actionableWaiting.length > 0 ? actionableWaiting : actionableMaking;
 
   return (
     <div
-      data-testid={`kitchen-card-${item.id}`}
+      data-testid={`kitchen-order-${group.orderId}`}
       style={{
         background: "#fff",
         borderRadius: 20,
-        padding: "18px 18px 14px",
         border: `2px solid ${cfg.border}`,
-        position: "relative",
-        boxShadow: item.status === "making"
-          ? "0 4px 20px rgba(255,149,0,0.18)"
-          : item.status === "ready"
-          ? "0 4px 20px rgba(52,199,89,0.18)"
+        overflow: "hidden",
+        boxShadow: group.worstStatus === "making"
+          ? "0 4px 20px rgba(255,149,0,0.15)"
+          : group.worstStatus === "ready"
+          ? "0 4px 20px rgba(52,199,89,0.15)"
           : "0 2px 8px rgba(0,0,0,0.05)",
-        opacity: isDone ? 0.65 : 1,
         transition: "all 0.2s",
       }}
     >
-      {/* Queue number badge */}
+      {/* Order header */}
       <div style={{
-        position: "absolute", top: 14, right: 14,
-        width: 40, height: 40, borderRadius: "50%",
-        background: cfg.bg, border: `2px solid ${cfg.border}`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 15, fontWeight: 800, color: cfg.color,
+        padding: "14px 16px 12px",
+        background: cfg.bg,
+        borderBottom: `1px solid ${cfg.border}`,
+        display: "flex", alignItems: "flex-start", justifyContent: "space-between",
       }}>
-        {item.queueNumber}
-      </div>
-
-      {/* Status row */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <div style={{ flex: 1 }}>
+          {/* Status + time */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: "50%", background: cfg.dot,
+              boxShadow: group.worstStatus === "making" ? `0 0 0 3px ${cfg.bg}` : "none",
+              flexShrink: 0,
+            }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              {cfg.label}
+            </span>
+            <span style={{ fontSize: 11, color: "#8E8E93" }}>
+              <Clock size={10} style={{ display: "inline", marginRight: 2 }} />
+              {elapsed < 1 ? "baru" : `${elapsed}m lalu`}
+            </span>
+          </div>
+          {/* Customer + table */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Users size={13} color="#6E6E73" />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F" }}>{group.customerName}</span>
+            <span style={{ fontSize: 13, color: "#6E6E73" }}>·</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#3C3C43" }}>
+              {group.orderType === "take_away" ? "Take Away" : `Meja ${group.tableNumber}`}
+            </span>
+          </div>
+        </div>
+        {/* Item count badge */}
         <div style={{
-          width: 8, height: 8, borderRadius: "50%", background: cfg.dot,
-          boxShadow: item.status === "making" ? `0 0 0 3px ${cfg.bg}` : "none",
-        }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-          {cfg.label}
-        </span>
-        {/* Type chip */}
-        <span style={{
-          fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 999,
-          background: isFood ? "#FFF3E0" : "#E3F2FD",
-          color: isFood ? "#E65100" : "#1565C0",
-          display: "flex", alignItems: "center", gap: 3,
+          width: 36, height: 36, borderRadius: 10,
+          background: "#fff", border: `1.5px solid ${cfg.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", flexShrink: 0,
         }}>
-          {isFood
-            ? <ChefHat size={9} style={{ display: "inline" }} />
-            : <GlassWater size={9} style={{ display: "inline" }} />}
-          {isFood ? "Makanan" : "Minuman"}
-        </span>
-        <span style={{ fontSize: 11, color: "#8E8E93", marginLeft: "auto", marginRight: 48 }}>
-          <Clock size={10} style={{ display: "inline", marginRight: 2 }} />
-          {elapsed < 1 ? "baru" : `${elapsed}m lalu`}
-        </span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: cfg.color, lineHeight: 1 }}>{group.items.length}</span>
+          <span style={{ fontSize: 9, color: "#8E8E93", lineHeight: 1 }}>item</span>
+        </div>
       </div>
 
-      {/* Item name */}
-      <p style={{ fontSize: 17, fontWeight: 800, color: "#1D1D1F", margin: "4px 0 2px", lineHeight: 1.3, paddingRight: 48 }}>
-        {item.drinkName}
-      </p>
+      {/* Item rows */}
+      <div style={{ padding: "8px 0" }}>
+        {group.items.map((item, idx) => {
+          const ic = STATUS_CFG[item.status] ?? STATUS_CFG.waiting;
+          const isFood = (item as any).itemType === "food";
+          const isPending = pendingId === item.id;
+          return (
+            <div
+              key={item.id}
+              data-testid={`kitchen-item-${item.id}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 16px",
+                borderBottom: idx < group.items.length - 1 ? "1px solid #F2F2F7" : "none",
+              }}
+            >
+              {/* Food/drink icon */}
+              <div style={{
+                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                background: isFood ? "#FFF3E0" : "#E3F2FD",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {isFood
+                  ? <ChefHat size={14} color="#E65100" />
+                  : <GlassWater size={14} color="#1565C0" />}
+              </div>
 
-      {/* Customer + table */}
-      <p style={{ fontSize: 13, color: "#6E6E73", margin: 0 }}>
-        {item.customerName} •{" "}
-        <span style={{ fontWeight: 600 }}>
-          {item.orderType === "take_away" ? "Take Away" : `Meja ${item.tableNumber}`}
-        </span>
-      </p>
-      {item.notes && (
-        <p style={{ fontSize: 12, color: "#FF9500", fontStyle: "italic", margin: "4px 0 0" }}>
-          Catatan: {item.notes}
-        </p>
-      )}
+              {/* Name + notes */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", margin: 0, lineHeight: 1.3 }}>
+                  {item.drinkName}
+                </p>
+                {item.notes && (
+                  <p style={{ fontSize: 11, color: "#FF9500", fontStyle: "italic", margin: "2px 0 0" }}>
+                    {item.notes}
+                  </p>
+                )}
+              </div>
 
-      {/* Action button */}
-      {cfg.nextLabel && (
-        <button
-          onClick={() => onStatusChange(item.id, cfg.nextStatus)}
-          disabled={isPending}
-          data-testid={`button-kitchen-${item.id}-next`}
-          style={{
-            marginTop: 14, width: "100%", height: 48, borderRadius: 12,
-            border: "none", cursor: isPending ? "wait" : "pointer",
-            fontSize: 14, fontWeight: 700,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            background: cfg.nextBg, color: "#fff",
-            opacity: isPending ? 0.7 : 1,
-            transition: "opacity 0.15s",
-          }}
-        >
-          {isPending
-            ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-            : <ChevronRight size={16} />}
-          {cfg.nextLabel}
-        </button>
+              {/* Status chip */}
+              <div style={{
+                height: 24, paddingInline: 8, borderRadius: 999,
+                background: ic.bg, border: `1px solid ${ic.border}`,
+                display: "flex", alignItems: "center",
+                fontSize: 10, fontWeight: 700, color: ic.color,
+                flexShrink: 0,
+              }}>
+                {ic.label}
+              </div>
+
+              {/* Action button */}
+              {ic.nextLabel && (
+                <button
+                  onClick={() => onStatusChange(item.id, ic.nextStatus)}
+                  disabled={isPending}
+                  data-testid={`button-kitchen-${item.id}-next`}
+                  style={{
+                    height: 32, paddingInline: 12, borderRadius: 8,
+                    border: "none", cursor: isPending ? "wait" : "pointer",
+                    fontSize: 12, fontWeight: 700, flexShrink: 0,
+                    display: "flex", alignItems: "center", gap: 4,
+                    background: ic.nextBg, color: "#fff",
+                    opacity: isPending ? 0.7 : 1,
+                    transition: "opacity 0.15s",
+                  }}
+                >
+                  {isPending
+                    ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />
+                    : <ChevronRight size={13} />}
+                  {ic.nextLabel}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Bulk action footer */}
+      {bulkLabel && bulkStatus && bulkItems.length > 1 && (
+        <div style={{ padding: "10px 16px 14px", borderTop: "1px solid #F2F2F7" }}>
+          <button
+            data-testid={`button-kitchen-bulk-${group.orderId}`}
+            onClick={() => bulkItems.forEach(i => onStatusChange(i.id, bulkStatus))}
+            style={{
+              width: "100%", height: 44, borderRadius: 10,
+              border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              background: bulkBg, color: "#fff",
+            }}
+          >
+            <Utensils size={14} />
+            {bulkLabel} ({bulkItems.length} item)
+          </button>
+        </div>
       )}
     </div>
   );
@@ -165,11 +284,10 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
       return res.json();
     },
     onMutate: async ({ id, status }) => {
-      // Optimistic update: langsung ubah status di cache tanpa tunggu server
       await queryClient.cancelQueries({ queryKey: ["/api/drink-queue"] });
       const prev = queryClient.getQueryData<QueueItem[]>(["/api/drink-queue"]);
       queryClient.setQueryData(["/api/drink-queue"], (old: QueueItem[] | undefined) =>
-        old ? old.map((item) => item.id === id ? { ...item, status } : item) : old
+        old ? old.map(item => item.id === id ? { ...item, status } : item) : old
       );
       return { prev };
     },
@@ -177,7 +295,6 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
       queryClient.invalidateQueries({ queryKey: ["/api/drink-queue"] });
     },
     onError: (error: any, _vars, context) => {
-      // Kembalikan ke state sebelumnya jika error
       if (context?.prev) queryClient.setQueryData(["/api/drink-queue"], context.prev);
       const msg = error?.message || "";
       toast({
@@ -201,11 +318,8 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
     ? drinkItems
     : activeTab === "food" ? foodItems : drinkItems;
 
-  // Sort: waiting → making → ready (taken hidden from default view)
-  const sortOrder = { waiting: 0, making: 1, ready: 2, taken: 3 };
-  const sortedQueue = [...displayQueue].sort((a, b) =>
-    (sortOrder[a.status as keyof typeof sortOrder] ?? 0) - (sortOrder[b.status as keyof typeof sortOrder] ?? 0)
-  );
+  // Group by order
+  const orderGroups = groupByOrder(displayQueue);
 
   const waiting = activeQueue.filter(q => q.status === "waiting").length;
   const making  = activeQueue.filter(q => q.status === "making").length;
@@ -239,7 +353,7 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
                 {mode === "food" ? "Dapur" : mode === "drink" ? "Bar" : "Dapur & Bar"}
               </h1>
               <p style={{ fontSize: 12, color: "#6E6E73", margin: 0 }}>
-                {displayQueue.length} item aktif · auto-refresh 4 detik
+                {orderGroups.length} pesanan · {displayQueue.length} item · auto-refresh 4 detik
               </p>
             </div>
           </div>
@@ -257,7 +371,7 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
           </button>
         </div>
 
-        {/* Status pills */}
+        {/* Status pills — count by items */}
         <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
           {[
             { label: "Antri",  count: waiting, color: "#8E8E93", bg: "#F2F2F7" },
@@ -319,15 +433,15 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
       {/* Content */}
       <div style={{ padding: 20 }}>
         {isLoading ? (
-          <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
-            {[1, 2, 3, 4].map(i => (
+          <div style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))" }}>
+            {[1, 2, 3].map(i => (
               <div key={i} style={{
-                background: "#fff", borderRadius: 20, padding: 20, height: 170,
+                background: "#fff", borderRadius: 20, height: 220,
                 border: "2px solid #E5E5EA", animation: "pulse 1.5s infinite",
               }} />
             ))}
           </div>
-        ) : sortedQueue.length === 0 ? (
+        ) : orderGroups.length === 0 ? (
           <div style={{ textAlign: "center", paddingBlock: 80, color: "#8E8E93" }}>
             <ChefHat size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
             <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
@@ -340,11 +454,11 @@ export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drin
             </p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-            {sortedQueue.map(item => (
-              <ItemCard
-                key={item.id}
-                item={item}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+            {orderGroups.map(group => (
+              <OrderCard
+                key={group.orderId}
+                group={group}
                 onStatusChange={(id, status) => updateStatusMutation.mutate({ id, status })}
                 pendingId={pendingId}
               />
