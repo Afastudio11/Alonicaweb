@@ -11,7 +11,8 @@ import {
   X,
   LogOut,
   Printer,
-  Clock
+  Clock,
+  LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -31,15 +32,17 @@ interface KasirSidebarProps {
   user: User | null;
 }
 
+// Order matches the admin panel's POS & PESANAN group exactly
 const menuItems = [
-  { id: 'orders',       label: 'Pesanan',          icon: ClipboardList, path: '/kasir/orders' },
-  { id: 'kitchen',      label: 'Dapur',             icon: ChefHat,       path: '/kasir/kitchen' },
   { id: 'cashier',      label: 'Kasir',             icon: Calculator,    path: '/kasir/cashier' },
-  { id: 'shift',        label: 'Manajemen Shift',   icon: Clock,         path: '/kasir/shift' },
-  { id: 'reservations', label: 'Reservasi',         icon: Calendar,      path: '/kasir/reservations' },
-  { id: 'expenses',     label: 'Pengeluaran',       icon: Receipt,       path: '/kasir/expenses' },
-  { id: 'daily-reports',label: 'Laporan Penjualan', icon: TrendingUp,    path: '/kasir/daily-reports' },
-  { id: 'printer',      label: 'Printer',           icon: Printer,       path: '/kasir/printer' },
+  { id: 'orders',       label: 'Pesanan',            icon: ClipboardList, path: '/kasir/orders' },
+  { id: 'drink-queue',  label: 'Antrian Pesanan',    icon: LayoutGrid,    path: '/kasir/drink-queue' },
+  { id: 'kitchen',      label: 'Dapur & Bar',        icon: ChefHat,       path: '/kasir/kitchen' },
+  { id: 'reservations', label: 'Reservasi',          icon: Calendar,      path: '/kasir/reservations' },
+  { id: 'shift',        label: 'Manajemen Shift',    icon: Clock,         path: '/kasir/shift' },
+  { id: 'expenses',     label: 'Pengeluaran',        icon: Receipt,       path: '/kasir/expenses' },
+  { id: 'daily-reports',label: 'Laporan Penjualan',  icon: TrendingUp,    path: '/kasir/daily-reports' },
+  { id: 'printer',      label: 'Printer',            icon: Printer,       path: '/kasir/printer' },
 ];
 
 export default function KasirSidebar({ isOpen, onClose, currentSection, user }: KasirSidebarProps) {

@@ -5,6 +5,7 @@ import OrdersSection from "@/pages/admin/orders";
 import KitchenSection from "@/pages/admin/kitchen";
 import CashierSection from "@/pages/admin/cashier";
 import ReservationsSection from "@/pages/admin/reservations";
+import DrinkQueueSection from "@/pages/admin/drink-queue";
 import ExpensesSection from "@/pages/kasir/expenses";
 import DailyReportsSection from "@/pages/kasir/daily-reports";
 import ShiftManagementSection from "@/pages/kasir/shift-management";
@@ -84,11 +85,12 @@ export default function KasirDashboard() {
     }
 
     switch (section) {
-      case 'shift':        return <ShiftManagementSection />;
-      case 'orders':       return <OrdersSection />;
-      case 'kitchen':      return <KitchenSection />;
       case 'cashier':      return <CashierSection />;
+      case 'orders':       return <OrdersSection />;
+      case 'drink-queue':  return <DrinkQueueSection />;
+      case 'kitchen':      return <KitchenSection />;
       case 'reservations': return <ReservationsSection />;
+      case 'shift':        return <ShiftManagementSection />;
       case 'expenses':     return <ExpensesSection />;
       case 'daily-reports':return <DailyReportsSection />;
       case 'printer':      return <PrinterPage />;
