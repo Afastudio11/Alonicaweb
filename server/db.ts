@@ -32,10 +32,10 @@ const shouldUseSSL = () => {
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: shouldUseSSL(),
-  // Connection pool settings for better performance
-  max: 20,
+  // Keep pool small for Supabase free tier (max 3-5 direct connections)
+  max: 3,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  connectionTimeoutMillis: 15000,
 });
 
 export const db = drizzle(pool, { schema });
