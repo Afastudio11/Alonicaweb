@@ -2388,6 +2388,11 @@ export default function CashierSection() {
                         >
                           <Eye className="h-3 w-3 mr-1" /> Detail
                         </Button>
+                        <Button size="sm" variant="outline" className="h-7 text-xs flex-1"
+                          onClick={() => { setSelectedGroupDetail(null); handleEditOpenBill(bill); }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Tambah
+                        </Button>
                         <Button size="sm" className="h-7 text-xs flex-1 bg-primary hover:bg-primary/90"
                           onClick={() => { setSelectedGroupDetail(null); handlePayOpenBill(bill); }}
                         >
