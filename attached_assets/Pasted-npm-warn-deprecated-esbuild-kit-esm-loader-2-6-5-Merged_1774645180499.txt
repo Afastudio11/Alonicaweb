@@ -1,0 +1,89 @@
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @uppy/aws-s3-multipart@3.12.0: Use @uppy/aws-s3 instead.
+
+added 634 packages, and audited 635 packages in 7s
+
+86 packages are looking for funding
+  run `npm fund` for details
+
+46 vulnerabilities (8 low, 25 moderate, 10 high, 3 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.20 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3888 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /home/u482234477/domains/alonica.id/public_html/.builds/source/repository/node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.mjs is dynamically imported by /home/u482234477/domains/alonica.id/public_html/.builds/source/repository/client/src/pages/admin/analytics.tsx but also statically imported by /home/u482234477/domains/alonica.id/public_html/.builds/source/repository/client/src/utils/shift-pdf.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+../dist/public/index.html                               3.03 kB │ gzip:   1.15 kB
+../dist/public/assets/index-CmsRsw5f.css               83.10 kB │ gzip:  14.39 kB
+../dist/public/assets/minus-BWJB0ODF.js                 0.29 kB │ gzip:   0.24 kB
+../dist/public/assets/check-Di6mg564.js                 0.29 kB │ gzip:   0.24 kB
+../dist/public/assets/plus-C3r-2O_o.js                  0.32 kB │ gzip:   0.26 kB
+../dist/public/assets/arrow-left-ECuLI9ol.js            0.33 kB │ gzip:   0.27 kB
+../dist/public/assets/clock-BplHrLXz.js                 0.35 kB │ gzip:   0.27 kB
+../dist/public/assets/circle-check-big-DLbt443r.js      0.36 kB │ gzip:   0.28 kB
+../dist/public/assets/circle-alert-B1-Wud1X.js          0.42 kB │ gzip:   0.29 kB
+../dist/public/assets/calendar-e4R71_Pv.js              0.43 kB │ gzip:   0.30 kB
+../dist/public/assets/utensils-OocOePQy.js              0.43 kB │ gzip:   0.31 kB
+../dist/public/assets/shopping-cart-C0lIbbWU.js         0.46 kB │ gzip:   0.33 kB
+../dist/public/assets/house-CpUSSB6v.js                 0.46 kB │ gzip:   0.32 kB
+../dist/public/assets/chef-hat-B1Jyy3Ew.js              0.48 kB │ gzip:   0.34 kB
+../dist/public/assets/badge-check-BheQ5ACJ.js           0.48 kB │ gzip:   0.31 kB
+../dist/public/assets/trash-2-BP5bf5Ii.js               0.53 kB │ gzip:   0.34 kB
+../dist/public/assets/package-CQoaneYI.js               0.56 kB │ gzip:   0.36 kB
+../dist/public/assets/package-search-Co51VJYD.js        0.65 kB │ gzip:   0.42 kB
+../dist/public/assets/not-found-B_st3DFV.js             0.67 kB │ gzip:   0.38 kB
+../dist/public/assets/search-CGop1EwH.js                0.77 kB │ gzip:   0.37 kB
+../dist/public/assets/use-cart-5it66au5.js              0.85 kB │ gzip:   0.48 kB
+../dist/public/assets/card-BxOOfKR7.js                  0.99 kB │ gzip:   0.36 kB
+../dist/public/assets/smartphone-d_cwZxPP.js            1.13 kB │ gzip:   0.47 kB
+../dist/public/assets/badge-Dbt6-_wI.js                 1.20 kB │ gzip:   0.57 kB
+../dist/public/assets/button-B7izVYEN.js                1.21 kB │ gzip:   0.59 kB
+../dist/public/assets/tree-pine-BR1TyVya.js             1.29 kB │ gzip:   0.46 kB
+../dist/public/assets/shopping-bag-XAIQH2dv.js          1.43 kB │ gzip:   0.51 kB
+../dist/public/assets/star-DdenF2X9.js                  1.62 kB │ gzip:   0.60 kB
+../dist/public/assets/login-D7JNB4Nl.js                 5.00 kB │ gzip:   1.84 kB
+../dist/public/assets/thermal-print-usmkkkvX.js         5.58 kB │ gzip:   2.24 kB
+../dist/public/assets/success-Cm15z7Pj.js               7.90 kB │ gzip:   2.26 kB
+../dist/public/assets/payment-fptYSxNI.js               9.86 kB │ gzip:   3.41 kB
+../dist/public/assets/useQuery-DV_SmRoP.js             10.30 kB │ gzip:   3.64 kB
+../dist/public/assets/menu-BMkohLL1.js                 10.44 kB │ gzip:   3.53 kB
+../dist/public/assets/cart-BHlLP5R0.js                 10.73 kB │ gzip:   3.14 kB
+../dist/public/assets/reservasi-DrlOO_Sv.js            12.38 kB │ gzip:   3.50 kB
+../dist/public/assets/lacak-Bm_uwiyo.js                13.21 kB │ gzip:   4.18 kB
+../dist/public/assets/welcome-DBI13VPX.js              18.09 kB │ gzip:   5.29 kB
+../dist/public/assets/purify.es-DfngIMfA.js            22.26 kB │ gzip:   8.68 kB
+../dist/public/assets/dashboard-DeQHGHVJ.js            49.95 kB │ gzip:  11.20 kB
+../dist/public/assets/dashboard-BkLow3F9.js            93.38 kB │ gzip:  22.13 kB
+../dist/public/assets/index.es-Xa_t1jn3.js            151.24 kB │ gzip:  51.64 kB
+../dist/public/assets/html2canvas.esm-CBrSDip1.js     201.42 kB │ gzip:  47.70 kB
+../dist/public/assets/index-Cszthm-D.js               267.48 kB │ gzip:  87.94 kB
+../dist/public/assets/daily-reports-JyV8Xgwc.js     1,434.51 kB │ gzip: 398.11 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 10.63s
+
+  dist/index.js  254.1kb
+
+⚡ Done in 18ms
