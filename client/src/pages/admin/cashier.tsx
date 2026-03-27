@@ -161,6 +161,11 @@ export default function CashierSection() {
     ? allMembers.filter(m => m.name.toLowerCase().includes(customerName.toLowerCase())).slice(0, 6)
     : [];
 
+  // Open bill customer suggestions (shown when focused, filtered while typing)
+  const openBillSuggestions = groupedOpenBills.filter(g =>
+    customerName.trim().length === 0 || g.customerName.toLowerCase().includes(customerName.toLowerCase())
+  ).slice(0, 6);
+
   // Group menu items by category
   const menuByCategory = categories.reduce((acc, category) => {
     acc[category.id] = menuItems.filter(item => item.categoryId === category.id && item.isAvailable);
@@ -1577,14 +1582,54 @@ export default function CashierSection() {
                 data-testid="input-customer-name"
                 autoComplete="off"
               />
-              {/* Member suggestions dropdown */}
-              {showMemberDropdown && memberSuggestions.length > 0 && (
+              {/* Member + Open Bill suggestions dropdown */}
+              {showMemberDropdown && (openBillSuggestions.length > 0 || memberSuggestions.length > 0) && (
                 <div style={{
                   position: "absolute", top: "100%", left: 0, right: 0, zIndex: 50,
                   background: "#fff", border: "1.5px solid #E5E5EA", borderRadius: 10,
                   boxShadow: "0 4px 16px rgba(0,0,0,0.12)", overflow: "hidden",
                   marginTop: 2,
                 }}>
+                  {/* Open Bill group */}
+                  {openBillSuggestions.length > 0 && (
+                    <>
+                      <div style={{ padding: "5px 12px 3px", fontSize: 10, fontWeight: 700, color: "#FF9500", background: "#FFF9F0", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                        Open Bill Aktif
+                      </div>
+                      {openBillSuggestions.map((g) => (
+                        <button
+                          key={g.customerName}
+                          type="button"
+                          onMouseDown={() => {
+                            setCustomerName(g.customerName);
+                            setShowMemberDropdown(false);
+                          }}
+                          data-testid={`openbill-suggestion-${g.customerName}`}
+                          style={{
+                            width: "100%", padding: "8px 12px", border: "none", background: "none",
+                            textAlign: "left", cursor: "pointer", display: "flex", justifyContent: "space-between",
+                            alignItems: "center", borderBottom: "1px solid #F5F5F7", transition: "background 0.1s",
+                          }}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#FFF5E6")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F" }}>{g.customerName}</span>
+                            <span style={{ fontSize: 11, color: "#8E8E93" }}>{g.orderCount} pesanan • {formatCurrency(g.totalAmount)}</span>
+                          </div>
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5, background: "#FFF5E6", color: "#FF9500" }}>
+                            Open Bill
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {/* Member group */}
+                  {memberSuggestions.length > 0 && (
+                    <>
+                      <div style={{ padding: "5px 12px 3px", fontSize: 10, fontWeight: 700, color: "#8E8E93", background: "#F5F5F7", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                        Member
+                      </div>
                   {memberSuggestions.map((m) => (
                     <button
                       key={m.phone}
@@ -1617,6 +1662,8 @@ export default function CashierSection() {
                       </span>
                     </button>
                   ))}
+                    </>
+                  )}
                 </div>
               )}
             </div>
