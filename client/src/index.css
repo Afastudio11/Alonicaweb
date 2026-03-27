@@ -5,54 +5,55 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
+  --background: 220 14% 96%;
+  --foreground: 224 10% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
+  --card-foreground: 224 10% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
+  --popover-foreground: 224 10% 10%;
   --primary: 35 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
+  --secondary: 220 13% 93%;
+  --secondary-foreground: 224 10% 20%;
+  --muted: 220 13% 93%;
+  --muted-foreground: 220 8% 52%;
+  --accent: 220 13% 93%;
+  --accent-foreground: 224 10% 20%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
+  --border: 220 13% 89%;
+  --input: 220 13% 89%;
   --ring: 35 100% 50%;
   --chart-1: 35 100% 50%;
   --chart-2: 340 75% 55%;
   --chart-3: 195 85% 50%;
   --chart-4: 145 70% 42%;
   --chart-5: 60 90% 50%;
-  --sidebar: 240 4.8% 97%;
-  --sidebar-foreground: 240 5.9% 10%;
+  --sidebar: 228 18% 13%;
+  --sidebar-foreground: 220 10% 88%;
   --sidebar-primary: 35 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 35 100% 95%;
-  --sidebar-accent-foreground: 35 100% 30%;
-  --sidebar-border: 240 5.9% 90%;
+  --sidebar-accent: 228 15% 20%;
+  --sidebar-accent-foreground: 35 100% 60%;
+  --sidebar-border: 228 12% 20%;
   --sidebar-ring: 35 100% 50%;
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
-  --radius: 14px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  --radius: 12px;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.10), 0 4px 10px rgba(0,0,0,0.05);
 
   /* Ngehnoom brand */
   --ng-orange: #FF9500;
   --ng-orange-dark: #E8880F;
   --ng-pink: #FF2D55;
   --ng-amber: #FFAB00;
-  --ng-surface: #F5F5F7;
-  --ng-border: #E5E5EA;
-  --ng-text: #1D1D1F;
-  --ng-text-2: #6E6E73;
-  --ng-text-3: #AEAEB2;
+  --ng-surface: #F0F1F5;
+  --ng-border: #E2E4EA;
+  --ng-text: #18181B;
+  --ng-text-2: #52525B;
+  --ng-text-3: #A1A1AA;
 }
 
 .dark {
@@ -106,16 +107,17 @@ body {
   background: linear-gradient(135deg, var(--ng-amber) 0%, var(--ng-orange) 60%, var(--ng-pink) 100%);
 }
 
-/* Apple-style card */
+/* Clean card */
 .ng-card {
   background: #FFFFFF;
-  border-radius: 20px;
+  border-radius: 14px;
+  border: 1px solid #E8E9EE;
   box-shadow: var(--shadow-sm);
 }
 
 /* Apple blur glass effect for navbar */
 .ng-navbar {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
@@ -143,6 +145,31 @@ body {
 .font-playfair { font-family: var(--font-sans); }
 .alonica-card {
   background: #FFFFFF;
-  border-radius: 20px;
+  border-radius: 14px;
+  border: 1px solid #E8E9EE;
   box-shadow: var(--shadow-sm);
+}
+
+/* Admin page section header */
+.admin-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ng-text);
+  letter-spacing: -0.01em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
 }

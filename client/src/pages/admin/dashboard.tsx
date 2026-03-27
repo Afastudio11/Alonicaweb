@@ -189,7 +189,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FFFFFF", display: "flex" }}>
+    <div style={{ minHeight: "100vh", background: "#F0F1F5", display: "flex" }}>
       {/* Sidebar */}
       <AdminSidebar
         isOpen={sidebarOpen}
@@ -202,34 +202,34 @@ export default function AdminDashboard() {
         {/* Top Header Bar */}
         <div style={{
           position: "sticky", top: 0, zIndex: 30,
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
+          background: "rgba(240,241,245,0.92)",
+          backdropFilter: "blur(16px) saturate(180%)",
+          WebkitBackdropFilter: "blur(16px) saturate(180%)",
+          borderBottom: "1px solid rgba(0,0,0,0.07)",
         }}>
-          {/* Orange gradient accent line */}
-          <div style={{
-            height: 3,
-            background: "linear-gradient(90deg, #FFAB00, #FF9500, #FF2D55)",
-          }} />
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "0 20px", height: 52,
+            padding: "0 20px", height: 54,
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {/* Mobile hamburger */}
               <button
                 className="md:hidden"
                 onClick={() => setSidebarOpen(true)}
                 data-testid="button-mobile-menu"
                 style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  padding: 6, borderRadius: 8,
+                  background: "rgba(0,0,0,0.06)", border: "none", cursor: "pointer",
+                  padding: 7, borderRadius: 9, display: "flex", alignItems: "center",
                 }}
               >
-                <Menu size={20} style={{ color: "#1D1D1F" }} />
+                <Menu size={18} style={{ color: "#18181B" }} />
               </button>
-              <div>
-                <h1 style={{ fontSize: 16, fontWeight: 700, color: "#1D1D1F", lineHeight: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+                }} />
+                <h1 style={{ fontSize: 15, fontWeight: 700, color: "#18181B", lineHeight: 1, letterSpacing: "-0.01em" }}>
                   {pageLabel}
                 </h1>
               </div>
@@ -241,10 +241,13 @@ export default function AdminDashboard() {
                 data-testid="button-logout"
                 style={{
                   height: 32, padding: "0 14px",
-                  background: "rgba(0,0,0,0.05)", border: "none",
-                  borderRadius: 10, fontSize: 13, fontWeight: 500,
-                  color: "#1D1D1F", cursor: "pointer",
+                  background: "rgba(0,0,0,0.06)", border: "none",
+                  borderRadius: 9, fontSize: 12.5, fontWeight: 500,
+                  color: "#52525B", cursor: "pointer",
+                  transition: "background 0.13s",
                 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.1)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.06)"; }}
               >
                 Keluar
               </button>
@@ -253,7 +256,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Page Content */}
-        <div style={{ padding: "20px 20px 40px" }}>
+        <div style={{ padding: "20px 20px 48px" }}>
           {renderSection()}
         </div>
       </div>
