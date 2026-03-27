@@ -12,7 +12,18 @@ import {
   LogOut,
   Printer,
   Clock,
-  LayoutGrid
+  LayoutGrid,
+  Users,
+  UserCog,
+  Tag,
+  Image,
+  ClipboardCheck,
+  FileText,
+  BarChart2,
+  Package,
+  Settings,
+  UtensilsCrossed,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -32,17 +43,33 @@ interface KasirSidebarProps {
   user: User | null;
 }
 
-// Order matches the admin panel's POS & PESANAN group exactly
+// Order and labels EXACTLY match ALL_MENU_GROUPS in the admin users panel
 const menuItems = [
-  { id: 'cashier',      label: 'Kasir',             icon: Calculator,    path: '/kasir/cashier' },
-  { id: 'orders',       label: 'Pesanan',            icon: ClipboardList, path: '/kasir/orders' },
-  { id: 'drink-queue',  label: 'Antrian Pesanan',    icon: LayoutGrid,    path: '/kasir/drink-queue' },
-  { id: 'kitchen',      label: 'Dapur & Bar',        icon: ChefHat,       path: '/kasir/kitchen' },
-  { id: 'reservations', label: 'Reservasi',          icon: Calendar,      path: '/kasir/reservations' },
-  { id: 'shift',        label: 'Manajemen Shift',    icon: Clock,         path: '/kasir/shift' },
-  { id: 'expenses',     label: 'Pengeluaran',        icon: Receipt,       path: '/kasir/expenses' },
-  { id: 'daily-reports',label: 'Laporan Penjualan',  icon: TrendingUp,    path: '/kasir/daily-reports' },
-  { id: 'printer',      label: 'Printer',            icon: Printer,       path: '/kasir/printer' },
+  // POS & Pesanan
+  { id: 'cashier',       label: 'Kasir',                  icon: Calculator,    path: '/kasir/cashier' },
+  { id: 'orders',        label: 'Pesanan',                 icon: ClipboardList, path: '/kasir/orders' },
+  { id: 'drink-queue',   label: 'Antrian Pesanan',         icon: LayoutGrid,    path: '/kasir/drink-queue' },
+  { id: 'kitchen',       label: 'Dapur & Bar',             icon: ChefHat,       path: '/kasir/kitchen' },
+  { id: 'reservations',  label: 'Reservasi',               icon: Calendar,      path: '/kasir/reservations' },
+  { id: 'shift',         label: 'Manajemen Shift',         icon: Clock,         path: '/kasir/shift' },
+  { id: 'expenses',      label: 'Pengeluaran',             icon: Receipt,       path: '/kasir/expenses' },
+  { id: 'daily-reports', label: 'Laporan Penjualan',       icon: TrendingUp,    path: '/kasir/daily-reports' },
+  // Pelanggan
+  { id: 'members',       label: 'Data Member',             icon: Users,         path: '/kasir/members' },
+  { id: 'users',         label: 'Pengguna Admin',          icon: UserCog,       path: '/kasir/users' },
+  // Promo & Konten
+  { id: 'discounts',     label: 'Diskon & Voucher',        icon: Tag,           path: '/kasir/discounts' },
+  { id: 'banners',       label: 'Banner Halaman Depan',    icon: Image,         path: '/kasir/banners' },
+  // Laporan
+  { id: 'approvals',     label: 'Persetujuan',             icon: ClipboardCheck,path: '/kasir/approvals' },
+  { id: 'audit-reports', label: 'Laporan Keuangan',        icon: FileText,      path: '/kasir/audit-reports' },
+  { id: 'analytics',     label: 'Laporan Penjualan',       icon: BarChart2,     path: '/kasir/analytics' },
+  { id: 'inventory',     label: 'Laporan Item',            icon: Package,       path: '/kasir/inventory' },
+  // Pengaturan
+  { id: 'settings',      label: 'Pengaturan Toko',         icon: Settings,      path: '/kasir/settings' },
+  { id: 'menu',          label: 'Manajemen Menu',          icon: UtensilsCrossed,path: '/kasir/menu' },
+  { id: 'categories',    label: 'Kategori Menu',           icon: Layers,        path: '/kasir/categories' },
+  { id: 'printer',       label: 'Pengaturan Printer',      icon: Printer,       path: '/kasir/printer' },
 ];
 
 export default function KasirSidebar({ isOpen, onClose, currentSection, user }: KasirSidebarProps) {

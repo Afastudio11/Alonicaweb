@@ -6,6 +6,17 @@ import KitchenSection from "@/pages/admin/kitchen";
 import CashierSection from "@/pages/admin/cashier";
 import ReservationsSection from "@/pages/admin/reservations";
 import DrinkQueueSection from "@/pages/admin/drink-queue";
+import MembersSection from "@/pages/admin/members";
+import UsersSection from "@/pages/admin/users";
+import DiscountsSection from "@/pages/admin/discounts";
+import BannersSection from "@/pages/admin/banners";
+import ApprovalsSection from "@/pages/admin/approvals";
+import AuditReportsSection from "@/pages/admin/audit-reports";
+import AnalyticsSection from "@/pages/admin/analytics";
+import InventorySection from "@/pages/admin/inventory";
+import SettingsSection from "@/pages/admin/settings";
+import MenuSection from "@/pages/admin/menu";
+import CategoriesSection from "@/pages/admin/categories";
 import ExpensesSection from "@/pages/kasir/expenses";
 import DailyReportsSection from "@/pages/kasir/daily-reports";
 import ShiftManagementSection from "@/pages/kasir/shift-management";
@@ -64,16 +75,6 @@ export default function KasirDashboard() {
   };
 
   const renderSection = () => {
-    // Block admin-only sections always
-    if (['dashboard', 'inventory', 'analytics', 'settings', 'menu', 'categories'].includes(section)) {
-      return (
-        <div className="text-center py-12">
-          <h2 className="section-title mb-2">Akses Ditolak</h2>
-          <p className="text-muted-foreground">Halaman ini hanya tersedia untuk pengguna admin.</p>
-        </div>
-      );
-    }
-
     // Block sections not in allowedMenus
     if (!isSectionAllowed(section)) {
       return (
@@ -85,16 +86,32 @@ export default function KasirDashboard() {
     }
 
     switch (section) {
-      case 'cashier':      return <CashierSection />;
-      case 'orders':       return <OrdersSection />;
-      case 'drink-queue':  return <DrinkQueueSection />;
-      case 'kitchen':      return <KitchenSection />;
-      case 'reservations': return <ReservationsSection />;
-      case 'shift':        return <ShiftManagementSection />;
-      case 'expenses':     return <ExpensesSection />;
-      case 'daily-reports':return <DailyReportsSection />;
-      case 'printer':      return <PrinterPage />;
-      default:             return <OrdersSection />;
+      // POS & Pesanan
+      case 'cashier':       return <CashierSection />;
+      case 'orders':        return <OrdersSection />;
+      case 'drink-queue':   return <DrinkQueueSection />;
+      case 'kitchen':       return <KitchenSection />;
+      case 'reservations':  return <ReservationsSection />;
+      case 'shift':         return <ShiftManagementSection />;
+      case 'expenses':      return <ExpensesSection />;
+      case 'daily-reports': return <DailyReportsSection />;
+      // Pelanggan
+      case 'members':       return <MembersSection />;
+      case 'users':         return <UsersSection />;
+      // Promo & Konten
+      case 'discounts':     return <DiscountsSection />;
+      case 'banners':       return <BannersSection />;
+      // Laporan
+      case 'approvals':     return <ApprovalsSection />;
+      case 'audit-reports': return <AuditReportsSection />;
+      case 'analytics':     return <AnalyticsSection />;
+      case 'inventory':     return <InventorySection />;
+      // Pengaturan
+      case 'settings':      return <SettingsSection />;
+      case 'menu':          return <MenuSection />;
+      case 'categories':    return <CategoriesSection />;
+      case 'printer':       return <PrinterPage />;
+      default:              return <OrdersSection />;
     }
   };
 
