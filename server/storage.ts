@@ -2029,11 +2029,19 @@ export class DatabaseStorage implements IStorage {
 
   // ── Drink Queue ──────────────────────────────────────────────────────────
   async getDrinkQueue(branchId?: string | null): Promise<DrinkQueue[]> {
+    // Return active items (not taken) + taken items from the last 24h (so Selesai tab works)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const conditions = [
       or(
+        // Always include active items
         eq(drinkQueue.status, 'waiting'),
         eq(drinkQueue.status, 'making'),
-        eq(drinkQueue.status, 'ready')
+        eq(drinkQueue.status, 'ready'),
+        // Include taken items from the last 24 hours only
+        and(
+          eq(drinkQueue.status, 'taken'),
+          gte(drinkQueue.updatedAt, oneDayAgo)
+        )
       )
     ];
     if (branchId !== undefined) {
