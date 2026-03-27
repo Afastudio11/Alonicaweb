@@ -80,6 +80,7 @@ const BASE_NAV_GROUPS = [
       { key: "approvals", label: "Persetujuan", icon: CircleCheck },
       { key: "audit-reports", label: "Laporan Keuangan", icon: Landmark },
       { key: "analytics", label: "Laporan Penjualan", icon: BarChart3 },
+      { key: "shift-reports", label: "Laporan Shift Kasir", icon: ClipboardList },
       { key: "daily-reports", label: "Laporan Harian Kasir", icon: FileText },
     ],
   },
@@ -97,7 +98,6 @@ const BASE_NAV_GROUPS = [
     items: [
       { key: "branches", label: "Manajemen Cabang", icon: Network },
       { key: "tables", label: "Manajemen Meja", icon: Grid3X3 },
-      { key: "shift-reports", label: "Laporan Shift Kasir", icon: ClipboardList },
     ],
   },
 ];

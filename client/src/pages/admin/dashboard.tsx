@@ -184,7 +184,7 @@ export default function AdminDashboard() {
       case "kitchen": return <KitchenSection mode="food" />;
       case "bar":     return <KitchenSection mode="drink" />;
       case "branches": return user.branchId === null ? <BranchesSection /> : <OrdersSection />;
-      case "shift-reports": return user.branchId === null ? <ShiftReportsSection /> : <OrdersSection />;
+      case "shift-reports": return <ShiftReportsSection />;
       case "daily-reports": return <DailyReportsSection />;
       case "tables": return user.branchId === null ? <TablesSection /> : <OrdersSection />;
       default: return <OrdersSection />;
