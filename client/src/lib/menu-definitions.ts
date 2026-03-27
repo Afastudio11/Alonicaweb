@@ -31,6 +31,7 @@ import {
   UtensilsCrossed,
   Layers,
   Printer,
+  GlassWater,
   type LucideIcon,
 } from "lucide-react";
 
@@ -58,7 +59,8 @@ export const MENU_GROUPS: MenuGroup[] = [
       { key: "cashier",       label: "Kasir",               icon: Calculator,    path: "/kasir/cashier" },
       { key: "orders",        label: "Pesanan",              icon: ClipboardList, path: "/kasir/orders" },
       { key: "drink-queue",   label: "Antrian Pesanan",      icon: LayoutGrid,    path: "/kasir/drink-queue" },
-      { key: "kitchen",       label: "Dapur & Bar",          icon: ChefHat,       path: "/kasir/kitchen" },
+      { key: "kitchen",       label: "Dapur",                icon: ChefHat,       path: "/kasir/kitchen" },
+      { key: "bar",           label: "Bar",                  icon: GlassWater,    path: "/kasir/bar" },
       { key: "reservations",  label: "Reservasi",            icon: Calendar,      path: "/kasir/reservations" },
       { key: "shift",         label: "Manajemen Shift",      icon: Clock,         path: "/kasir/shift" },
       { key: "expenses",      label: "Pengeluaran",          icon: Receipt,       path: "/kasir/expenses" },

@@ -47,7 +47,8 @@ const SECTION_LABELS: Record<string, string> = {
   "print-settings": "Pengaturan Cetak",
   branches: "Manajemen Cabang",
   "drink-queue": "Antrian Pesanan",
-  kitchen: "Dapur & Bar",
+  kitchen: "Dapur",
+  bar: "Bar",
   "shift-reports": "Laporan Shift Kasir",
   tables: "Manajemen Meja",
 };
@@ -178,7 +179,8 @@ export default function AdminDashboard() {
       case "banners": return <BannersSection />;
       case "settings": return <SettingsSection />;
       case "drink-queue": return <DrinkQueueSection />;
-      case "kitchen": return <KitchenSection />;
+      case "kitchen": return <KitchenSection mode="food" />;
+      case "bar":     return <KitchenSection mode="drink" />;
       case "branches": return user.branchId === null ? <BranchesSection /> : <OrdersSection />;
       case "shift-reports": return user.branchId === null ? <ShiftReportsSection /> : <OrdersSection />;
       case "tables": return user.branchId === null ? <TablesSection /> : <OrdersSection />;

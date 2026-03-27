@@ -147,10 +147,10 @@ function ItemCard({ item, onStatusChange, pendingId }: {
 // ──────────────────────────────────────────────
 // Main Dapur/Bar page
 // ──────────────────────────────────────────────
-export default function KitchenSection() {
+export default function KitchenSection({ mode = "all" }: { mode?: "food" | "drink" | "all" }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabType>("drink");
+  const [activeTab, setActiveTab] = useState<TabType>(mode === "food" ? "food" : "drink");
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const { data: queue = [], isLoading, refetch } = useQuery<QueueItem[]>({
@@ -191,11 +191,15 @@ export default function KitchenSection() {
     retryDelay: 1500,
   });
 
-  // Filter per tab
+  // Filter per tab / mode
   const activeQueue = queue.filter(q => q.status !== "taken");
   const foodItems  = activeQueue.filter(q => (q as any).itemType === "food");
   const drinkItems = activeQueue.filter(q => (q as any).itemType !== "food");
-  const displayQueue = activeTab === "food" ? foodItems : drinkItems;
+  const displayQueue = mode === "food"
+    ? foodItems
+    : mode === "drink"
+    ? drinkItems
+    : activeTab === "food" ? foodItems : drinkItems;
 
   // Sort: waiting → making → ready (taken hidden from default view)
   const sortOrder = { waiting: 0, making: 1, ready: 2, taken: 3 };
@@ -223,15 +227,19 @@ export default function KitchenSection() {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
-              background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+              background: mode === "drink"
+                ? "linear-gradient(135deg, #007AFF, #5AC8FA)"
+                : "linear-gradient(135deg, #FF9500, #FF2D55)",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <ChefHat size={20} color="#fff" />
+              {mode === "drink" ? <GlassWater size={20} color="#fff" /> : <ChefHat size={20} color="#fff" />}
             </div>
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 800, color: "#1D1D1F", margin: 0 }}>Dapur & Bar</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 800, color: "#1D1D1F", margin: 0 }}>
+                {mode === "food" ? "Dapur" : mode === "drink" ? "Bar" : "Dapur & Bar"}
+              </h1>
               <p style={{ fontSize: 12, color: "#6E6E73", margin: 0 }}>
-                {activeQueue.length} item aktif · auto-refresh 4 detik
+                {displayQueue.length} item aktif · auto-refresh 4 detik
               </p>
             </div>
           </div>
@@ -273,8 +281,8 @@ export default function KitchenSection() {
           ))}
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", borderTop: "1px solid #E5E5EA" }}>
+        {/* Tabs — only shown in "all" mode */}
+        <div style={{ display: mode !== "all" ? "none" : "flex", borderTop: "1px solid #E5E5EA" }}>
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -323,7 +331,9 @@ export default function KitchenSection() {
           <div style={{ textAlign: "center", paddingBlock: 80, color: "#8E8E93" }}>
             <ChefHat size={48} style={{ opacity: 0.3, marginBottom: 16 }} />
             <p style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
-              {activeTab === "food" ? "Tidak ada antrian makanan" : "Tidak ada antrian minuman"}
+              {(mode === "food" || (mode === "all" && activeTab === "food"))
+                ? "Tidak ada antrian makanan"
+                : "Tidak ada antrian minuman"}
             </p>
             <p style={{ fontSize: 13, color: "#AEAEB2" }}>
               Item akan muncul otomatis saat pesanan masuk

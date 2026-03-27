@@ -90,7 +90,8 @@ export default function KasirDashboard() {
       case 'cashier':       return <CashierSection />;
       case 'orders':        return <OrdersSection />;
       case 'drink-queue':   return <DrinkQueueSection />;
-      case 'kitchen':       return <KitchenSection />;
+      case 'kitchen':       return <KitchenSection mode="food" />;
+      case 'bar':           return <KitchenSection mode="drink" />;
       case 'reservations':  return <ReservationsSection />;
       case 'shift':         return <ShiftManagementSection />;
       case 'expenses':      return <ExpensesSection />;
