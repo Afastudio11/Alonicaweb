@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, RefreshCw, ArrowUpCircle, ArrowDownCircle, SlidersHorizontal, Package, AlertTriangle, TrendingUp, History } from "lucide-react";
+import { Plus, RefreshCw, ArrowUpCircle, ArrowDownCircle, SlidersHorizontal, Package, AlertTriangle, TrendingUp, History, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,22 @@ import { apiRequest } from "@/lib/queryClient";
 import { getStockStatus } from "@/lib/utils";
 import { INVENTORY_CATEGORIES, INVENTORY_UNITS_BY_CATEGORY } from "@/lib/constants";
 import type { InventoryItem, InsertInventoryItem, StockMovement } from "@shared/schema";
+
+function todayLocal() {
+  return new Date().toLocaleDateString("sv-SE"); // YYYY-MM-DD in local tz
+}
+
+function movementLocalDate(iso: string) {
+  return new Date(iso).toLocaleDateString("sv-SE");
+}
+
+function getDateLabel(dateStr: string) {
+  const t = todayLocal();
+  const yest = new Date(Date.now() - 86400000).toLocaleDateString("sv-SE");
+  if (dateStr === t) return "Hari Ini";
+  if (dateStr === yest) return "Kemarin";
+  return new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
 
 function formatRp(n: number) {
   return `Rp ${n.toLocaleString("id-ID")}`;
@@ -49,14 +65,16 @@ function AdjustStockDialog({ item, onClose }: { item: InventoryItem; onClose: ()
   const [type, setType] = useState<"in" | "out" | "adjustment">("in");
   const [quantity, setQuantity] = useState(1);
   const [reason, setReason] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState(item.pricePerUnit || 0);
 
   const mutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/inventory/adjust", {
         inventoryItemId: item.id,
         quantity,
-        reason: reason || `Manual ${type}`,
+        reason,
         type,
+        ...(type === "in" && purchasePrice > 0 ? { purchasePrice } : {}),
       });
       return res.json();
     },
@@ -142,12 +160,38 @@ function AdjustStockDialog({ item, onClose }: { item: InventoryItem; onClose: ()
         />
       </div>
 
+      {/* Harga Beli — hanya muncul saat Masuk (restock) */}
+      {type === "in" && (
+        <div>
+          <Label style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F" }}>
+            Harga Beli per {item.unit} (Rp)
+            {item.pricePerUnit > 0 && (
+              <span style={{ fontSize: 11, color: "#8E8E93", fontWeight: 400, marginLeft: 6 }}>
+                terakhir: {formatRp(item.pricePerUnit)}
+              </span>
+            )}
+          </Label>
+          <Input
+            type="number"
+            min={0}
+            value={purchasePrice || ""}
+            placeholder="Kosongkan jika tidak tahu"
+            onChange={e => setPurchasePrice(parseInt(e.target.value) || 0)}
+            style={{ marginTop: 6 }}
+            data-testid="input-purchase-price"
+          />
+          <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 4 }}>
+            Harga ini akan jadi referensi harga terakhir bahan baku ini.
+          </p>
+        </div>
+      )}
+
       <div>
         <Label style={{ fontSize: 13, fontWeight: 600, color: "#1D1D1F" }}>Keterangan (opsional)</Label>
         <Input
           value={reason}
           onChange={e => setReason(e.target.value)}
-          placeholder={type === "in" ? "Restock dari supplier..." : type === "out" ? "Terbuang / rusak..." : "Koreksi stok..."}
+          placeholder={type === "in" ? "Nama supplier / keterangan..." : type === "out" ? "Terbuang / rusak..." : "Koreksi stok..."}
           style={{ marginTop: 6 }}
           data-testid="input-adjust-reason"
         />
@@ -179,6 +223,8 @@ export default function InventorySection() {
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [adjustingItem, setAdjustingItem] = useState<InventoryItem | null>(null);
   const [search, setSearch] = useState("");
+  const [movementDate, setMovementDate] = useState(todayLocal());
+  const [movementTypeFilter, setMovementTypeFilter] = useState<"all" | "in" | "out">("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -442,77 +488,203 @@ export default function InventorySection() {
       )}
 
       {/* Movements tab */}
-      {tab === "movements" && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E5E5EA", overflow: "hidden" }}>
-          {loadingMovements ? (
-            <div style={{ padding: 32, textAlign: "center", color: "#8E8E93" }}>Memuat riwayat...</div>
-          ) : movements.length === 0 ? (
-            <div style={{ padding: 48, textAlign: "center", color: "#8E8E93" }}>
-              <History size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
-              <p>Belum ada riwayat pergerakan stok</p>
-            </div>
-          ) : (
-            <div>
-              <div style={{ padding: "14px 16px", borderBottom: "1px solid #F2F2F7" }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: "#1D1D1F", margin: 0 }}>
-                  {movements.length} catatan pergerakan stok
-                </p>
+      {tab === "movements" && (() => {
+        const today = todayLocal();
+        // Filter movements by selected date (client-side, local timezone)
+        const dayMovements = movements.filter(m => movementLocalDate(m.createdAt as unknown as string) === movementDate);
+        const outMovements = dayMovements.filter(m => m.type === "out" || m.type === "order_deduction");
+        const inMovements  = dayMovements.filter(m => m.type === "in");
+
+        const filtered = dayMovements.filter(m => {
+          if (movementTypeFilter === "out") return m.type === "out" || m.type === "order_deduction";
+          if (movementTypeFilter === "in")  return m.type === "in";
+          return true;
+        });
+
+        function goDay(delta: number) {
+          const d = new Date(movementDate);
+          d.setDate(d.getDate() + delta);
+          setMovementDate(d.toLocaleDateString("sv-SE"));
+        }
+
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {/* Date navigator */}
+            <div style={{
+              background: "#fff", borderRadius: 16, border: "1px solid #E5E5EA",
+              padding: "14px 16px", display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <button
+                onClick={() => goDay(-1)}
+                style={{ width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E5E5EA", background: "#F5F5F7", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                data-testid="button-prev-day"
+              >
+                <ChevronLeft size={18} color="#1D1D1F" />
+              </button>
+
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <Calendar size={15} color="#FF9500" />
+                  <span style={{ fontSize: 15, fontWeight: 700, color: "#1D1D1F" }}>
+                    {getDateLabel(movementDate)}
+                  </span>
+                </div>
+                {movementDate !== today && (
+                  <p style={{ fontSize: 11, color: "#8E8E93", margin: "2px 0 0" }}>
+                    {new Date(movementDate).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                )}
               </div>
-              {movements.map(m => {
-                const cfg = MOVEMENT_TYPE_CONFIG[m.type as keyof typeof MOVEMENT_TYPE_CONFIG] ?? MOVEMENT_TYPE_CONFIG.adjustment;
-                const Icon = cfg.icon;
-                const isPositive = m.quantity > 0;
-                return (
-                  <div
-                    key={m.id}
-                    data-testid={`movement-${m.id}`}
-                    style={{
-                      padding: "12px 16px",
-                      borderBottom: "1px solid #F5F5F7",
-                      display: "flex", alignItems: "center", gap: 12,
-                    }}
-                  >
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 10,
-                      background: cfg.bg, flexShrink: 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <Icon size={16} color={cfg.color} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F", margin: 0 }}>
-                          {m.inventoryItemName}
-                        </p>
-                        <span style={{
-                          fontSize: 10, fontWeight: 700, color: cfg.color,
-                          background: cfg.bg, borderRadius: 999, padding: "2px 8px",
-                        }}>
-                          {cfg.label}
-                        </span>
-                      </div>
-                      <p style={{ fontSize: 12, color: "#6E6E73", margin: "2px 0 0" }}>
-                        {m.reason || "-"} · {formatDate(m.createdAt as unknown as string)}
-                      </p>
-                    </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <p style={{
-                        fontSize: 15, fontWeight: 800, margin: 0,
-                        color: isPositive ? "#34C759" : "#FF3B30",
-                      }}>
-                        {isPositive ? "+" : ""}{m.quantity}
-                      </p>
-                      <p style={{ fontSize: 11, color: "#AEAEB2", margin: 0 }}>
-                        {m.stockBefore} → {m.stockAfter}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+
+              <button
+                onClick={() => goDay(1)}
+                disabled={movementDate >= today}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, border: "1.5px solid #E5E5EA",
+                  background: movementDate >= today ? "#F5F5F7" : "#F5F5F7",
+                  cursor: movementDate >= today ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  opacity: movementDate >= today ? 0.35 : 1,
+                }}
+                data-testid="button-next-day"
+              >
+                <ChevronRight size={18} color="#1D1D1F" />
+              </button>
+
+              {movementDate !== today && (
+                <button
+                  onClick={() => setMovementDate(today)}
+                  style={{
+                    height: 36, paddingInline: 14, borderRadius: 10, border: "none",
+                    background: "#FF9500", color: "#fff", fontSize: 12, fontWeight: 700,
+                    cursor: "pointer", flexShrink: 0,
+                  }}
+                  data-testid="button-go-today"
+                >
+                  Hari Ini
+                </button>
+              )}
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Daily summary */}
+            {dayMovements.length > 0 && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ background: "#F0FFF4", borderRadius: 14, padding: "12px 16px", border: "1.5px solid #D4F7E0" }}>
+                  <p style={{ fontSize: 11, color: "#34C759", fontWeight: 700, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Masuk</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: "#1D1D1F", margin: 0 }}>{inMovements.length} item</p>
+                  <p style={{ fontSize: 11, color: "#34C759", margin: "2px 0 0" }}>{inMovements.length} transaksi restok</p>
+                </div>
+                <div style={{ background: "#FFF0EF", borderRadius: 14, padding: "12px 16px", border: "1.5px solid #FFDBD9" }}>
+                  <p style={{ fontSize: 11, color: "#FF3B30", fontWeight: 700, margin: "0 0 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Keluar</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: "#1D1D1F", margin: 0 }}>{outMovements.length} item</p>
+                  <p style={{ fontSize: 11, color: "#FF3B30", margin: "2px 0 0" }}>{outMovements.length} catatan pemakaian</p>
+                </div>
+              </div>
+            )}
+
+            {/* Type filter pills */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {([
+                ["all", "Semua", "#1D1D1F", "#F2F2F7"],
+                ["in", "Masuk / Restok", "#34C759", "#F0FFF4"],
+                ["out", "Keluar / Pemakaian", "#FF3B30", "#FFF0EF"],
+              ] as const).map(([key, label, activeColor, activeBg]) => (
+                <button
+                  key={key}
+                  onClick={() => setMovementTypeFilter(key)}
+                  style={{
+                    height: 36, paddingInline: 14, borderRadius: 999, border: "1.5px solid",
+                    borderColor: movementTypeFilter === key ? activeColor : "#E5E5EA",
+                    background: movementTypeFilter === key ? activeBg : "#fff",
+                    color: movementTypeFilter === key ? activeColor : "#6E6E73",
+                    fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Movement list */}
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E5E5EA", overflow: "hidden" }}>
+              {loadingMovements ? (
+                <div style={{ padding: 32, textAlign: "center", color: "#8E8E93" }}>Memuat riwayat...</div>
+              ) : filtered.length === 0 ? (
+                <div style={{ padding: 40, textAlign: "center", color: "#8E8E93" }}>
+                  <History size={36} style={{ opacity: 0.3, marginBottom: 10 }} />
+                  <p style={{ margin: 0, fontSize: 14 }}>
+                    {dayMovements.length === 0
+                      ? `Tidak ada pergerakan stok pada ${getDateLabel(movementDate).toLowerCase()}`
+                      : "Tidak ada data untuk filter ini"}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ padding: "12px 16px", borderBottom: "1px solid #F2F2F7", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#1D1D1F", margin: 0 }}>
+                      {filtered.length} catatan
+                    </p>
+                    <p style={{ fontSize: 11, color: "#8E8E93", margin: 0 }}>
+                      {getDateLabel(movementDate)}
+                    </p>
+                  </div>
+                  {filtered.map(m => {
+                    const cfg = MOVEMENT_TYPE_CONFIG[m.type as keyof typeof MOVEMENT_TYPE_CONFIG] ?? MOVEMENT_TYPE_CONFIG.adjustment;
+                    const Icon = cfg.icon;
+                    const isOut = m.type === "out" || m.type === "order_deduction";
+                    return (
+                      <div
+                        key={m.id}
+                        data-testid={`movement-${m.id}`}
+                        style={{
+                          padding: "12px 16px",
+                          borderBottom: "1px solid #F5F5F7",
+                          display: "flex", alignItems: "center", gap: 12,
+                        }}
+                      >
+                        <div style={{
+                          width: 36, height: 36, borderRadius: 10,
+                          background: cfg.bg, flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          <Icon size={16} color={cfg.color} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F", margin: 0 }}>
+                              {m.inventoryItemName}
+                            </p>
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, color: cfg.color,
+                              background: cfg.bg, borderRadius: 999, padding: "2px 8px",
+                            }}>
+                              {cfg.label}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 12, color: "#6E6E73", margin: "2px 0 0" }}>
+                            {m.reason || "-"} · {formatDate(m.createdAt as unknown as string)}
+                          </p>
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <p style={{
+                            fontSize: 15, fontWeight: 800, margin: 0,
+                            color: isOut ? "#FF3B30" : "#34C759",
+                          }}>
+                            {isOut ? "-" : "+"}{Math.abs(m.quantity)}
+                          </p>
+                          <p style={{ fontSize: 11, color: "#AEAEB2", margin: 0 }}>
+                            {m.stockBefore} → {m.stockAfter}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Adjust Stock Dialog */}
       <Dialog open={!!adjustingItem} onOpenChange={() => setAdjustingItem(null)}>
@@ -653,15 +825,18 @@ function InventoryItemForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>Stok Awal ({formData.unit})</Label>
-          <NumInput value={formData.currentStock} onChange={v => setFormData(p => ({ ...p, currentStock: v }))} testId="input-current-stock" required />
-        </div>
-        <div>
-          <Label>Harga per {formData.unit} (Rp)</Label>
-          <NumInput value={formData.pricePerUnit} onChange={v => setFormData(p => ({ ...p, pricePerUnit: v }))} testId="input-price-per-unit" required />
-        </div>
+      <div>
+        <Label>Stok Awal ({formData.unit})</Label>
+        <NumInput value={formData.currentStock} onChange={v => setFormData(p => ({ ...p, currentStock: v }))} testId="input-current-stock" required />
+        {initialData?.pricePerUnit ? (
+          <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 4 }}>
+            Harga terakhir: <strong>{formatRp(initialData.pricePerUnit)}</strong> per {formData.unit} — diperbarui otomatis saat restok
+          </p>
+        ) : (
+          <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 4 }}>
+            Harga beli bisa diisi saat melakukan restok stok pertama kali.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

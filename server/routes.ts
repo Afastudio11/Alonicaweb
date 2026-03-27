@@ -4334,13 +4334,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ── STOCK MOVEMENTS ───────────────────────────────────────────────────────
   app.get("/api/inventory/movements", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {
-      const { inventoryItemId, type, limit } = req.query;
+      const { inventoryItemId, type, limit, date } = req.query;
       const branchId = (req as any).user?.branchId ?? null;
       const movements = await storage.getStockMovements({
         inventoryItemId: inventoryItemId as string | undefined,
         branchId,
         type: type as string | undefined,
-        limit: limit ? parseInt(limit as string) : 50,
+        limit: limit ? parseInt(limit as string) : 200,
+        date: date as string | undefined,
       });
       res.json(movements);
     } catch (error) {
@@ -4350,7 +4351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/inventory/adjust", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {
-      const { inventoryItemId, quantity, reason, type } = req.body;
+      const { inventoryItemId, quantity, reason, type, purchasePrice } = req.body;
       if (!inventoryItemId || quantity === undefined || !type) {
         return res.status(400).json({ message: "inventoryItemId, quantity, and type are required" });
       }
@@ -4360,15 +4361,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const userId = (req as any).user?.id;
       const branchId = (req as any).user?.branchId ?? null;
+      // Build reason string — include purchase price for "in" movements
+      let finalReason = reason || `Manual ${type}`;
+      if (type === 'in' && purchasePrice && purchasePrice > 0) {
+        finalReason = reason
+          ? `${reason} · Harga: Rp ${Number(purchasePrice).toLocaleString('id-ID')}`
+          : `Restock · Harga: Rp ${Number(purchasePrice).toLocaleString('id-ID')}`;
+      }
       const result = await storage.adjustStock(
         inventoryItemId,
         Math.abs(quantity),
-        reason || `Manual ${type}`,
+        finalReason,
         type as 'in' | 'out' | 'adjustment',
         userId,
         undefined,
         branchId
       );
+      // When restocking with price, update the item's last purchase price
+      if (type === 'in' && purchasePrice && Number(purchasePrice) > 0) {
+        await storage.updateInventoryItem(inventoryItemId, { pricePerUnit: Number(purchasePrice) });
+      }
       res.json(result);
     } catch (error) {
       handleApiError(res, error, "Failed to adjust stock");

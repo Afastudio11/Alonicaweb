@@ -227,7 +227,7 @@ export interface IStorage {
   getScheduledOrders(minutesBefore?: number): Promise<Order[]>;
 
   // Stock Movements
-  getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string }): Promise<import("@shared/schema").StockMovement[]>;
+  getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string; date?: string }): Promise<import("@shared/schema").StockMovement[]>;
   createStockMovement(movement: import("@shared/schema").InsertStockMovement): Promise<import("@shared/schema").StockMovement>;
   adjustStock(inventoryItemId: string, quantity: number, reason: string, type: 'in' | 'out' | 'adjustment', performedBy?: string, orderId?: string, branchId?: string | null): Promise<{ item: InventoryItem; movement: import("@shared/schema").StockMovement }>;
 }
@@ -2105,16 +2105,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ── Stock Movements ──────────────────────────────────────────────────────
-  async getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string }): Promise<StockMovement[]> {
+  async getStockMovements(params: { inventoryItemId?: string; branchId?: string | null; limit?: number; type?: string; date?: string }): Promise<StockMovement[]> {
     const conditions = [];
     if (params.inventoryItemId) conditions.push(eq(stockMovements.inventoryItemId, params.inventoryItemId));
     if (params.branchId !== undefined && params.branchId !== null) conditions.push(eq(stockMovements.branchId, params.branchId));
     if (params.type) conditions.push(eq(stockMovements.type, params.type));
+    if (params.date) {
+      const dayStart = new Date(params.date + "T00:00:00.000Z");
+      const dayEnd   = new Date(params.date + "T23:59:59.999Z");
+      conditions.push(gte(stockMovements.createdAt, dayStart));
+      conditions.push(lte(stockMovements.createdAt, dayEnd));
+    }
 
     const query = db.select().from(stockMovements)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(stockMovements.createdAt))
-      .limit(params.limit ?? 100);
+      .limit(params.limit ?? 200);
     return await query;
   }
 
