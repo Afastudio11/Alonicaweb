@@ -226,7 +226,6 @@ export default function InventorySection() {
   const criticalCount = inventoryItems.filter(i => getStockStatus(i.currentStock, i.minStock, i.maxStock) === "critical").length;
   const lowCount = inventoryItems.filter(i => getStockStatus(i.currentStock, i.minStock, i.maxStock) === "low").length;
   const okCount = inventoryItems.filter(i => getStockStatus(i.currentStock, i.minStock, i.maxStock) === "sufficient").length;
-  const totalValue = inventoryItems.reduce((s, i) => s + i.currentStock * i.pricePerUnit, 0);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -260,19 +259,6 @@ export default function InventorySection() {
             </div>
           );
         })}
-      </div>
-
-      {/* Nilai inventori */}
-      <div style={{
-        background: "linear-gradient(135deg, #FF9500, #FF2D55)",
-        borderRadius: 16, padding: "16px 20px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", margin: 0, fontWeight: 600 }}>Estimasi Nilai Inventori</p>
-          <p style={{ fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>{formatRp(totalValue)}</p>
-        </div>
-        <Package size={32} color="rgba(255,255,255,0.5)" />
       </div>
 
       {/* Tab + header */}
