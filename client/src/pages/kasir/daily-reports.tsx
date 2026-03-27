@@ -46,10 +46,14 @@ export default function DailyReportsSection() {
     }
   });
 
-  // Get daily reports
-  const { data: reports = [], isLoading } = useQuery<DailyReport[]>({
+  // Get daily reports (API returns { reports: [], total: number, ... })
+  const { data: reportsData, isLoading } = useQuery<{ reports: DailyReport[]; total: number } | DailyReport[]>({
     queryKey: ["/api/daily-reports"],
   });
+
+  const reports: DailyReport[] = Array.isArray(reportsData)
+    ? reportsData
+    : (reportsData as any)?.reports ?? [];
 
   // Get today's report if exists
   const todayReport = reports.find(report => {

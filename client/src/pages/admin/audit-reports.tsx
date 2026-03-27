@@ -27,7 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import type { Shift, User as AppUser, Expense, CashMovement, AuditLog } from "@shared/schema";
+import type { Shift, User as AppUser, Expense, CashMovement, AuditLog, Order } from "@shared/schema";
 
 interface ShiftAuditData {
   shift: Shift;
@@ -35,6 +35,7 @@ interface ShiftAuditData {
   expenses: Expense[];
   cashMovements: CashMovement[];
   auditLogs: AuditLog[];
+  computedRevenue: number;
 }
 
 interface DeletionLog {
@@ -97,6 +98,12 @@ export default function AuditReportsSection() {
     staleTime: 10000,
   });
 
+  const { data: ordersRaw } = useQuery<{ orders: Order[]; total: number } | Order[]>({
+    queryKey: ["/api/orders?limit=9999"],
+    staleTime: 30000,
+  });
+  const allOrders: Order[] = Array.isArray(ordersRaw) ? ordersRaw : (ordersRaw as any)?.orders ?? [];
+
   // Loading state: all critical queries must finish (deletion logs is optional)
   const isLoading = shiftsLoading || usersLoading || expensesLoading || cashMovementsLoading || auditLogsLoading;
   // Error state: only show error if critical queries fail (not deletion logs)
@@ -154,12 +161,23 @@ export default function AuditReportsSection() {
          new Date(log.createdAt) <= (shift.endTime ? new Date(shift.endTime) : new Date()))
       );
 
+      // Compute real revenue from paid orders within this shift's time window
+      const shiftStart = new Date(shift.startTime);
+      const shiftEnd = shift.endTime ? new Date(shift.endTime) : new Date();
+      const shiftPaidOrders = allOrders.filter(o => {
+        const paidAt = o.paidAt ? new Date(o.paidAt) : null;
+        if (!paidAt) return false;
+        return paidAt >= shiftStart && paidAt <= shiftEnd && o.paymentStatus === 'paid';
+      });
+      const computedRevenue = shiftPaidOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
       return {
         shift,
         cashier,
         expenses: shiftExpenses,
         cashMovements: shiftCashMovements,
-        auditLogs: shiftAuditLogs
+        auditLogs: shiftAuditLogs,
+        computedRevenue,
       };
     });
 
@@ -173,12 +191,12 @@ export default function AuditReportsSection() {
     }
 
     return auditData.sort((a, b) => new Date(b.shift.startTime).getTime() - new Date(a.shift.startTime).getTime());
-  }, [shifts, users, expenses, cashMovements, auditLogs, dateFilter, cashierFilter, searchQuery, isLoading]);
+  }, [shifts, users, expenses, cashMovements, auditLogs, allOrders, dateFilter, cashierFilter, searchQuery, isLoading]);
 
   // Calculate summary statistics
   const summaryStats = useMemo(() => {
     const totalShifts = processedData.length;
-    const totalRevenue = processedData.reduce((sum, data) => sum + (data.shift.totalRevenue || 0), 0);
+    const totalRevenue = processedData.reduce((sum, data) => sum + data.computedRevenue, 0);
     const totalExpenses = processedData.reduce((sum, data) => 
       sum + data.expenses.reduce((expSum, exp) => expSum + exp.amount, 0), 0);
     const cashDiscrepancies = processedData.filter(data => Math.abs(data.shift.cashDifference || 0) > 1000);
@@ -484,7 +502,7 @@ export default function AuditReportsSection() {
                 <div className="grid grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(auditData.shift.totalRevenue || 0)}
+                      {formatCurrency(auditData.computedRevenue)}
                     </p>
                     <p className="text-sm text-muted-foreground">Total Pendapatan</p>
                   </div>
