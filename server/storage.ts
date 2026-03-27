@@ -212,6 +212,7 @@ export interface IStorage {
   deleteBanner(id: string): Promise<boolean>;
   getMembers(): Promise<import("@shared/schema").Member[]>;
   getMember(phone: string): Promise<import("@shared/schema").Member | undefined>;
+  createMember(data: { phone: string; name: string; discountPercent?: number; isVip?: boolean; notes?: string | null }): Promise<import("@shared/schema").Member>;
   upsertMember(phone: string, name: string, orderTotal: number): Promise<import("@shared/schema").Member>;
   updateMember(phone: string, data: Partial<Pick<import("@shared/schema").Member, 'discountPercent' | 'isVip' | 'notes' | 'name'>>): Promise<import("@shared/schema").Member | undefined>;
   deleteMember(phone: string): Promise<boolean>;
@@ -1952,6 +1953,21 @@ export class DatabaseStorage implements IStorage {
     return member || undefined;
   }
 
+  async createMember(data: { phone: string; name: string; discountPercent?: number; isVip?: boolean; notes?: string | null }): Promise<Member> {
+    const [created] = await db.insert(members).values({
+      phone: data.phone,
+      name: data.name,
+      joinedAt: new Date(),
+      lastOrderAt: new Date(),
+      totalOrders: 0,
+      totalSpent: 0,
+      discountPercent: data.discountPercent ?? 0,
+      isVip: data.isVip ?? false,
+      notes: data.notes ?? null,
+    }).returning();
+    return created;
+  }
+
   async upsertMember(phone: string, name: string, orderTotal: number): Promise<Member> {
     const existing = await this.getMember(phone);
     if (existing) {
@@ -2593,6 +2609,7 @@ class MemStorage implements IStorage {
   async deleteBanner(id: string): Promise<boolean> { return false; }
   async getMembers(): Promise<any[]> { return []; }
   async getMember(phone: string): Promise<any> { return undefined; }
+  async createMember(data: any): Promise<any> { return undefined; }
   async upsertMember(phone: string, name: string, orderTotal: number): Promise<any> { return undefined; }
   async updateMember(phone: string, data: any): Promise<any> { return undefined; }
   async deleteMember(phone: string): Promise<boolean> { return false; }
@@ -3300,6 +3317,7 @@ class FallbackStorage implements IStorage {
   async deleteBanner(id: string): Promise<boolean> { return this.dbStorage.deleteBanner(id); }
   async getMembers(): Promise<any[]> { return this.dbStorage.getMembers(); }
   async getMember(phone: string): Promise<any> { return this.dbStorage.getMember(phone); }
+  async createMember(data: any): Promise<any> { return this.dbStorage.createMember(data); }
   async upsertMember(phone: string, name: string, orderTotal: number): Promise<any> { return this.dbStorage.upsertMember(phone, name, orderTotal); }
   async updateMember(phone: string, data: any): Promise<any> { return this.dbStorage.updateMember(phone, data); }
   async deleteMember(phone: string): Promise<boolean> { return this.dbStorage.deleteMember(phone); }

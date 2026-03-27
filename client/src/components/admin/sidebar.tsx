@@ -55,6 +55,15 @@ const BASE_NAV_GROUPS = [
     ],
   },
   {
+    label: "MENU & INVENTORI",
+    superAdminOnly: false,
+    items: [
+      { key: "menu", label: "Manajemen Menu", icon: Utensils },
+      { key: "categories", label: "Kategori Menu", icon: Tags },
+      { key: "inventory", label: "Stok Bahan Baku", icon: Package2 },
+    ],
+  },
+  {
     label: "PROMO & KONTEN",
     superAdminOnly: false,
     items: [
@@ -69,7 +78,6 @@ const BASE_NAV_GROUPS = [
       { key: "approvals", label: "Persetujuan", icon: CheckSquare },
       { key: "audit-reports", label: "Laporan Keuangan", icon: Building2 },
       { key: "analytics", label: "Laporan Penjualan", icon: TrendingUp },
-      { key: "inventory", label: "Laporan Item", icon: Package2 },
     ],
   },
   {
@@ -77,8 +85,6 @@ const BASE_NAV_GROUPS = [
     superAdminOnly: false,
     items: [
       { key: "settings", label: "Pengaturan Toko", icon: Cog },
-      { key: "menu", label: "Manajemen Menu", icon: Utensils },
-      { key: "categories", label: "Kategori Menu", icon: Tags },
       { key: "printer", label: "Pengaturan Printer", icon: Printer },
     ],
   },

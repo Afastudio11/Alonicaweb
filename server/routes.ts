@@ -2148,6 +2148,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manually add a new member (admin or kasir)
+  app.post("/api/members", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const { name, phone, discountPercent, isVip, notes } = req.body;
+      if (!name || !phone) return res.status(400).json({ message: "Nama dan nomor HP wajib diisi" });
+      const existing = await storage.getMember(phone);
+      if (existing) return res.status(409).json({ message: "Nomor HP sudah terdaftar sebagai member" });
+      const created = await storage.createMember({ phone, name, discountPercent, isVip, notes });
+      res.status(201).json(created);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Member autocomplete for cashier — accessible by admin and kasir
   app.get("/api/members/autocomplete", requireAuth, requireAdminOrKasir, async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, Search, Phone, Star, Edit2, Trash2, ChevronRight, Gift, X, Users } from "lucide-react";
+import { Crown, Search, Phone, Edit2, Trash2, Gift, X, Users, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
@@ -49,9 +49,30 @@ export default function MembersSection() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState({ discountPercent: 0, isVip: false, notes: "", name: "" });
+  const [adding, setAdding] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", phone: "", discountPercent: 0, isVip: false, notes: "" });
 
   const { data: members = [], isLoading } = useQuery<Member[]>({
     queryKey: ["/api/members"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: typeof addForm) => {
+      const res = await apiRequest("POST", "/api/members", data);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Gagal menambah member");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/autocomplete"] });
+      toast({ title: "Member berhasil ditambahkan" });
+      setAdding(false);
+      setAddForm({ name: "", phone: "", discountPercent: 0, isVip: false, notes: "" });
+    },
+    onError: (err: Error) => toast({ title: err.message, variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
@@ -61,6 +82,7 @@ export default function MembersSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/autocomplete"] });
       toast({ title: "Data member diperbarui" });
       setEditing(null);
     },
@@ -73,6 +95,7 @@ export default function MembersSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/members"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/members/autocomplete"] });
       toast({ title: "Member dihapus" });
     },
     onError: () => toast({ title: "Gagal menghapus member", variant: "destructive" }),
@@ -105,11 +128,24 @@ export default function MembersSection() {
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1D1D1F", marginBottom: 4 }}>Data Member</h2>
-        <p style={{ fontSize: 14, color: "#6E6E73" }}>
-          Nomor HP pelanggan otomatis terdaftar saat pesan. Kelola diskon & status VIP di sini.
-        </p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1D1D1F", marginBottom: 4 }}>Data Member</h2>
+          <p style={{ fontSize: 14, color: "#6E6E73" }}>
+            Otomatis terdaftar saat pesan, atau tambah manual di sini.
+          </p>
+        </div>
+        <button
+          onClick={() => setAdding(true)}
+          data-testid="button-add-member"
+          style={{
+            display: "flex", alignItems: "center", gap: 7, flexShrink: 0,
+            padding: "9px 16px", borderRadius: 12, border: "none", cursor: "pointer",
+            background: "#FF9500", color: "#fff", fontSize: 13, fontWeight: 700,
+          }}
+        >
+          <UserPlus size={15} /> Tambah Member
+        </button>
       </div>
 
       {/* Stats */}
@@ -398,6 +434,176 @@ export default function MembersSection() {
         </div>
       )}
 
+      {/* Add Member Modal */}
+      {adding && (
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+          onClick={() => setAdding(false)}
+        >
+          <div
+            className="w-full md:max-w-md rounded-t-3xl md:rounded-3xl overflow-hidden"
+            style={{ background: "#fff" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: "#E5E5EA" }} />
+            </div>
+            <div style={{ padding: "16px 20px 32px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #FF9500, #FF2D55)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <UserPlus size={18} style={{ color: "#fff" }} />
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 700, fontSize: 16, color: "#1D1D1F" }}>Tambah Member Baru</p>
+                    <p style={{ fontSize: 12, color: "#6E6E73" }}>Daftarkan pelanggan sebagai member</p>
+                  </div>
+                </div>
+                <button onClick={() => setAdding(false)} style={{ background: "none", border: "none", cursor: "pointer" }}>
+                  <X size={18} style={{ color: "#6E6E73" }} />
+                </button>
+              </div>
+
+              {/* Nama */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#6E6E73", display: "block", marginBottom: 6 }}>
+                  Nama Pelanggan <span style={{ color: "#FF3B30" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={addForm.name}
+                  onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="Contoh: Budi Santoso"
+                  style={{
+                    width: "100%", height: 44, padding: "0 14px",
+                    background: "#F5F5F7", border: "none", borderRadius: 12,
+                    fontSize: 14, outline: "none", boxSizing: "border-box",
+                  }}
+                  data-testid="input-add-member-name"
+                />
+              </div>
+
+              {/* Nomor HP */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#6E6E73", display: "block", marginBottom: 6 }}>
+                  Nomor HP <span style={{ color: "#FF3B30" }}>*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={addForm.phone}
+                  onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
+                  placeholder="Contoh: 081234567890"
+                  style={{
+                    width: "100%", height: 44, padding: "0 14px",
+                    background: "#F5F5F7", border: "none", borderRadius: 12,
+                    fontSize: 14, outline: "none", boxSizing: "border-box",
+                  }}
+                  data-testid="input-add-member-phone"
+                />
+              </div>
+
+              {/* Diskon */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#6E6E73", display: "block", marginBottom: 6 }}>
+                  Diskon Member (%) — Opsional
+                </label>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {[0, 5, 10, 15, 20].map(pct => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => setAddForm(f => ({ ...f, discountPercent: pct }))}
+                      style={{
+                        padding: "7px 16px", borderRadius: 10, border: "none", cursor: "pointer",
+                        fontSize: 13, fontWeight: 600,
+                        background: addForm.discountPercent === pct ? "#FF9500" : "#F5F5F7",
+                        color: addForm.discountPercent === pct ? "#fff" : "#1D1D1F",
+                      }}
+                    >
+                      {pct === 0 ? "Tidak ada" : `${pct}%`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* VIP Toggle */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, padding: "12px 14px", background: "#F5F5F7", borderRadius: 14 }}>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "#1D1D1F", marginBottom: 2 }}>Status VIP</p>
+                  <p style={{ fontSize: 12, color: "#6E6E73" }}>Berikan lencana VIP khusus</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAddForm(f => ({ ...f, isVip: !f.isVip }))}
+                  style={{
+                    width: 48, height: 28, borderRadius: 14, border: "none", cursor: "pointer",
+                    background: addForm.isVip ? "#FF9500" : "#E5E5EA", position: "relative", flexShrink: 0,
+                    transition: "background 0.2s",
+                  }}
+                  data-testid="toggle-add-member-vip"
+                >
+                  <div style={{
+                    position: "absolute", top: 3,
+                    left: addForm.isVip ? "calc(100% - 25px)" : 3,
+                    width: 22, height: 22, borderRadius: "50%",
+                    background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                    transition: "left 0.2s",
+                  }} />
+                </button>
+              </div>
+
+              {/* Catatan */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "#6E6E73", display: "block", marginBottom: 6 }}>Catatan — Opsional</label>
+                <textarea
+                  value={addForm.notes}
+                  onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))}
+                  placeholder="Misalnya: pelanggan setia, alergi kacang, dll."
+                  rows={2}
+                  style={{
+                    width: "100%", padding: "10px 14px",
+                    background: "#F5F5F7", border: "none", borderRadius: 12,
+                    fontSize: 14, outline: "none", resize: "none", boxSizing: "border-box",
+                  }}
+                  data-testid="input-add-member-notes"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setAdding(false)}
+                  style={{
+                    flex: 1, height: 48, borderRadius: 14, border: "none", cursor: "pointer",
+                    background: "#F5F5F7", fontSize: 14, fontWeight: 600, color: "#1D1D1F",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => createMutation.mutate(addForm)}
+                  disabled={createMutation.isPending || !addForm.name.trim() || !addForm.phone.trim()}
+                  style={{
+                    flex: 2, height: 48, borderRadius: 14, border: "none", cursor: "pointer",
+                    background: "#FF9500", fontSize: 14, fontWeight: 700, color: "#fff",
+                    opacity: (createMutation.isPending || !addForm.name.trim() || !addForm.phone.trim()) ? 0.5 : 1,
+                  }}
+                  data-testid="button-submit-add-member"
+                >
+                  {createMutation.isPending ? "Menyimpan..." : "Simpan Member"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
