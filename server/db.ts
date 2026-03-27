@@ -31,19 +31,50 @@ const shouldUseSSL = () => {
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: shouldUseSSL(),
-  // Keep pool small for Supabase free tier (max 3-5 direct connections)
+  // Keep pool small for Supabase (max 3-5 direct connections)
   max: 3,
-  idleTimeoutMillis: 30000,
+  // Release idle connections after 10 minutes (prevent stale connections)
+  idleTimeoutMillis: 600000,
+  // Timeout for acquiring a connection from pool
   connectionTimeoutMillis: 15000,
+  // TCP keepalive — prevents firewall/NAT from dropping idle connections
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+  // Allow reconnection on connection errors
+  allowExitOnIdle: false,
 });
 
 export const db = drizzle(pool, { schema });
 
-// Test connection on startup
+// Log successful new connections
 pool.on('connect', () => {
   console.log('✅ Database connected successfully');
 });
 
+// On pool-level errors, log but don't crash — pool will reconnect automatically
 pool.on('error', (err) => {
-  console.error('❌ Unexpected database error:', err);
+  console.error('❌ Database pool error (will reconnect):', err.message);
 });
+
+// ─── Periodic Health Check ────────────────────────────────────────────────────
+// Runs every 5 minutes to keep the connection alive.
+// This also prevents Supabase free-tier from pausing after 7 days inactivity.
+const HEALTH_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+async function runHealthCheck() {
+  try {
+    await pool.query('SELECT 1');
+  } catch (err: any) {
+    console.warn('⚠️  Database health check failed (will retry):', err.message);
+  }
+}
+
+// Start health check only when server is running
+if (process.env.NODE_ENV === 'production') {
+  // In production: every 5 minutes
+  setInterval(runHealthCheck, HEALTH_CHECK_INTERVAL);
+  console.log('💓 Database keepalive enabled (every 5 minutes)');
+} else {
+  // In development: every 30 minutes (less noise)
+  setInterval(runHealthCheck, 30 * 60 * 1000);
+}
