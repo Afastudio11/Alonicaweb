@@ -21,6 +21,7 @@ interface User {
   id: string;
   username: string;
   role: string;
+  allowedMenus?: string[] | null;
 }
 
 interface KasirSidebarProps {
@@ -45,6 +46,11 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
   const [location] = useLocation();
   const { logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
+
+  // Filter menu items: if allowedMenus is set, only show items whose id is in that list
+  const visibleMenuItems = user?.allowedMenus && user.allowedMenus.length > 0
+    ? menuItems.filter(item => (user.allowedMenus as string[]).includes(item.id))
+    : menuItems;
 
   return (
     <>
@@ -96,7 +102,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           )}
           
           <div className="space-y-1">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentSection === item.id;
               
@@ -187,7 +193,7 @@ export default function KasirSidebar({ isOpen, onClose, currentSection, user }: 
           </div>
           
           <div className="space-y-0.5">
-            {menuItems.map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentSection === item.id;
               

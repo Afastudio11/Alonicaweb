@@ -50,39 +50,44 @@ export default function KasirDashboard() {
     );
   }
 
+  // Check if current section is allowed for this user
+  const isSectionAllowed = (sec: string) => {
+    const allowed = (user as any)?.allowedMenus as string[] | null | undefined;
+    if (!allowed || allowed.length === 0) return true; // null = all access
+    return allowed.includes(sec);
+  };
+
   const renderSection = () => {
+    // Block admin-only sections always
+    if (['dashboard', 'inventory', 'analytics', 'settings', 'menu', 'categories'].includes(section)) {
+      return (
+        <div className="text-center py-12">
+          <h2 className="section-title mb-2">Akses Ditolak</h2>
+          <p className="text-muted-foreground">Halaman ini hanya tersedia untuk pengguna admin.</p>
+        </div>
+      );
+    }
+
+    // Block sections not in allowedMenus
+    if (!isSectionAllowed(section)) {
+      return (
+        <div className="text-center py-12">
+          <h2 className="section-title mb-2">Akses Ditolak</h2>
+          <p className="text-muted-foreground">Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+        </div>
+      );
+    }
+
     switch (section) {
-      case 'shift':
-        return <ShiftManagementSection />;
-      case 'orders':
-        return <OrdersSection />;
-      case 'kitchen':
-        return <KitchenSection />;
-      case 'cashier':
-        return <CashierSection />;
-      case 'reservations':
-        return <ReservationsSection />;
-      case 'expenses':
-        return <ExpensesSection />;
-      case 'daily-reports':
-        return <DailyReportsSection />;
-      case 'printer':
-        return <PrinterPage />;
-      // Block restricted sections for kasir
-      case 'dashboard':
-      case 'inventory':
-      case 'analytics':
-      case 'settings':
-      case 'menu':
-      case 'categories':
-        return (
-          <div className="text-center py-12">
-            <h2 className="section-title mb-2">Akses Ditolak</h2>
-            <p className="text-muted-foreground">Halaman ini hanya tersedia untuk pengguna admin.</p>
-          </div>
-        );
-      default:
-        return <OrdersSection />;
+      case 'shift':        return <ShiftManagementSection />;
+      case 'orders':       return <OrdersSection />;
+      case 'kitchen':      return <KitchenSection />;
+      case 'cashier':      return <CashierSection />;
+      case 'reservations': return <ReservationsSection />;
+      case 'expenses':     return <ExpensesSection />;
+      case 'daily-reports':return <DailyReportsSection />;
+      case 'printer':      return <PrinterPage />;
+      default:             return <OrdersSection />;
     }
   };
 

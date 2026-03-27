@@ -27,6 +27,9 @@ const ALL_MENU_GROUPS = [
       { key: "drink-queue", label: "Antrian Pesanan" },
       { key: "kitchen", label: "Dapur & Bar" },
       { key: "reservations", label: "Reservasi" },
+      { key: "shift", label: "Manajemen Shift" },
+      { key: "expenses", label: "Pengeluaran" },
+      { key: "daily-reports", label: "Laporan Penjualan" },
     ],
   },
   {
