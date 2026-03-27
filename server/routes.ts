@@ -4150,10 +4150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      // Verify it's an open bill
-      if (!order.payLater || order.paymentStatus === 'paid') {
-        return res.status(400).json({ message: "Can only delete items from unpaid open bills" });
-      }
+      const isPaidOrder = order.paymentStatus === 'paid';
 
       // Get the item to be deleted
       const items = Array.isArray(order.items) ? order.items : [];
@@ -4163,17 +4160,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const itemToDelete = items[itemIndex];
 
-      // Create notification for admin approval
+      const refundAmount = (itemToDelete.price || 0) * (itemToDelete.quantity || 1);
+      const notifType = isPaidOrder ? 'refund_request' : 'deletion_request';
+      const tableLabel = order.tableNumber ? `Meja ${order.tableNumber}` : 'Take Away';
       const notification = await storage.createNotification({
-        type: 'deletion_request',
-        title: `Permintaan Hapus Item - Meja ${order.tableNumber}`,
-        message: `Kasir ${user.username} meminta persetujuan untuk menghapus "${itemToDelete.name}" (${itemToDelete.quantity}x) dari ${order.customerName}`,
+        type: notifType,
+        title: isPaidOrder
+          ? `Permintaan Refund Item — ${tableLabel}`
+          : `Permintaan Hapus Item — ${tableLabel}`,
+        message: isPaidOrder
+          ? `Kasir ${user.username} meminta refund "${itemToDelete.name}" (${itemToDelete.quantity}x) dari ${order.customerName} — sudah terbayar`
+          : `Kasir ${user.username} meminta persetujuan untuk menghapus "${itemToDelete.name}" (${itemToDelete.quantity}x) dari ${order.customerName}`,
         requestedBy: user.id,
         relatedId: orderId,
         relatedData: {
           itemIndex,
           item: itemToDelete,
-          reason: reason || 'Tidak ada alasan'
+          reason: reason || 'Tidak ada alasan',
+          isPaidOrder,
+          refundAmount,
         },
         status: 'pending',
         isRead: false
@@ -4181,7 +4186,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        message: "Permintaan penghapusan telah dikirim ke admin untuk persetujuan",
+        message: isPaidOrder
+          ? "Permintaan refund telah dikirim ke super admin untuk persetujuan"
+          : "Permintaan penghapusan telah dikirim ke admin untuk persetujuan",
         notification 
       });
     } catch (error) {
@@ -4213,7 +4220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return sendErrorResponse(res, 400, "Notification already processed");
       }
 
-      if (notification.type !== 'deletion_request') {
+      if (notification.type !== 'deletion_request' && notification.type !== 'refund_request') {
         return sendErrorResponse(res, 400, "Invalid notification type");
       }
 
@@ -4248,13 +4255,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return sendErrorResponse(res, 400, "Item not found at specified index");
       }
 
+      const isPaidOrder = (relatedData as any).isPaidOrder === true;
+      const refundAmountFromData = (relatedData as any).refundAmount as number | undefined;
+      const itemRefundAmount = refundAmountFromData ?? ((deletedItem.price || 0) * (deletedItem.quantity || 1));
+
       items.splice(itemIndex, 1);
 
       // Recalculate subtotal
-      const newSubtotal = items.reduce((sum: number, item: any) => sum + ((item.price || 0) * (item.quantity || 0)), 0);
+      const newSubtotal = items.reduce((sum: number, i: any) => sum + ((i.price || 0) * (i.quantity || 0)), 0);
 
-      // Update the order
+      // Update the order items + recalculate total
       await storage.replaceOpenBillItems(orderId, items, newSubtotal);
+
+      // For paid orders: also create a refund record
+      if (isPaidOrder) {
+        await storage.createRefund({
+          orderId,
+          originalAmount: order.total ?? 0,
+          refundAmount: itemRefundAmount,
+          refundType: 'partial_refund',
+          status: 'approved',
+          requestedBy: notification.requestedBy,
+          authorizedBy: admin.id,
+          reason: reason || 'Item tidak tersedia',
+        });
+      }
 
       // Create deletion log
       await storage.createDeletionLog({
@@ -4275,8 +4300,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        message: "Item berhasil dihapus dari open bill",
-        order: updatedOrder
+        message: isPaidOrder
+          ? `Item dihapus & refund ${itemRefundAmount.toLocaleString('id-ID')} dicatat untuk diserahkan ke pelanggan`
+          : "Item berhasil dihapus dari open bill",
+        order: updatedOrder,
+        refundAmount: isPaidOrder ? itemRefundAmount : 0,
       });
     } catch (error) {
       console.error('Approve deletion error:', error);

@@ -16,7 +16,8 @@ import {
   Key,
   Plus,
   Hash,
-  Calendar
+  Calendar,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +53,8 @@ interface Notification {
       price: number;
     };
     reason: string;
+    isPaidOrder?: boolean;
+    refundAmount?: number;
   };
   status: string;
   isRead: boolean;
@@ -127,7 +130,7 @@ export default function ApprovalsSection() {
       const response = await apiRequest('POST', `/api/notifications/${notificationId}/approve`);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       // Invalidate all related queries to ensure sync
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/deletion-logs'] });
@@ -140,9 +143,12 @@ export default function ApprovalsSection() {
       queryClient.refetchQueries({ queryKey: ['/api/orders'] });
       queryClient.refetchQueries({ queryKey: ['/api/orders/open-bills'] });
       
+      const isRefund = data?.refundAmount > 0;
       toast({
-        title: "Permintaan Disetujui",
-        description: "Item berhasil dihapus dari open bill dan tercatat dalam log",
+        title: isRefund ? "Refund Disetujui" : "Permintaan Disetujui",
+        description: isRefund
+          ? `${data?.message || 'Refund dicatat. Kembalikan uang ke pelanggan.'}`
+          : "Item berhasil dihapus dari open bill dan tercatat dalam log",
       });
     },
     onError: (error: any) => {
@@ -441,14 +447,17 @@ export default function ApprovalsSection() {
               const requestedByUser = getUserById(notification.requestedBy);
 
               return (
-                <Card key={notification.id} data-testid={`approval-card-${notification.id}`}>
+                <Card key={notification.id} data-testid={`approval-card-${notification.id}`}
+                  className={notification.type === 'refund_request' ? 'border-amber-300 dark:border-amber-700' : ''}>
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         {/* Header */}
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                            <Trash2 className="h-5 w-5 text-destructive" />
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${notification.type === 'refund_request' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-destructive/10'}`}>
+                            {notification.type === 'refund_request'
+                              ? <RotateCcw className="h-5 w-5 text-amber-600" />
+                              : <Trash2 className="h-5 w-5 text-destructive" />}
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold text-foreground" data-testid={`approval-title-${notification.id}`}>
@@ -458,9 +467,16 @@ export default function ApprovalsSection() {
                               {notification.message}
                             </p>
                           </div>
-                          <Badge variant="default" data-testid={`approval-status-${notification.id}`}>
-                            PENDING
-                          </Badge>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant="default" data-testid={`approval-status-${notification.id}`}>
+                              PENDING
+                            </Badge>
+                            {notification.type === 'refund_request' && (
+                              <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-400 text-xs">
+                                REFUND
+                              </Badge>
+                            )}
+                          </div>
                         </div>
 
                         {/* Details */}
@@ -481,15 +497,15 @@ export default function ApprovalsSection() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Harga</p>
+                                <p className="text-muted-foreground">Harga Satuan</p>
                                 <p className="font-medium">
                                   {formatCurrency(notification.relatedData.item.price ?? 0)}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-muted-foreground">Total</p>
-                                <p className="font-medium">
-                                  {formatCurrency((notification.relatedData.item.price ?? 0) * (notification.relatedData.item.quantity ?? 0))}
+                                <p className="text-muted-foreground">{notification.type === 'refund_request' ? 'Nilai Refund' : 'Total'}</p>
+                                <p className={`font-medium ${notification.type === 'refund_request' ? 'text-amber-600 font-bold' : ''}`}>
+                                  {formatCurrency(notification.relatedData.refundAmount ?? (notification.relatedData.item.price ?? 0) * (notification.relatedData.item.quantity ?? 0))}
                                 </p>
                               </div>
                             </div>
@@ -500,6 +516,13 @@ export default function ApprovalsSection() {
                                 {notification.relatedData.reason}
                               </p>
                             </div>
+                            {notification.type === 'refund_request' && (
+                              <div className="pt-2 border-t border-border bg-amber-50 dark:bg-amber-900/20 rounded p-2">
+                                <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+                                  ⚠ Pesanan sudah terbayar. Jika disetujui, uang harus dikembalikan ke pelanggan.
+                                </p>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -525,7 +548,7 @@ export default function ApprovalsSection() {
                           data-testid={`button-approve-${notification.id}`}
                         >
                           <Check className="h-4 w-4 mr-1" />
-                          Setujui
+                          {notification.type === 'refund_request' ? 'Setujui & Refund' : 'Setujui'}
                         </Button>
                         <Button
                           variant="outline"

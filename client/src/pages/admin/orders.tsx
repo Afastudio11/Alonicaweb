@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, ShoppingBag, CheckCircle, Clock, DollarSign, Eye, Receipt, Printer, Search, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, ShoppingBag, CheckCircle, Clock, DollarSign, Eye, Receipt, Printer, Search, TrendingUp, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency, formatDate, getOrderStatusColor } from "@/lib/utils";
@@ -27,10 +29,27 @@ export default function OrdersSection() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
+  const [deletionTarget, setDeletionTarget] = useState<{ itemIndex: number; itemName: string; itemPrice: number; itemQty: number } | null>(null);
+  const [deletionReason, setDeletionReason] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   // Track already-accepted order IDs to prevent re-triggering auto-accept
   const acceptedOrderIds = useRef<Set<string>>(new Set());
+
+  const requestDeletionMutation = useMutation({
+    mutationFn: async ({ orderId, itemIndex, reason }: { orderId: string; itemIndex: number; reason: string }) => {
+      const res = await apiRequest('POST', '/api/orders/request-deletion', { orderId, itemIndex, reason });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Permintaan Terkirim", description: data.message || "Permintaan telah dikirim ke admin" });
+      setDeletionTarget(null);
+      setDeletionReason("");
+    },
+    onError: (error: any) => {
+      toast({ title: "Gagal Mengirim Permintaan", description: error.message || "Terjadi kesalahan", variant: "destructive" });
+    },
+  });
 
   const hasActiveFilters = searchQuery !== "" || dateFilter !== "all" || statusFilter !== "all";
 
@@ -599,16 +618,28 @@ export default function OrdersSection() {
                 <div className="space-y-3">
                   {Array.isArray(viewingOrder.items) ? viewingOrder.items.map((item: any, index: number) => (
                     <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-lg" data-testid={`order-item-${index}`}>
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
                         <p className="text-sm text-muted-foreground">Jumlah: {item.quantity}</p>
                         {item.notes && (
                           <p className="text-sm text-muted-foreground italic">Catatan: {item.notes}</p>
                         )}
                       </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(item.price)}</p>
-                        <p className="text-sm text-muted-foreground">x {item.quantity}</p>
+                      <div className="text-right flex items-center gap-3">
+                        <div>
+                          <p className="font-semibold">{formatCurrency(item.price)}</p>
+                          <p className="text-sm text-muted-foreground">x {item.quantity}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                          title={viewingOrder.paymentStatus === 'paid' ? 'Minta Refund Item (Perlu Persetujuan Admin)' : 'Hapus Item (Perlu Persetujuan Admin)'}
+                          data-testid={`button-request-delete-item-${index}`}
+                          onClick={() => setDeletionTarget({ itemIndex: index, itemName: item.name, itemPrice: item.price, itemQty: item.quantity })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   )) : (
@@ -642,6 +673,66 @@ export default function OrdersSection() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Deletion / Refund Request Dialog */}
+      <Dialog open={!!deletionTarget} onOpenChange={(open) => { if (!open) { setDeletionTarget(null); setDeletionReason(""); } }}>
+        <DialogContent className="max-w-md" data-testid="modal-deletion-request">
+          <DialogHeader>
+            <DialogTitle>
+              {viewingOrder?.paymentStatus === 'paid' ? 'Minta Refund Item' : 'Minta Hapus Item'}
+            </DialogTitle>
+            <DialogDescription>
+              {viewingOrder?.paymentStatus === 'paid'
+                ? 'Permintaan ini akan dikirim ke super admin. Jika disetujui, refund akan dicatat dan uang dikembalikan ke pelanggan.'
+                : 'Permintaan ini akan dikirim ke admin. Jika disetujui, item akan dihapus dari tagihan.'}
+            </DialogDescription>
+          </DialogHeader>
+          {deletionTarget && (
+            <div className="space-y-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="font-medium">{deletionTarget.itemName}</p>
+                <p className="text-sm text-muted-foreground">
+                  {deletionTarget.itemQty}x — {formatCurrency(deletionTarget.itemPrice * deletionTarget.itemQty)}
+                </p>
+                {viewingOrder?.paymentStatus === 'paid' && (
+                  <p className="text-sm font-semibold text-amber-600 mt-1">
+                    Refund: {formatCurrency(deletionTarget.itemPrice * deletionTarget.itemQty)}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deletion-reason">
+                  Alasan {viewingOrder?.paymentStatus === 'paid' ? 'Refund' : 'Penghapusan'} <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="deletion-reason"
+                  placeholder={viewingOrder?.paymentStatus === 'paid' ? 'Contoh: Menu habis, pelanggan sudah membayar' : 'Contoh: Menu habis, pelanggan batal pesan'}
+                  value={deletionReason}
+                  onChange={(e) => setDeletionReason(e.target.value)}
+                  rows={3}
+                  data-testid="input-deletion-reason"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDeletionTarget(null); setDeletionReason(""); }} data-testid="button-cancel-deletion">
+              Batal
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!deletionReason.trim() || requestDeletionMutation.isPending}
+              data-testid="button-confirm-deletion-request"
+              onClick={() => {
+                if (!viewingOrder || !deletionTarget || !deletionReason.trim()) return;
+                requestDeletionMutation.mutate({ orderId: viewingOrder.id, itemIndex: deletionTarget.itemIndex, reason: deletionReason.trim() });
+              }}
+            >
+              {requestDeletionMutation.isPending ? 'Mengirim...' : 'Kirim Permintaan'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
