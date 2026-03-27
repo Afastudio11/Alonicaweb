@@ -48,6 +48,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  name: text("name"), // Display name shown on receipts; falls back to username if null
   role: text("role").notNull().default("admin"),
   branchId: varchar("branch_id").references(() => branches.id, { onDelete: "set null" }),
   isActive: boolean("is_active").notNull().default(true),

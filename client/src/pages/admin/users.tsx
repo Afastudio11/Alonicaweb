@@ -20,12 +20,14 @@ import { MENU_GROUPS, ALL_MENU_KEYS } from "@/lib/menu-definitions";
 
 // Schema for creating new users
 const createUserSchema = insertUserSchema.extend({
+  name: z.string().optional().nullable(),
   allowedMenus: z.array(z.string()).optional().nullable(),
 });
 
 // Schema for editing users (password is optional)
 const editUserSchema = insertUserSchema.extend({
   password: z.string().optional(),
+  name: z.string().optional().nullable(),
   allowedMenus: z.array(z.string()).optional().nullable(),
 });
 
@@ -50,6 +52,7 @@ export default function UsersSection() {
     defaultValues: {
       username: "",
       password: "",
+      name: "",
       role: "kasir",
       allowedMenus: null,
     }
@@ -61,6 +64,7 @@ export default function UsersSection() {
     defaultValues: {
       username: "",
       password: "",
+      name: "",
       role: "kasir",
       allowedMenus: null,
     }
@@ -139,6 +143,7 @@ export default function UsersSection() {
     editForm.reset({
       username: user.username,
       password: "",
+      name: (user as any).name ?? "",
       role: user.role,
       allowedMenus: (user as any).allowedMenus ?? null,
     });
@@ -157,8 +162,8 @@ export default function UsersSection() {
   const handleCloseDialog = () => {
     setShowAddDialog(false);
     setEditingUser(null);
-    createForm.reset({ username: "", password: "", role: "kasir", allowedMenus: null });
-    editForm.reset({ username: "", password: "", role: "kasir", allowedMenus: null });
+    createForm.reset({ username: "", password: "", name: "", role: "kasir", allowedMenus: null });
+    editForm.reset({ username: "", password: "", name: "", role: "kasir", allowedMenus: null });
     setShowPassword(false);
   };
 
@@ -306,6 +311,28 @@ export default function UsersSection() {
                       <FormLabel>Username</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Masukkan username" data-testid="input-username" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Name (for receipt) */}
+                <FormField
+                  control={currentForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Nama <span style={{ fontWeight: 400, color: "#8E8E93", fontSize: 12 }}>(tampil di struk)</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="Nama lengkap, cth: Budi Santoso"
+                          data-testid="input-name"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

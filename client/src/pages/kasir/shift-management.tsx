@@ -459,7 +459,7 @@ export default function ShiftManagementSection() {
                         const reportDate = new Date(shift.startTime).toISOString().split("T")[0];
                         const ok = generateShiftPDF(
                           {
-                            kasirName: user?.username ?? "Kasir",
+                            kasirName: (user as any)?.name || user?.username || "Kasir",
                             branchName: "",
                             reportDate,
                             shiftStart: shift.startTime,

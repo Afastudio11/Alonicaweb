@@ -506,7 +506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.json({ 
-        user: { id: user.id, username: user.username, role: user.role, branchId: user.branchId ?? null, allowedMenus: user.allowedMenus ?? null }
+        user: { id: user.id, username: user.username, name: user.name ?? null, role: user.role, branchId: user.branchId ?? null, allowedMenus: user.allowedMenus ?? null }
       });
     } catch (error) {
       console.error("❌ Login error:", error);
@@ -532,6 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       user: { 
         id: session.userId, 
         username: session.username, 
+        name: currentUser?.name ?? null,
         role: session.role,
         branchId: session.branchId ?? null,
         allowedMenus: currentUser?.allowedMenus ?? null,
@@ -1574,7 +1575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shiftId: body.shiftId,
         branchId: user.branchId || null,
         kasirId: user.id,
-        kasirName: user.username,
+        kasirName: (user as any).name || user.username,
         branchName,
         reportDate: body.reportDate,
         shiftStart: new Date(body.shiftStart),
