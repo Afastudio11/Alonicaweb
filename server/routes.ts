@@ -2148,6 +2148,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Member autocomplete for cashier — accessible by admin and kasir
+  app.get("/api/members/autocomplete", requireAuth, requireAdminOrKasir, async (req, res) => {
+    try {
+      const all = await storage.getMembers();
+      res.json(all.map(m => ({ name: m.name, phone: m.phone, isVip: m.isVip, discountPercent: m.discountPercent })));
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/members/check/:phone", async (req, res) => {
     try {
       const member = await storage.getMember(req.params.phone);

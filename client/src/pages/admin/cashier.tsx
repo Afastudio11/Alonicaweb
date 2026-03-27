@@ -132,9 +132,9 @@ export default function CashierSection() {
     queryKey: ["/api/tables"],
   });
 
-  // Load members for autocomplete
-  const { data: allMembers = [] } = useQuery<Member[]>({
-    queryKey: ["/api/members"],
+  // Load members for autocomplete — uses kasir-accessible endpoint
+  const { data: allMembers = [] } = useQuery<Pick<Member, "name" | "phone" | "isVip" | "discountPercent">[]>({
+    queryKey: ["/api/members/autocomplete"],
   });
 
   // Filter members by typed name
