@@ -615,7 +615,7 @@ export default function OrdersSection() {
               {/* Order Items */}
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase mb-3">Item Dipesan</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
                   {Array.isArray(viewingOrder.items) ? viewingOrder.items.map((item: any, index: number) => (
                     <div key={index} className="flex justify-between items-center p-3 bg-muted rounded-lg" data-testid={`order-item-${index}`}>
                       <div className="flex-1">
